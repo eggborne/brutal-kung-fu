@@ -1,0 +1,84 @@
+{"frames": {
+
+"nesbutton":
+{
+	"frame": {"x":293,"y":228,"w":117,"h":120},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":17,"y":16,"w":117,"h":120},
+	"sourceSize": {"w":150,"h":150}
+},
+"nesbuttonpressed":
+{
+	"frame": {"x":412,"y":228,"w":117,"h":120},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":17,"y":16,"w":117,"h":120},
+	"sourceSize": {"w":150,"h":150}
+},
+"nescenter":
+{
+	"frame": {"x":520,"y":1,"w":82,"h":82},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":82,"h":82},
+	"sourceSize": {"w":82,"h":82}
+},
+"nesdown":
+{
+	"frame": {"x":1,"y":293,"w":82,"h":69},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":82,"h":69},
+	"sourceSize": {"w":82,"h":69}
+},
+"nesleft":
+{
+	"frame": {"x":531,"y":85,"w":69,"h":82},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":69,"h":82},
+	"sourceSize": {"w":69,"h":82}
+},
+"nespadbacking":
+{
+	"frame": {"x":1,"y":1,"w":290,"h":290},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":5,"y":5,"w":290,"h":290},
+	"sourceSize": {"w":300,"h":300}
+},
+"nesright":
+{
+	"frame": {"x":531,"y":169,"w":69,"h":82},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":69,"h":82},
+	"sourceSize": {"w":69,"h":82}
+},
+"nesup":
+{
+	"frame": {"x":85,"y":293,"w":82,"h":69},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":82,"h":69},
+	"sourceSize": {"w":82,"h":69}
+},
+"whitebutton":
+{
+	"frame": {"x":293,"y":1,"w":225,"h":225},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":225,"h":225},
+	"sourceSize": {"w":225,"h":225}
+}},
+"meta": {
+	"app": "http://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "nessprites.png",
+	"format": "RGBA8888",
+	"size": {"w":603,"h":363},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:3876068a6eff9a5683699cc958aa2f4e:83362f539197c06ab7ef3e932afc06f4:536eeba712808115ca36debe816dfad7$"
+}
+}

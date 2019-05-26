@@ -1,0 +1,143 @@
+body {
+  margin: 0;
+  position: fixed;
+  width: 100vw;
+  max-height: 100%;
+  background-color: #000000;
+  text-align: center;
+  font-family: 'Press Start 2P';
+  -webkit-font-smoothing: subpixel-antialiased;
+  text-rendering: optimizeLegibility;
+  -moz-osx-font-smoothing: auto;
+  overflow: hidden;
+  opacity: 0;
+  transform: scaleY(0.5);
+  user-select: none;
+  -khtml-user-select: none;
+  -o-user-select: none;
+  -moz-user-select: -moz-none;
+  -webkit-user-select: none;
+  transition: all 300ms ease;
+  will-change: transition, opacity;
+}
+
+#game-canvas {
+  position: relative;
+  margin: 0 auto;
+  /* width:calc(100vh / calc(15 / 16) ) ; */
+  /* width:100vw; */
+  /* height:100vh; */
+  background-color: #9290ff;
+}
+#name-entry {
+  position: absolute;
+  width: 68vw;
+  height: 15vw;
+  top: 5vw;
+  left: 2.5vw;
+  padding-left: 2vw;
+  background-color: white;
+  text-transform: uppercase;
+  font-family: 'Press Start 2P';
+  transition: all 300ms ease;
+  display: none;
+}
+#name-submit {
+  position: absolute;
+  width: 25vw;
+  height: 15vw;
+  top: 5vw;
+  right: 2.5vw;
+  padding-left: 2vw;
+  background-color: lightgray;
+  text-transform: uppercase;
+  font-family: 'Press Start 2P';
+  background-color: #464;
+  color: white;
+  border-color: #898;
+  transform: scale(1);
+  transition: all 10ms ease, transform 100ms ease;
+  display: none;
+}
+.pulsed {
+  background-color: #afa;
+}
+#name-submit:disabled {
+  background-color: grey;
+  color: lightgrey;
+}
+#d-pad {
+  position: absolute;
+  background-color: blue;
+  opacity: 0;
+}
+#nes-panel-bg {
+  position: fixed;
+  background-color: #151515;
+  opacity: 1;
+  border-radius: 5vmin;
+}
+#nes-border {
+  position: fixed;
+  background-color: #aaa;
+  width: 100vw;
+}
+.button-back {
+  position: fixed;
+  background-color: #aaaaaa;
+  border-radius: 2vmin;
+}
+
+@media (orientation: portrait) {
+  #game-canvas {
+    height: calc(100vw * calc(15 / 16));
+    /* background-color:black; */
+  }
+  #landscape-nes-controls {
+    display: none;
+  }
+  .blinder {
+    display: none;
+  }
+}
+@media (orientation: landscape) {
+  #game-canvas {
+    width: calc(100vh / calc(15 / 16));
+    height: 100vh;
+    /* background-color:black; */
+    /* background-color: transparent; */
+  }
+  #nes-panel-bg {
+    display: none;
+  }
+  /* body { */
+  /* background-color: transparent */
+  /* } */
+  #nes-border {
+    display: none;
+  }
+  #landscape-nes-controls {
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    top: 0;
+    left: 0;
+    background-color: aquamarine;
+    opacity: 0.3;
+    z-index: 0;
+    pointer-events: none;
+  }
+  #left-control {
+    float: left;
+  }
+  #right-control {
+    float: right;
+  }
+
+  .blinder {
+    position: fixed;
+    background-color: black;
+    height: 100vh;
+    z-index: 3;
+  }
+}
