@@ -100,6 +100,7 @@ body {
     display: none;
   }
 }
+
 @media (orientation: landscape) {
   #game-canvas {
     width: calc(100vh / calc(15 / 16));
@@ -139,5 +140,48 @@ body {
     background-color: black;
     height: 100vh;
     z-index: 3;
+  }
+  #turn-phone-shade {
+    box-sizing: border-box;
+    position: fixed;
+    background-color: black;
+    opacity: 0.9;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+  }
+  #turn-phone-instructions {
+    position: fixed;
+    width: 60vw;
+    height: 65vh;
+    transform: translateX(-50%) translateY(-50%);
+    top: 50vh;
+    left: 50vw;
+    /* background: black; */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+    color: white;
+    font-size: 2vw;
+    line-height: 150%;
+  }
+  #turn-phone-instructions > img {
+    width: 40vh;
+    height: 40vh;
+    opacity: 0.8;
+    border: 2vw solid black;
+  }
+  #turn-phone-instructions > small {
+    font-size: 1vw;
+  }
+}
+
+
+/* physical keyboard ? */
+@media (hover: hover) and (pointer: fine) {
+  #turn-phone-shade, #turn-phone-instructions {
+    display: none;
   }
 }
