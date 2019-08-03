@@ -102,18 +102,16 @@ body {
 }
 
 @media (orientation: landscape) {
+  body {
+    background-color: black;
+  }
   #game-canvas {
     width: calc(100vh / calc(15 / 16));
     height: 100vh;
-    /* background-color:black; */
-    /* background-color: transparent; */
   }
   #nes-panel-bg {
     display: none;
   }
-  /* body { */
-  /* background-color: transparent */
-  /* } */
   #nes-border {
     display: none;
   }
@@ -181,7 +179,7 @@ body {
 
 /* physical keyboard ? */
 @media (hover: hover) and (pointer: fine) {
-  #turn-phone-shade, #turn-phone-instructions {
+  #turn-phone-shade, #turn-phone-instructions, #turn-phone-instructions > img {
     display: none;
   }
 }

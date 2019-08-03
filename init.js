@@ -212,7 +212,8 @@ function playSound(sound) {
 PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
 PIXI.settings.RESOLUTION = window.devicePixelRatio;
 renderer = PIXI.autoDetectRenderer({
-  width: viewWidth,
+  // width: viewWidth,
+  width: viewHeight / (15 / 16),
   height: viewHeight,
   autoResize: true,
   powerPreference: 'high-performance',
@@ -341,20 +342,12 @@ blipStyle = {
 created = false;
 function clearTitle() {
   if (!startDisabled) {
-    if (landscape) {
-      $('body').css({ 'background-color': 'transparent' });
-    }
     titleScreen.container.visible = false;
     if (!floorDisplay.container.visible) {
       floorDisplay.container.visible = true;
     }
-
     // playSound(gameStartMusic);
   }
-  // stage.removeChild(titleScreen)
-  // if (landscape) {
-  //     stage.removeChild(screenCover)
-  // }
 }
 noSound = true;
 
