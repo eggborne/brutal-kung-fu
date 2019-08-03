@@ -1,3 +1,13 @@
+let controlScreenOn = false;
+let actionKeys = {
+  walkLeft: 'A',
+  walkRight: 'D',
+  jump: 'W',
+  crouch: 'S',
+  punch: 'J',
+  kick: 'K',
+  throw: 'L'
+}
 function checkIfPressing(spr) {
   var pressing = false;
   var pressSpot = touches[0].pos;
@@ -10,6 +20,19 @@ function checkIfPressing(spr) {
     spr.tint = 0xff0000;
   }
   return pressing;
+}
+function toggleControlScreen() {
+  controlScreenOn = !controlScreenOn;
+  if (controlScreenOn) {
+    document.getElementById('brutal-logo').classList.add('hidden');
+    document.getElementById('kung-fu-logo').classList.add('hidden');
+    document.getElementById('controls-screen').classList.add('showing');    
+  } else {
+    document.getElementById('brutal-logo').classList.remove('hidden');
+    document.getElementById('kung-fu-logo').classList.remove('hidden');
+    document.getElementById('controls-screen').classList.remove('showing');
+  }
+  console.warn('control screen', controlScreenOn);
 }
 function ScoreDisplay() {
   this.lineHeight = tileSize / 2.5;
@@ -765,6 +788,7 @@ function TitleScreen() {
   this.startButton = new PIXI.Container();
   this.highScoresButton = new PIXI.Container();
   this.fullScreenButton = new PIXI.Container();
+  this.kungFuLogo = new PIXI.Sprite()
   this.highScoresBg = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
   this.startBg = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
   this.soundButton = new PIXI.Container();
@@ -772,15 +796,20 @@ function TitleScreen() {
   this.soundText = new PIXI.Text('SOUND: OFF', buttonStyle);
   this.fullScreenBg = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
   this.fullScreenText = new PIXI.Text('FULL SCREEN: OFF', buttonStyle);
+  this.controlsButton = new PIXI.Container();
+  this.controlsBg = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
+  this.controlsText = new PIXI.Text('CUSTOMIZE KEYS', buttonStyle);
   this.startText = new PIXI.Text('START!', titleStyle);
   this.highScoresText = new PIXI.Text('HIGH SCORES', titleStyle2);
-  this.startBg.anchor.x = this.startText.anchor.x = this.soundBg.anchor.x = this.soundText.anchor.x = this.fullScreenBg.anchor.x = this.fullScreenText.anchor.x = this.highScoresBg.anchor.x = this.highScoresText.anchor.x = 0.5;
+  this.startBg.anchor.x = this.startText.anchor.x = this.controlsBg.anchor.x = this.controlsText.anchor.x = this.soundBg.anchor.x = this.soundText.anchor.x = this.fullScreenBg.anchor.x = this.fullScreenText.anchor.x = this.highScoresBg.anchor.x = this.highScoresText.anchor.x = 0.5;
   this.startText.anchor.y = this.highScoresText.anchor.y = this.fullScreenText.anchor.y = 0.5;
   this.soundText.anchor.y = 0.5;
-  this.startButton.x = this.highScoresButton.x = this.soundButton.x = this.fullScreenButton.x = gameWidth / 2;
+  this.controlsText.anchor.y = 0.5;
+  this.startButton.x = this.highScoresButton.x = this.soundButton.x = this.fullScreenButton.x = this.controlsButton.x = gameWidth / 2;
   this.startBg.tint = 0x333333;
   this.highScoresBg.tint = 0x333333;
   this.soundBg.tint = this.fullScreenBg.tint = 0x444444;
+  this.controlsBg.tint = 0x446666;
   this.startBg.width = tileSize * 7;
   this.startBg.height = tileSize * 1.5;
   this.highScoresBg.width = this.startBg.width;
@@ -789,16 +818,18 @@ function TitleScreen() {
   this.soundBg.height = this.startBg.height * 0.8;
   this.fullScreenBg.width = this.startBg.width;
   this.fullScreenBg.height = this.soundBg.height;
-  this.fullScreenText.y = this.fullScreenBg.y + this.fullScreenBg.height / 2;
-
-  this.startBg.y = newPixelSize * 73 + tileSize;
+  this.controlsBg.width = this.startBg.width;
+  this.controlsBg.height = this.soundBg.height;
+  this.fullScreenText.y = this.controlsText.y = this.fullScreenBg.y + this.fullScreenBg.height / 2;
+  this.startBg.y = newPixelSize * 84 + tileSize;
   this.highScoresBg.y = this.startBg.y + this.startBg.height + newPixelSize * 12;
   this.startText.y = this.startBg.y + this.startBg.height / 2;
   this.highScoresText.y = this.highScoresBg.y + this.highScoresBg.height / 2;
   // this.soundBg.y = this.startBg.y+this.startBg.height+(this.soundBg.height/2)
   this.soundButton.y = this.highScoresBg.y + this.highScoresBg.height + this.highScoresBg.height / 2;
   this.soundText.y = this.soundBg.y + this.soundBg.height / 2;
-  this.fullScreenButton.y = this.soundButton.y + this.soundBg.height + newPixelSize * 12;
+  this.fullScreenButton.y = this.controlsButton.y = this.soundButton.y + this.soundBg.height + newPixelSize * 12;
+  this.controlsButton.y = this.soundButton.y + this.soundBg.height + newPixelSize * 12;
   this.soundText.tint = this.fullScreenText.tint = 0x777777;
   this.startButton.addChild(this.startBg);
   this.startButton.addChild(this.startText);
@@ -806,8 +837,10 @@ function TitleScreen() {
   this.highScoresButton.addChild(this.highScoresText);
   this.soundButton.addChild(this.soundBg);
   this.soundButton.addChild(this.soundText);
-  this.fullScreenButton.addChild(this.fullScreenBg);
-  this.fullScreenButton.addChild(this.fullScreenText);
+  this.controlsButton.addChild(this.controlsBg);
+  this.controlsButton.addChild(this.controlsText);
+  // this.fullScreenButton.addChild(this.fullScreenBg);
+  // this.fullScreenButton.addChild(this.fullScreenText);
   loadMessage = new PIXI.Text('SOUNDS LOADED: 0/13', scoreStyle);
   loadMessage.anchor.x = 0.5;
   loadMessage.x = this.startBg.x;
@@ -818,7 +851,7 @@ function TitleScreen() {
   this.titleCard.x = gameWidth / 2;
   this.titleCard.width = gameWidth;
   this.titleCard.height = gameHeight;
-  this.startButton.interactive = this.highScoresButton.interactive = true;
+  this.startButton.interactive = this.highScoresButton.interactive = this.controlsButton.interactive = true;
   this.startButton.on('pointerdown', function() {
     selector.move(0, 0);
   });
@@ -850,11 +883,20 @@ function TitleScreen() {
     toggleFullScreen();
     // toggleSound()
   });
+  this.controlsButton.on('pointerdown', function() {
+    selector.move(0, 3);
+    // toggleFullScreen()
+  });
+  this.controlsButton.on('pointerup', function() {
+    toggleControlScreen();
+    // toggleSound()
+  });
   this.container.addChild(this.titleCard);
   this.container.addChild(this.startButton);
   this.container.addChild(this.highScoresButton);
   this.container.addChild(this.soundButton);
-  this.container.addChild(this.fullScreenButton);
+  this.container.addChild(this.controlsButton);
+  // this.container.addChild(this.fullScreenButton);
 }
 function DragonSelector() {
   this.container = new PIXI.Container();
@@ -942,7 +984,7 @@ function DragonSelector() {
       toggleSound();
     }
     if (selected === 'fullscreen') {
-      toggleFullScreen();
+      // toggleFullScreen();
     }
   };
   this.chooseSelection = function() {
@@ -958,7 +1000,7 @@ function DragonSelector() {
       toggleSound();
     }
     if (selected === 'fullscreen') {
-      toggleFullScreen();
+      toggleControlScreen();
     }
   };
 
@@ -1188,9 +1230,13 @@ function toggleNameEntry() {
 function toggleHighScores() {
   if (!highScoresScreen.container.visible) {
     highScoresScreen.container.visible = true;
+    document.getElementById('brutal-logo').classList.add('hidden');
+    document.getElementById('kung-fu-logo').classList.add('hidden');
     getScoresFromDatabase(gameName, true);
     // highScoresScreen.populateEntries()
   } else {
+    document.getElementById('brutal-logo').classList.remove('hidden');
+    document.getElementById('kung-fu-logo').classList.remove('hidden');
     highScoresScreen.container.visible = false;
   }
 }

@@ -14,7 +14,11 @@ window.addEventListener('load', function () {
       document.body.style.opacity = 1;
       document.body.style.transform = 'scaleY(1)';
     });
-});
+    document.getElementById('brutal-logo').classList.add('landed');
+    document.getElementById('kung-fu-logo').classList.add('landed');
+  });
+
+let showInstructions = true;
 
 $(document).ready(function() {
   // gameOverMusic = new Howl({
@@ -252,6 +256,9 @@ tileSize = Math.round(gameWidth / tilesPerWidth);
 //     tileSize = Math.round(gameHeight/tilesPerHeight)
 // }
 var newPixelSize = tileSize / tilesPerWidth;
+document.documentElement.style.setProperty('--pixel-size', newPixelSize + 'px');
+
+
 introTime = 30;
 var walkupTime = 120;
 topScore = 0;
@@ -346,6 +353,8 @@ function clearTitle() {
     if (!floorDisplay.container.visible) {
       floorDisplay.container.visible = true;
     }
+    document.getElementById('brutal-logo').classList.add('hidden');
+    document.getElementById('kung-fu-logo').classList.add('hidden');
     // playSound(gameStartMusic);
   }
 }
@@ -515,6 +524,11 @@ function createGame() {
     // nesPanel.dPad.y = 100
     // nesPanel.container.y -= gameHeight
     // nesPanel.bg.alpha = 0
+  }
+}
+if (landscape && !isTouchDevice) {
+  document.getElementById('close-controls-button').onclick = () => {
+    toggleControlScreen();
   }
 }
 scoreDisplay = undefined;
