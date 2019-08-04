@@ -19,20 +19,85 @@
 </head>
 
 <body>
-	<div id="nes-border"></div>
-	<div id="nes-panel-bg"></div>
-	<div class="button-back" id="b-back"></div>
-	<div class="button-back" id="a-back"></div>
+	<div id='gamepad-container'>
+		<div id="nes-border"></div>
+		<div id="nes-panel-bg"></div>
+		<div class="button-back" id="b-back"></div>
+		<div class="button-back" id="a-back"></div>
+		<div id="d-pad"></div>
+	</div>
+
 	<div id='brutal-logo'></div>
 	<div id='kung-fu-logo'></div>
 	<div id="game-canvas"></div>
 
-	<div id="d-pad"></div>
 	<input id="name-entry" type="text" maxlength="9" placeholder="ENTER NAME"></input>
 	<button disabled onclick="submitHighScore()" id="name-submit">OK!</button>
+	<div id='options-screen'>
+		<header>OPTIONS</header>
+		<div id='options-body'>
+			<div id='options-grid'>
+				<div class='option-label'>SOUND FX</div>
+				<div id='sound-toggle' class='option-value'></div>
+				<div class='option-label'>MUSIC</div>
+				<div id='music-toggle' class='option-value'></div>
+				<div class='option-label'>FULL SCREEN</div>
+				<div id='full-screen-toggle' class='option-value'></div>
+				<!-- <div class='option-label ranged'>G-PAD POSITION</div>
+				<div class='option-range'>
+					<div id='gamepad-high-button' class='option-range-value ranged on'>HIGH</div>
+					<div id='gamepad-mid-button' class='option-range-value ranged'>MID</div>
+					<div id='gamepad-low-button' class='option-range-value ranged'>LOW</div>
+				</div> -->
+				<div id='controls-button'>CUSTOMIZE CONTROLS</div>
+			</div>
+		</div>
+		<div id='close-options-button' class='close-button'>OK</div>
+	</div>
+	<div id='key-edit-modal'>
+		
+	</div>
 	<div id='controls-screen'>
-		<div id='controls-grid'>
-			<div id='controls-title'>CUSTOMIZE KEYS</div>
+		<div id='controls-title'>
+			<div id='keyboard-controls-tab' class='controls-tab selected'>
+				KEYBOARD
+			</div>
+			<div id='gamepad-controls-tab' class='controls-tab'>
+				GAMEPAD
+			</div>
+		</div>
+		<div id='keyboard-controls-grid' class='controls-grid'>
+			<div class='action-type-area'>
+				<div class='action-type-label'>MOVEMENT</div>
+				<div class='action-listing'>WALK LEFT</div>
+				<div class='key-listing'>A</div>
+				<div class='key-edit-button'></div>
+				<div class='action-listing'>WALK RIGHT</div>
+				<div class='key-listing'>D</div>
+				<div class='key-edit-button'></div>
+				<div class='action-listing'>JUMP</div>
+				<div class='key-listing'>W</div>
+				<div class='key-edit-button'></div>
+				<div class='action-listing'>CROUCH</div>
+				<div class='key-listing'>S</div>
+				<div class='key-edit-button'></div>
+			</div>
+			<div class='action-type-area'>
+				<div class='action-type-label'>ATTACK</div>
+				<div class='action-listing'>PUNCH/<br />STAB</div>
+				<div class='key-listing'>J</div>
+				<div class='key-edit-button'></div>
+				<div class='action-listing'>KICK</div>
+				<div class='key-listing'>K</div>
+				<div class='key-edit-button'></div>
+				<div class='action-listing'>THROW KNIFE</div>
+				<div class='key-listing'>L</div>
+				<div class='key-edit-button'></div>
+				<div class='action-listing empty'>BALLS</div>
+				<div class='key-edit-button empty'></div>
+			</div>
+		</div>
+		<div id='gamepad-controls-grid' class='controls-grid hidden'>
 			<div class='action-type-area'>
 				<div class='action-type-label'>MOVEMENT</div>
 				<div class='action-listing'>WALK LEFT</div>
@@ -55,38 +120,39 @@
 				<div class='action-listing empty'>BALLS</div>
 				<div class='key-listing empty'></div>
 			</div>
+			<div id='coming-soon-message'>
+				Gamepad support is in the works :)
+			</div>
 		</div>
-		<div id='close-controls-button'>OK</div>
+		<div id='close-controls-button' class='close-button'>DONE</div>
 	</div>
-	<div id='turn-phone-shade'>
-		
-	</div>
+	<div id='turn-phone-shade'></div>
 	<div id='turn-phone-instructions' src='../assets/turnphoneicon.png'>
 		<caption>Landscape mode unavailable :(</caption>
 		<img src='assets/turnphoneicon.png'/>
-		<caption>Please turn your device to Portrait mode to play :)</caption>
-		<small>(Or visit on desktop!)</small>
+		<caption>Please rotate your device to Portrait mode to play :)</caption>
+		<small>(Or visit on desktop)</small>
 	</div>
 
 	<!-- development -->
 
-	<script src="init.js"></script>
+	<!-- <script src="init.js"></script>
 	<script async src="js/event.js"></script>
 	<script async src="js/enemies.js"></script>
 	<script async src="js/player.js"></script>
 	<script async src="js/levels.js"></script>
 	<script async src="js/gui.js"></script>
-	<script async src="js/exec.js"></script>
+	<script async src="js/exec.js"></script> -->
 
 	<!-- production -->
 
-	<!-- <script src="jsmin/init.js"></script>
+	<script src="jsmin/init.js"></script>
 	<script async src="jsmin/event.js"></script>
 	<script async src="jsmin/enemies.js"></script>
 	<script async src="jsmin/player.js"></script>
 	<script async src="jsmin/levels.js"></script>
 	<script async src="jsmin/gui.js"></script>
-	<script async src="jsmin/exec.js"></script> -->
+	<script async src="jsmin/exec.js"></script>
 
 	<script defer src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.1.2/howler.min.js"></script>
 </body>

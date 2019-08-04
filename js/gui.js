@@ -1,12 +1,14 @@
-let controlScreenOn = false;
+let controlScreenOn = optionsScreenOn = false;
+let controlTabSelected = 'keyboard';
+let editingKeyForAction = false;
 let actionKeys = {
-  walkLeft: 'A',
-  walkRight: 'D',
-  jump: 'W',
-  crouch: 'S',
-  punch: 'J',
-  kick: 'K',
-  throw: 'L'
+  'WALK LEFT': 'a',
+  'WALK RIGHT': 'd',
+  'JUMP': 'w',
+  'CROUCH': 's',
+  'PUNCH': 'j',
+  'KICK': 'k',
+  'THROW': 'l'
 }
 function checkIfPressing(spr) {
   var pressing = false;
@@ -24,15 +26,80 @@ function checkIfPressing(spr) {
 function toggleControlScreen() {
   controlScreenOn = !controlScreenOn;
   if (controlScreenOn) {
-    document.getElementById('brutal-logo').classList.add('hidden');
-    document.getElementById('kung-fu-logo').classList.add('hidden');
+    // document.getElementById('brutal-logo').classList.add('hidden');
+    // document.getElementById('kung-fu-logo').classList.add('hidden');
     document.getElementById('controls-screen').classList.add('showing');    
   } else {
-    document.getElementById('brutal-logo').classList.remove('hidden');
-    document.getElementById('kung-fu-logo').classList.remove('hidden');
+    // document.getElementById('brutal-logo').classList.remove('hidden');
+    // document.getElementById('kung-fu-logo').classList.remove('hidden');
     document.getElementById('controls-screen').classList.remove('showing');
   }
   console.warn('control screen', controlScreenOn);
+}
+function toggleOptionsScreen() {
+  optionsScreenOn = !optionsScreenOn;
+  if (optionsScreenOn) {
+    document.getElementById('brutal-logo').classList.add('hidden');
+    document.getElementById('kung-fu-logo').classList.add('hidden');
+    document.getElementById('options-screen').classList.add('showing');    
+  } else {
+    document.getElementById('brutal-logo').classList.remove('hidden');
+    document.getElementById('kung-fu-logo').classList.remove('hidden');
+    document.getElementById('options-screen').classList.remove('showing');
+  }
+  console.warn('options screen', optionsScreenOn);
+}
+function callKeyEditModal(action) {
+  let displayAction = action;
+  if (action === 'PUNCH') {
+    displayAction += '/STAB';
+  }
+  document.getElementById('turn-phone-shade').style.display = 'flex';
+  document.getElementById('key-edit-modal').innerHTML = `
+    <div>
+      Press the new key for<div id='modal-action-display'>${displayAction}</div>now.
+    </div>
+    <div id='modal-cancel-message'>or press ESC to cancel.</div>
+  `;
+  document.getElementById('key-edit-modal').classList.add('showing');
+  editingKeyForAction = action;
+}
+function dismissKeyEditModal(action) {
+  document.getElementById('turn-phone-shade').style.display = 'none';
+  document.getElementById('key-edit-modal').classList.remove('showing');
+  editingKeyForAction = undefined;
+}
+function refreshKeyDisplay() {
+  let rowRelevant = false;
+  [...document.getElementById('keyboard-controls-grid').children].map((typeArea, t) => {
+    [...typeArea.children].map((rowMember, r) => {
+      if (rowMember.classList.contains('action-listing')) {
+        if (rowMember.innerHTML === editingKeyForAction) {
+          rowRelevant = true;
+        }
+      };
+      if (rowMember.classList.contains('key-listing')) {
+        if (rowRelevant) {
+          let displayKey = actionKeys[editingKeyForAction];
+          if (displayKey === ' ') {
+            displayKey = 'SPACE';
+          }
+          if (displayKey.length > 1) {
+            rowMember.classList.add('long-name');
+          } else {
+            rowMember.classList.remove('long-name');
+            displayKey = displayKey.toUpperCase();       
+          }
+          rowMember.innerHTML = displayKey;
+          rowMember.classList.add('just-changed');
+          setTimeout(() => {
+            rowMember.classList.remove('just-changed');
+          }, 400)
+          rowRelevant = false;
+        }
+      };      
+    })
+  })
 }
 function ScoreDisplay() {
   this.lineHeight = tileSize / 2.5;
@@ -787,9 +854,11 @@ function TitleScreen() {
   this.titleCard = new PIXI.Sprite(PIXI.utils.TextureCache['titlescreen']);
   this.startButton = new PIXI.Container();
   this.highScoresButton = new PIXI.Container();
+  this.optionsButton = new PIXI.Container();
   this.fullScreenButton = new PIXI.Container();
   this.kungFuLogo = new PIXI.Sprite()
   this.highScoresBg = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
+  this.optionsBg = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
   this.startBg = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
   this.soundButton = new PIXI.Container();
   this.soundBg = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
@@ -798,27 +867,30 @@ function TitleScreen() {
   this.fullScreenText = new PIXI.Text('FULL SCREEN: OFF', buttonStyle);
   this.controlsButton = new PIXI.Container();
   this.controlsBg = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
-  this.controlsText = new PIXI.Text('CUSTOMIZE KEYS', buttonStyle);
+  this.controlsText = new PIXI.Text('CUSTOMIZE CONTROLS', buttonStyle);
   this.startText = new PIXI.Text('START!', titleStyle);
   this.highScoresText = new PIXI.Text('HIGH SCORES', titleStyle2);
-  this.startBg.anchor.x = this.startText.anchor.x = this.controlsBg.anchor.x = this.controlsText.anchor.x = this.soundBg.anchor.x = this.soundText.anchor.x = this.fullScreenBg.anchor.x = this.fullScreenText.anchor.x = this.highScoresBg.anchor.x = this.highScoresText.anchor.x = 0.5;
-  this.startText.anchor.y = this.highScoresText.anchor.y = this.fullScreenText.anchor.y = 0.5;
+  this.optionsText = new PIXI.Text('OPTIONS', titleStyle);
+  this.startBg.anchor.x = this.startText.anchor.x = this.controlsBg.anchor.x = this.controlsText.anchor.x = this.soundBg.anchor.x = this.soundText.anchor.x = this.fullScreenBg.anchor.x = this.fullScreenText.anchor.x = this.optionsBg.anchor.x = this.optionsText.anchor.x = this.highScoresBg.anchor.x = this.highScoresText.anchor.x = 0.5;
+  this.startText.anchor.y = this.highScoresText.anchor.y = this.fullScreenText.anchor.y = this.optionsText.anchor.y = 0.5;
   this.soundText.anchor.y = 0.5;
   this.controlsText.anchor.y = 0.5;
   this.startButton.x = this.highScoresButton.x = this.soundButton.x = this.fullScreenButton.x = this.controlsButton.x = gameWidth / 2;
+  this.optionsButton.x = gameWidth / 2;
   this.startBg.tint = 0x333333;
   this.highScoresBg.tint = 0x333333;
+  this.optionsBg.tint = 0x333333;
   this.soundBg.tint = this.fullScreenBg.tint = 0x444444;
   this.controlsBg.tint = 0x446666;
   this.startBg.width = tileSize * 7;
   this.startBg.height = tileSize * 1.5;
-  this.highScoresBg.width = this.startBg.width;
-  this.highScoresBg.height = this.startBg.height;
+  this.highScoresBg.width = this.optionsBg.width = this.startBg.width;
+  this.highScoresBg.height = this.optionsBg.height = this.startBg.height;
   this.soundBg.width = tileSize * 5;
   this.soundBg.height = this.startBg.height * 0.8;
   this.fullScreenBg.width = this.startBg.width;
   this.fullScreenBg.height = this.soundBg.height;
-  this.controlsBg.width = this.startBg.width;
+  this.controlsBg.width = this.startBg.width * 1.15;
   this.controlsBg.height = this.soundBg.height;
   this.fullScreenText.y = this.controlsText.y = this.fullScreenBg.y + this.fullScreenBg.height / 2;
   this.startBg.y = newPixelSize * 84 + tileSize;
@@ -826,8 +898,10 @@ function TitleScreen() {
   this.startText.y = this.startBg.y + this.startBg.height / 2;
   this.highScoresText.y = this.highScoresBg.y + this.highScoresBg.height / 2;
   // this.soundBg.y = this.startBg.y+this.startBg.height+(this.soundBg.height/2)
+  this.optionsButton.y = this.highScoresBg.y + this.highScoresBg.height + this.highScoresBg.height / 2;
   this.soundButton.y = this.highScoresBg.y + this.highScoresBg.height + this.highScoresBg.height / 2;
   this.soundText.y = this.soundBg.y + this.soundBg.height / 2;
+  this.optionsText.y = this.optionsBg.y + this.optionsBg.height / 2;
   this.fullScreenButton.y = this.controlsButton.y = this.soundButton.y + this.soundBg.height + newPixelSize * 12;
   this.controlsButton.y = this.soundButton.y + this.soundBg.height + newPixelSize * 12;
   this.soundText.tint = this.fullScreenText.tint = 0x777777;
@@ -835,10 +909,12 @@ function TitleScreen() {
   this.startButton.addChild(this.startText);
   this.highScoresButton.addChild(this.highScoresBg);
   this.highScoresButton.addChild(this.highScoresText);
-  this.soundButton.addChild(this.soundBg);
-  this.soundButton.addChild(this.soundText);
-  this.controlsButton.addChild(this.controlsBg);
-  this.controlsButton.addChild(this.controlsText);
+  this.optionsButton.addChild(this.optionsBg);
+  this.optionsButton.addChild(this.optionsText);
+  // this.soundButton.addChild(this.soundBg);
+  // this.soundButton.addChild(this.soundText);
+  // this.controlsButton.addChild(this.controlsBg);
+  // this.controlsButton.addChild(this.controlsText);
   // this.fullScreenButton.addChild(this.fullScreenBg);
   // this.fullScreenButton.addChild(this.fullScreenText);
   loadMessage = new PIXI.Text('SOUNDS LOADED: 0/13', scoreStyle);
@@ -851,7 +927,7 @@ function TitleScreen() {
   this.titleCard.x = gameWidth / 2;
   this.titleCard.width = gameWidth;
   this.titleCard.height = gameHeight;
-  this.startButton.interactive = this.highScoresButton.interactive = this.controlsButton.interactive = true;
+  this.startButton.interactive = this.highScoresButton.interactive = this.optionsButton.interactive = true;
   this.startButton.on('pointerdown', function() {
     selector.move(0, 0);
   });
@@ -866,37 +942,22 @@ function TitleScreen() {
   this.highScoresButton.on('pointerup', function() {
     toggleHighScores();
   });
-  this.soundButton.interactive = true;
-  this.soundButton.on('pointerdown', function() {
+  this.optionsButton.on('pointerdown', function() {
     selector.move(0, 2);
-    toggleSound();
   });
-  this.soundButton.on('pointerup', function() {
-    // toggleSound()
-  });
-  this.fullScreenButton.interactive = true;
-  this.fullScreenButton.on('pointerdown', function() {
-    selector.move(0, 3);
-    // toggleFullScreen()
-  });
-  this.fullScreenButton.on('pointerup', function() {
-    toggleFullScreen();
-    // toggleSound()
-  });
-  this.controlsButton.on('pointerdown', function() {
-    selector.move(0, 3);
-    // toggleFullScreen()
-  });
-  this.controlsButton.on('pointerup', function() {
-    toggleControlScreen();
-    // toggleSound()
+  this.optionsButton.on('pointerup', function() {
+    toggleOptionsScreen();
   });
   this.container.addChild(this.titleCard);
   this.container.addChild(this.startButton);
   this.container.addChild(this.highScoresButton);
-  this.container.addChild(this.soundButton);
-  this.container.addChild(this.controlsButton);
-  // this.container.addChild(this.fullScreenButton);
+  this.container.addChild(this.optionsButton);
+  // this.container.addChild(this.soundButton);
+  // if (landscape) {
+  //   this.container.addChild(this.controlsButton);
+  // } else {
+  //   this.container.addChild(this.fullScreenButton);
+  // }
 }
 function DragonSelector() {
   this.container = new PIXI.Container();
@@ -913,7 +974,7 @@ function DragonSelector() {
   this.container.y = titleScreen.startText.y;
   this.container.addChild(this.leftDragon);
   this.container.addChild(this.rightDragon);
-  this.selections = ['start', 'highscores', 'sound', 'fullscreen'];
+  this.selections = ['start', 'highscores', 'options'];
   this.selected = 0;
   this.highlight = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
   this.highlight.tint = 0xe05000;
@@ -926,7 +987,7 @@ function DragonSelector() {
   titleScreen.container.addChildAt(this.container, 1);
   titleScreen.startBg.alpha = 1;
   titleScreen.highScoresBg.alpha = 0.5;
-  // soundBg.alpha = 0.5
+  titleScreen.optionsBg.alpha = 0.5;
   this.move = function(direction, moveTo) {
     if (!direction) {
       this.selected = moveTo;
@@ -937,13 +998,14 @@ function DragonSelector() {
     }
 
     var selected = this.selections[this.selected];
+    console.log('SEL', selected)
     if (selected === 'start') {
       this.container.y = titleScreen.startText.y;
       this.leftDragon.x = gameWidth / 2 - titleScreen.startBg.width / 2 - tileSize;
       this.rightDragon.x = gameWidth / 2 + titleScreen.startBg.width / 2 + tileSize;
       titleScreen.startBg.alpha = 1;
       titleScreen.highScoresBg.alpha = 0.5;
-      // titleScreen.soundBg.alpha = 0.5
+      titleScreen.optionsBg.alpha = 0.5;
       this.highlight.width = titleScreen.startBg.width + this.highlight.borderSize;
       this.highlight.height = titleScreen.startBg.height + this.highlight.borderSize;
     }
@@ -953,30 +1015,38 @@ function DragonSelector() {
       this.rightDragon.x = gameWidth / 2 + titleScreen.highScoresBg.width / 2 + tileSize;
       titleScreen.highScoresBg.alpha = 1;
       titleScreen.startBg.alpha = 0.5;
-      // titleScreen.soundBg.alpha = 0.5
+      titleScreen.optionsBg.alpha = 0.5;
       this.highlight.width = titleScreen.highScoresBg.width + this.highlight.borderSize;
       this.highlight.height = titleScreen.highScoresBg.height + this.highlight.borderSize;
     }
-    if (selected === 'sound') {
-      this.container.y = titleScreen.soundButton.y + titleScreen.soundText.y;
-      this.leftDragon.x = gameWidth / 2 - titleScreen.soundBg.width / 2 - tileSize;
-      this.rightDragon.x = gameWidth / 2 + titleScreen.soundBg.width / 2 + tileSize;
-      // titleScreen.soundBg.alpha = 1
+    if (selected === 'options') {
+      this.container.y = titleScreen.optionsButton.y + titleScreen.optionsText.y;
+      this.leftDragon.x = gameWidth / 2 - titleScreen.optionsBg.width / 2 - tileSize;
+      this.rightDragon.x = gameWidth / 2 + titleScreen.optionsBg.width / 2 + tileSize;
+      titleScreen.optionsBg.alpha = 1;
       titleScreen.startBg.alpha = 0.5;
       titleScreen.highScoresBg.alpha = 0.5;
-      this.highlight.width = titleScreen.soundBg.width + this.highlight.borderSize;
-      this.highlight.height = titleScreen.soundBg.height + this.highlight.borderSize;
+      this.highlight.width = titleScreen.optionsBg.width + this.highlight.borderSize;
+      this.highlight.height = titleScreen.optionsBg.height + this.highlight.borderSize;
     }
-    if (selected === 'fullscreen') {
-      this.container.y = titleScreen.fullScreenButton.y + titleScreen.fullScreenText.y;
-      this.leftDragon.x = gameWidth / 2 - titleScreen.fullScreenBg.width / 2 - tileSize;
-      this.rightDragon.x = gameWidth / 2 + titleScreen.fullScreenBg.width / 2 + tileSize;
-      // titleScreen.fullScreenBg.alpha = 1
-      titleScreen.startBg.alpha = 0.5;
-      titleScreen.highScoresBg.alpha = 0.5;
-      this.highlight.width = titleScreen.fullScreenBg.width + this.highlight.borderSize;
-      this.highlight.height = titleScreen.fullScreenBg.height + this.highlight.borderSize;
-    }
+    // if (selected === 'fullscreen') {
+    //   this.container.y = titleScreen.fullScreenButton.y + titleScreen.fullScreenText.y;
+    //   // this.leftDragon.x = gameWidth / 2 - titleScreen.fullScreenBg.width / 2 - tileSize;
+    //   // this.rightDragon.x = gameWidth / 2 + titleScreen.fullScreenBg.width / 2 + tileSize;
+    //   // titleScreen.fullScreenBg.alpha = 1
+    //   titleScreen.startBg.alpha = 0.5;
+    //   titleScreen.highScoresBg.alpha = 0.5;
+    //   if (landscape) {
+    //     this.leftDragon.x = gameWidth / 2 - titleScreen.controlsBg.width / 2 - tileSize;
+    //     this.rightDragon.x = gameWidth / 2 + titleScreen.controlsBg.width / 2 + tileSize;
+    //     this.highlight.width = titleScreen.controlsBg.width + this.highlight.borderSize;
+    //   } else {
+    //     this.leftDragon.x = gameWidth / 2 - titleScreen.fullScreenBg.width / 2 - tileSize;
+    //     this.rightDragon.x = gameWidth / 2 + titleScreen.fullScreenBg.width / 2 + tileSize;
+    //     this.highlight.width = titleScreen.fullScreenBg.width + this.highlight.borderSize;
+    //   }
+    //   this.highlight.height = titleScreen.fullScreenBg.height + this.highlight.borderSize;
+    // }
   };
   this.adjust = function(direction) {
     var selected = this.selections[this.selected];
@@ -996,11 +1066,8 @@ function DragonSelector() {
     if (selected === 'highscores') {
       toggleHighScores();
     }
-    if (selected === 'sound') {
-      toggleSound();
-    }
-    if (selected === 'fullscreen') {
-      toggleControlScreen();
+    if (selected === 'options') {
+      toggleOptionsScreen();
     }
   };
 
@@ -1010,29 +1077,6 @@ function DragonSelector() {
     } else {
       this.highlight.tint = 0xe05000;
     }
-    // var selected = this.selections[this.selected]
-    // if (selected==="start") {
-    //     if (precounter%4<2) {
-    //         // startBg.tint = 0x83d313
-    //         startBg.tint = 0x006600
-    //     } else {
-    //         startBg.tint = 0x005500
-    //     }
-    // }
-    // if (selected==="highscores") {
-    //     if (precounter%4<2) {
-    //         highScoresBg.tint = 0x000066
-    //     } else {
-    //         highScoresBg.tint = 0x000044
-    //     }
-    // }
-    // if (selected==="sound") {
-    //     if (precounter%4<2) {
-    //         soundBg.tint = 0x555555
-    //     } else {
-    //         soundBg.tint = 0x444444
-    //     }
-    // }
   };
 }
 function HighScoresScreen() {
@@ -1066,7 +1110,7 @@ function HighScoresScreen() {
   this.backButton.addChild(this.backText);
   this.container.addChild(this.backButton);
   this.backButton.interactive = true;
-  this.backButton.on('pointerdown', function() {
+  this.backButton.on('click', function() {
     toggleHighScores();
     startDisabled = true;
     setTimeout(function() {
@@ -1202,7 +1246,6 @@ function EnterNameScreen() {
       });
     }
   };
-
   this.container.visible = false;
 }
 function submitHighScore() {

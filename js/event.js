@@ -3,7 +3,7 @@ var touches = [];
 var touchingDPad = false;
 
 touchStart = function(event) {
-  event.preventDefault();
+  // event.preventDefault();
   touchingDPad = true;
   var touch = {
     id: event.changedTouches[0].identifier || 0,
@@ -15,13 +15,13 @@ touchStart = function(event) {
   }
 };
 touchMove = function(event) {
-  event.preventDefault();
+  // event.preventDefault();
   if (touches.length) {
     touches[0].pos = { x: event.changedTouches[0].clientX, y: event.changedTouches[0].clientY };
   }
 };
 touchEnd = function(event) {
-  event.preventDefault();
+  // event.preventDefault();
   var touch = { x: event.changedTouches[0].clientX, y: event.changedTouches[0].clientY };
   if (nesPanel.upButton.containsPoint(touch)) {
     releaseUp();
@@ -60,19 +60,22 @@ dPad.addEventListener('touchmove', touchMove, { passive: true });
 dPad.addEventListener('touchend', touchEnd, { passive: true });
 
 document.onkeydown = function(event) {
-  if ((!pressingUp && event.keyCode == 87) || event.keyCode == 38) {
+  console.log('key event', event);
+  let letter = event.key;
+  console.error('------------', letter)
+  if (!pressingUp && letter === actionKeys['JUMP']) {
     pressUp();
   }
-  if ((!pressingDown && event.keyCode == 83) || event.keyCode == 40) {
+  if (!pressingDown && letter === actionKeys['CROUCH']) {
     pressDown();
   }
-  if ((!pressingLeft && event.keyCode == 65) || event.keyCode == 37) {
+  if (!pressingLeft && letter === actionKeys['WALK LEFT']) {
     pressLeft();
   }
-  if ((!pressingRight && event.keyCode == 68) || event.keyCode == 39) {
+  if (!pressingRight && letter === actionKeys['WALK RIGHT']) {
     pressRight();
   }
-  if (event.keyCode == 76) {
+  if (letter === actionKeys['THROW']) {
     if (player.weapon === 'knife') {
       player.throw('knife');
       if (nesPanel) {
@@ -96,58 +99,43 @@ document.onkeydown = function(event) {
         }
       }, 100);
     }
-    // if (player.weapon==="knife") {
-    //     player.throw("knife")
-    //     nesPanel.throwKnob.tint = 0x009900
-    //     player.weapon = ""
-    //     if (player.ducking) {
-    //         player.sprite.texture = PIXI.utils.TextureCache["duckpunch"]
-    //     } else {
-    //         player.sprite.texture = PIXI.utils.TextureCache["punch"]
-    //     }
-    //     setTimeout(function(){
-    //         nesPanel.toggleThrow("off")
-    //         if (player.ducking) {
-    //             player.sprite.texture = PIXI.utils.TextureCache["duckpunchstance"]
-    //         } else {
-    //             player.sprite.texture = PIXI.utils.TextureCache["stance"]
-    //         }
-    //     },100)
-    // }
   }
-  if (!pressingUp && event.keyCode == 32) {
-    pressUp();
-  }
-  if (!pressingPunch && event.keyCode == 80) {
+  if (!pressingPunch && letter === actionKeys['PUNCH']) {
     pressPunch();
   }
-  if (!pressingKick && event.keyCode == 79) {
+  if (!pressingKick && letter === actionKeys['KICK']) {
     pressKick();
+  }
+  if (editingKeyForAction) {
+    if (letter === 'ESCAPE') {
+      dismissKeyEditModal();
+    } else {
+      console.error('letter', letter);      
+      actionKeys[editingKeyForAction] = letter;
+      refreshKeyDisplay();
+      dismissKeyEditModal();
+    }
   }
 };
 
 document.onkeyup = function(event) {
-  if (event.keyCode == 87 || event.keyCode == 38) {
+  let letter = event.key;
+  if (letter === actionKeys['JUMP']) {
     releaseUp();
   }
-  if (event.keyCode == 83 || event.keyCode == 40) {
+  if (letter === actionKeys['CROUCH']) {
     releaseDown();
   }
-  if (event.keyCode == 65 || event.keyCode == 37) {
-    // left
+  if (letter === actionKeys['WALK LEFT']) {
     releaseLeft();
   }
-  if (event.keyCode == 68 || event.keyCode == 39) {
-    // right
+  if (letter === actionKeys['WALK RIGHT']) {
     releaseRight();
   }
-  if (event.keyCode == 32) {
-    releaseUp();
-  }
-  if (event.keyCode == 80) {
+  if (letter === actionKeys['PUNCH']) {
     releasePunch();
   }
-  if (event.keyCode == 79) {
+  if (letter === actionKeys['KICK']) {
     releaseKick();
   }
 };
@@ -206,6 +194,7 @@ function pressUp() {
     player.beganJump = counter;
   }
   pressingUp = true;
+  console.log('moving selelgeruoghsdfs')
   if (titleScreen.container.visible) {
     selector.move(-1);
   }

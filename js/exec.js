@@ -58,7 +58,7 @@ function update() {
     }
   }
   if (!titleScreen.container.visible && counter === introTime + walkupTime) {
-    // playSound(bgMusic);
+    playSound(bgMusic);
   }
   // scoreDisplay.topText.text = "G-" + grippers.length + " T-" + tomtoms.length + " K-" + knifethrowers.length + " P-" + powerups.length
   if (!titleScreen.container.visible && !wonRound && !arrow.sprite.visible && !player.fightingBoss && !titleScreen.container.visible && counter > introTime + walkupTime && counter % enemyFrequency === 0) {

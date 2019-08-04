@@ -1,5 +1,10 @@
 root {
   --pixel-size: 0;
+  --game-width: 0;
+  --game-height: 0;
+}
+* {
+  box-sizing: border-box;
 }
 body {
   margin: 0;
@@ -9,9 +14,9 @@ body {
   background-color: #000000;
   text-align: center;
   font-family: 'Press Start 2P';
-  -webkit-font-smoothing: subpixel-antialiased;
-  text-rendering: optimizeLegibility;
-  -moz-osx-font-smoothing: auto;
+  /* -webkit-font-smoothing: subpixel-antialiased; */
+  /* text-rendering: optimizeLegibility; */
+  /* -moz-osx-font-smoothing: auto; */
   overflow: hidden;
   opacity: 0;
   transform: scaleY(0.5);
@@ -38,7 +43,8 @@ body {
   background-repeat: no-repeat;  
   background-position: center;
   image-rendering: pixelated;
-  z-index: 2;
+  z-index: 1;
+  pointer-events: none;
 }
 #kung-fu-logo.hidden, #brutal-logo.hidden {
   display: none;
@@ -105,6 +111,90 @@ body {
   transition: all 10ms ease, transform 100ms ease;
   display: none;
 }
+#options-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: calc(100vw * (15/16));
+  background: #050505;
+  flex-direction: column;
+  align-items: center;
+  color: white;
+  font-size: calc(100vh / calc(15 / 16) / 64);
+  padding: 4vw;
+  display: none;
+}
+#options-body {
+  flex-grow: 1;
+  display: flex;
+  width: 100%;
+}
+#options-screen > header {
+  font-size: calc(100vh / calc(15 / 16) / 36);
+}
+#options-grid {
+  padding: 4vw;
+  margin: 2vh;
+  width: 100%;
+  flex-grow: 1;
+  display: grid;
+  grid-template-columns: 0.6fr 0.4fr;
+  justify-items: stretch;
+  z-index: 0;
+}
+#options-grid .ranged {
+  font-size: 80%;
+}
+.option-range {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+}
+.option-range-value {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+#options-grid > div {
+  width: 100%;
+  height: calc(100vh / calc(15 / 16) / 24);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#options-grid > .option-label {
+}
+#options-grid > #controls-button {
+  width: 90%;
+  justify-self: center;
+  grid-column-end: span 2;
+  font-size: 3vw;
+  padding: 1vh;
+  min-height: 7vh;
+  margin-top: 3vh;
+  background: rgb(42, 60, 73);
+  border: var(--pixel-size) outset #333;
+}
+#options-grid > .option-value, .option-range-value {
+  background: #222;
+  border: var(--pixel-size) outset #111;
+}
+#options-grid > .option-value::after {
+  content: 'OFF';
+}
+#options-grid > .option-value.on::after {
+  content: 'ON';
+}
+#options-grid > .option-value.on, .option-range-value.on {
+  background: rgb(77, 122, 73);
+  border-style: inset;
+}
+#close-options-button.close-button {
+  font-size: calc(var(--pixel-size) * 12);
+}
 #controls-screen {
   position: fixed;
   transform: translateX(-50%) translateY(-50%);
@@ -113,72 +203,188 @@ body {
   width: calc(100vh / calc(15 / 16));
   height: 90vh;
   background: black;
-  border: 2px solid red;
   flex-direction: column;
   align-items: center;
   justify-content: space-evenly;
   color: white;
-  font-size: calc(100vh / calc(15 / 16) / 40);
-  padding: 2vw;
+  font-size: calc(100vh / calc(15 / 16) / 48);
+  padding: calc(var(--pixel-size) * 6);
   display: none;
 }
-#controls-screen.showing {
+#controls-screen.showing, #options-screen.showing {
   display: flex;
 }
-#controls-grid {
-  box-sizing: border-box;
+.controls-grid {
   padding: 2vw;
-  /* width: 70vw; */
+  width: 100%;
   flex-grow: 2;
   display: grid;
   grid-template-columns: 1fr 1fr;
   align-items: center;
   justify-items: stretch;
+  background: #111;
+  border: var(--pixel-size) solid rgb(59, 59, 59);
+  border-top: 0;
+  z-index: 0;  
+}
+.controls-grid.hidden {
+  display: none;
 }
 .action-type-area {
-  padding: 2vw;
+  /* box-sizing: border-box; */
+  padding: 1vw;
   display: grid;
-  grid-template-columns: 20vw 6vw;
+  grid-template-columns: min-content 1fr min-content;
   height: 50vh;
   align-items: center;
   justify-content: center;
+  grid-row-gap: calc(var(--pixel-size) * 3);
+}
+#gamepad-controls-grid > .action-type-area {
+  opacity: 0;
+  pointer-events: none;
+}
+#coming-soon-message {
+  position: fixed;
+  width: 100%;
+  top: 45vh;
+  left: 0;
+  pointer-events: none;
+  font-size: 1.5vw;
 }
 .action-type-label {
-  grid-column-end: span 2;
+  grid-column-end: span 3;
   justify-self: center !important;
   border: none !important;
-  min-height: 8vh;
+  min-height: 2vh;
 }
 .action-type-area > div {
   text-align: left;
   height: 100%;
-  border: 2px solid white;
+  border: calc(var(--pixel-size) / 2) solid #222;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .action-type-area > .action-listing {
-  justify-content: start;
-  padding-left: 5%;
+  line-height: 150%;
+  text-align: center;
+  padding: 0 1.5vw;
+  font-size: calc(100vh / calc(15 / 16) / 54);
 }
-.action-listing.empty, .key-listing.empty {
+.action-type-area > .key-listing {
+  color: rgb(100, 245, 100);
+  font-size: calc(var(--pixel-size) * 8);  
+}
+.action-type-area > .key-listing.long-name {
+  font-size: calc(var(--pixel-size) * 4);
+}
+.action-type-area > .key-listing.just-changed {
+  animation: throb;
+  animation-play-state: running;
+  animation-iteration-count: infinite;
+  animation-duration: 60ms;
+}
+@keyframes throb {
+  0% {
+    color: yellow;
+  }
+  100% {
+    color: rgb(100, 245, 100);
+  }
+}
+.action-type-area > .key-edit-button {
+  width: 9vh;
+  border-style: outset;
+  border-color: gray;
+  background: rgb(73, 73, 73);
+  padding: 0 2vw;
+}
+.action-type-area > .key-edit-button.depressed {  
+  border-style: inset;
+  background: rgb(119, 119, 119);
+}
+.action-type-area > .key-edit-button::after {
+  content: 'EDIT';
+  font-size: calc(var(--pixel-size) * 3.5);
+}
+.action-listing.empty, .key-listing.empty, .key-edit-button.empty {
   border: none;
   color: transparent;
+  background: transparent;
+}
+#modal-action-display {
+  font-size: 3vw; 
+  color: rgb(100, 245, 100);
+  padding: 2vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#modal-cancel-message {
+  font-size: 1.5vw; 
+  width: 100%;
 }
 #controls-title {
+  width: 100%;
+  height: 100%;
   grid-column-start: 1;
   grid-column-end: span 2;
   font-size: 4vh;
-  color: green;
+  display: flex;
+  justify-content: space-around;
 }
-#close-controls-button {
+.close-button {
   background: #222;
-  padding: 3vw 8vw;
-  flex-grow: 1;
+  padding: 3vw 8vw;  
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 4vh;
+}
+#close-controls-button.close-button {
+  flex-grow: 1;
+  margin-top: 3vh;
+}
+#controls-title > div {
+  color: rgb(136, 136, 136);
+  background-color: transparent;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9;
+  border: 2px solid transparent;
+  border-bottom-color: rgb(59, 59, 59);
+}
+#controls-title > div.selected {
+  color: rgb(100, 245, 100);
+  background-color: #111;  
+  border-color: rgb(59, 59, 59);
+  border-bottom-color: transparent;
+}
+#key-edit-modal {
+  position: fixed;
+  background: #444;
+  border: calc(var(--pixel-size) * 2) solid #222;
+  width: calc(var(--game-width) / 1.25);
+  height: calc(var(--game-height) / 2);
+  transform: translateX(-50%) translateY(-50%);
+  top: 45vh;
+  left: 50vw;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 2vw;
+  color: white;
+  line-height: 150%;
+  padding: calc(var(--pixel-size) * 15);
+  z-index: 10;
+}
+#key-edit-modal.showing {
+  display: flex;
 }
 .pulsed {
   background-color: #afa;
@@ -189,8 +395,8 @@ body {
 }
 #d-pad {
   position: absolute;
-  background-color: blue;
   opacity: 0;
+  z-index: 12;
 }
 #nes-panel-bg {
   position: fixed;
@@ -220,11 +426,26 @@ body {
   .blinder {
     display: none;
   }
+  #controls-screen {
+    transform: none;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: calc(100vw * (16/15));
+    font-size: calc(var(--pixel-size) * 8);
+  }
+  #turn-phone-shade, #turn-phone-instructions, #turn-phone-instructions > img {
+    display: none;
+  }
 }
+
 
 @media (orientation: landscape) {
   body {
     background-color: black;
+  }
+  #gamepad-container {
+    display: none;
   }
   #game-canvas {
     width: calc(100vh / calc(15 / 16));
@@ -260,15 +481,36 @@ body {
     height: 100vh;
     z-index: 3;
   }
+  
+  #options-screen {
+    position: fixed;
+    transform: translateX(-50%);
+    top: 5%;
+    left: 50vw;
+    width: calc(100vh / calc(15 / 16));
+    height: 90%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+    color: white;
+    font-size: calc(100vh / calc(15 / 16) / 30);
+    padding: 2vw;
+    display: none;
+  }
+  #options-grid > div {
+    height: 9vh;
+  }
+
   #turn-phone-shade {
-    box-sizing: border-box;
+    /* box-sizing: border-box; */
     position: fixed;
     background-color: black;
     opacity: 0.9;
     top: 0;
     left: 0;
     width: 100vw;
-    height: 100vh;
+    height: 100%;
+    z-index: 3;
   }
   #turn-phone-instructions {
     position: fixed;
@@ -285,6 +527,7 @@ body {
     color: white;
     font-size: 2vw;
     line-height: 150%;
+    z-index: 3;
   }
   #turn-phone-instructions > img {
     width: 40vh;
@@ -296,7 +539,6 @@ body {
     font-size: 1vw;
   }
 }
-
 
 /* physical keyboard ? */
 @media (hover: hover) and (pointer: fine) {

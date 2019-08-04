@@ -14,13 +14,18 @@ window.addEventListener('load', function () {
       document.body.style.opacity = 1;
       document.body.style.transform = 'scaleY(1)';
     });
-    document.getElementById('brutal-logo').classList.add('landed');
-    document.getElementById('kung-fu-logo').classList.add('landed');
+    
   });
 
 let showInstructions = true;
+let soundOn = false;
+let musicOn = false;
+
+let assigningAction = undefined;
 
 $(document).ready(function() {
+  document.getElementById('brutal-logo').classList.add('landed');
+  document.getElementById('kung-fu-logo').classList.add('landed');
   // gameOverMusic = new Howl({
   //     src: ['assets/sounds/gameover.mp3'],
   //     volume:1,
@@ -209,8 +214,15 @@ var loadSounds = function() {
   });
 };
 function playSound(sound) {
-  if (!noSound) {
-    sound.play();
+  console.log('call playsoudnsdlsdddddddddddd')
+  if (sound === gameStartMusic || sound === bgMusic) {
+    if (musicOn) {
+      sound.play();
+    }
+  } else {
+    if (soundOn) {
+      sound.play();
+    }
   }
 }
 PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
@@ -244,6 +256,10 @@ document.getElementById('game-canvas').appendChild(renderer.view);
 // var gameWidth = document.getElementById("game-canvas").offsetWidth
 var gameWidth = document.getElementById('game-canvas').offsetWidth;
 var gameHeight = document.getElementById('game-canvas').offsetHeight;
+
+document.documentElement.style.setProperty('--game-width', gameWidth + 'px')
+document.documentElement.style.setProperty('--game-height', gameHeight + 'px')
+const actualHeight = parseInt(gameHeight);
 var tilesPerHeight = 15;
 var tilesPerWidth = 16;
 currentLevel = undefined;
@@ -355,32 +371,37 @@ function clearTitle() {
     }
     document.getElementById('brutal-logo').classList.add('hidden');
     document.getElementById('kung-fu-logo').classList.add('hidden');
-    // playSound(gameStartMusic);
+    playSound(gameStartMusic);
   }
 }
-noSound = true;
 
 function toggleSound() {
-  if (noSound) {
+  console.warn('at toggle soundOn is', soundOn)
+  if (!soundOn) {
     if (!soundsLoaded) {
       loadMessage.visible = true;
       loadSounds();
     }
-    noSound = false;
-    Howler.mute(false);
-    // introTime = 300;
-    introTime = 30;
-    titleScreen.soundBg.tint = 0x224422;
-    titleScreen.soundText.tint = 0xaaaaaa;
-    titleScreen.soundText.text = 'SOUND: ON';
+    // Howler.mute(false);
   } else {
-    noSound = true;
-    Howler.mute(true);
-    introTime = 30;
-    titleScreen.soundBg.tint = 0x444444;
-    titleScreen.soundText.tint = 0x777777;
-    titleScreen.soundText.text = 'SOUND: OFF';
+    console.warn('turingin sound FFN')
+    // Howler.mute(true);
   }
+  soundOn = !soundOn;
+}
+function toggleMusic() {
+  if (!musicOn) {
+    if (!soundsLoaded) {
+      loadMessage.visible = true;
+      loadSounds();
+    }
+    // Howler.mute(false);
+    introTime = 300;
+  } else {
+    // Howler.mute(true);
+    introTime = 30;
+  }
+  musicOn = !musicOn;
 }
 lives = startingLives = 1;
 bottomSpace = viewHeight - gameHeight;
@@ -526,10 +547,91 @@ function createGame() {
     // nesPanel.bg.alpha = 0
   }
 }
+document.getElementById('controls-button').onclick = () => {
+  toggleControlScreen();
+}
 if (landscape && !isTouchDevice) {
+  
   document.getElementById('close-controls-button').onclick = () => {
     toggleControlScreen();
   }
+  document.getElementById('keyboard-controls-tab').onclick = function() {
+    controlTabSelected = 'keyboard';
+    console.error(controlTabSelected);
+    this.classList.add('selected');
+    document.getElementById('gamepad-controls-tab').classList.remove('selected');
+    document.getElementById('gamepad-controls-grid').classList.add('hidden');
+    document.getElementById('keyboard-controls-grid').classList.remove('hidden');
+  }
+  document.getElementById('gamepad-controls-tab').onclick = function() {
+    controlTabSelected = 'gamepad';
+    console.error(controlTabSelected);
+    this.classList.add('selected');
+    document.getElementById('keyboard-controls-tab').classList.remove('selected');
+    document.getElementById('keyboard-controls-grid').classList.add('hidden');
+    document.getElementById('gamepad-controls-grid').classList.remove('hidden');
+  }
+}
+[...document.querySelectorAll('.key-edit-button')].map((but, i) => {
+  but.onpointerdown = function(e) {
+    let action = Object.keys(actionKeys)[i];
+    this.classList.add('depressed');
+    callKeyEditModal(action);
+  }
+});
+document.getElementById('sound-toggle').onclick = () => {
+  if (soundOn) {
+    document.getElementById('sound-toggle').classList.remove('on');
+  } else {
+    document.getElementById('sound-toggle').classList.add('on');  
+  }
+  toggleSound();
+};
+document.getElementById('music-toggle').onclick = () => {
+  if (musicOn) {
+    document.getElementById('music-toggle').classList.remove('on');
+  } else {
+    document.getElementById('music-toggle').classList.add('on');  
+  }
+  toggleMusic();
+};
+document.getElementById('full-screen-toggle').onclick = () => {
+  if (isFullScreen()) {
+    document.getElementById('full-screen-toggle').classList.remove('on');
+  } else {
+    document.getElementById('full-screen-toggle').classList.add('on');
+  }
+  toggleFullScreen();
+};
+// document.getElementById('gamepad-high-button').onclick = function() {
+//   if (!this.classList.contains('on')) {
+//     this.classList.add('on')
+//   }
+//   document.documentElement.style.setProperty('--gamepad-y', actualHeight + 'px');
+//   document.getElementById('gamepad-mid-button').classList.remove('on');
+//   document.getElementById('gamepad-low-button').classList.remove('on');
+// }
+// document.getElementById('gamepad-mid-button').onclick = function() {
+//   if (!this.classList.contains('on')) {
+//     this.classList.add('on')
+//   }
+//   document.getElementById('gamepad-low-button').classList.remove('on');
+//   document.getElementById('gamepad-high-button').classList.remove('on');
+//   document.documentElement.style.setProperty('--gamepad-y', (actualHeight + ((window.innerHeight - actualHeight) / 2)) + 'px');
+//   nesPanel.controls.y = (actualHeight + ((window.innerHeight - actualHeight) / 2));
+//   nesPanel.panelBg.y = (actualHeight + ((window.innerHeight - actualHeight) / 2));
+// }
+// document.getElementById('gamepad-low-button').onclick = function() {
+//   if (!this.classList.contains('on')) {
+//     this.classList.add('on')
+//   }
+//   document.getElementById('gamepad-mid-button').classList.remove('on');
+//   document.getElementById('gamepad-high-button').classList.remove('on');
+//   document.documentElement.style.setProperty('--gamepad-y', (window.innerHeight - (window.innerHeight - actualHeight)) + 'px');
+//   nesPanel.bg.y = (window.innerHeight - (window.innerHeight - actualHeight));
+// }
+document.getElementById('close-options-button').onclick = function() {
+  toggleOptionsScreen();
 }
 scoreDisplay = undefined;
 function init() {
