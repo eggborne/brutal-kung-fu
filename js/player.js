@@ -1,3 +1,6 @@
+
+let godMode = false;
+
 function Fighter(character, scale) {
   if (!scale) {
     scale = fighterScale;
@@ -20,7 +23,7 @@ function Fighter(character, scale) {
   this.level = undefined;
   this.punchSpeed = 3;
   this.kickSpeed = 15;
-  this.walkSpeed = playerSpeed * 1.1;
+  this.walkSpeed = fighterScale * playerSpeed * (godMode ? 3 : 1.1);
   this.punching = this.kicking = this.ducking = false;
   this.currentMoveDuration = 0;
   this.dealtBlow = false;
@@ -30,7 +33,7 @@ function Fighter(character, scale) {
   this.leapForce = tileSize / 3.3;
   this.gravityForce = newPixelSize / 3;
   this.grippers = [];
-  this.hp = this.maxHP = 100;
+  this.hp = this.maxHP = godMode ? 300 : 100;
   this.dead = false;
   this.diedAt = -99;
   this.score = 0;
@@ -366,23 +369,26 @@ function Fighter(character, scale) {
     } else {
       var limitX = this.level.scrollLimitX;
     }
+    let withinLimit, atEnd, arrowScale, walkAwayPostWin, withinScrollLimit, onLevelPostWin;
     if (player.level.direction === 'left') {
-      var withinLimit = gameContainer.x - amount > 0;
-      var atEnd = this.sprite.x - -gameContainer.x < gameWidth / 2;
-      var arrowScale = 1;
-      var walkAwayPostWin = wonRound && amount > 0;
-      var withinScrollLimit = gameContainer.x - amount < this.level.levelWidth - limitX;
-      var onLevelPostWin = this.sprite.x + amount > -this.level.levelWidth + limitX;
+      withinLimit = gameContainer.x - amount > 0;
+      atEnd = this.sprite.x - -gameContainer.x < gameWidth / 2;
+      arrowScale = 1;
+      walkAwayPostWin = wonRound && amount > 0;
+      withinScrollLimit = gameContainer.x - amount < this.level.levelWidth - limitX;
+      onLevelPostWin = this.sprite.x + amount > -this.level.levelWidth + limitX;
     } else {
       // limitX = gameWidth*2
-      var withinLimit = gameContainer.x - amount < 0;
-      var atEnd = this.sprite.x - -gameContainer.x < gameWidth / 2;
-      var arrowScale = -1;
-      var walkAwayPostWin = wonRound && amount < 0;
-      var withinScrollLimit = gameContainer.x - amount > -(this.level.levelWidth - limitX);
-      var onLevelPostWin = this.sprite.x + amount < this.level.levelWidth - this.level.stairs.width;
+      withinLimit = gameContainer.x - amount < 0;
+      atEnd = this.sprite.x - -gameContainer.x < gameWidth / 2;
+      arrowScale = -1;
+      walkAwayPostWin = wonRound && amount < 0;
+      withinScrollLimit = gameContainer.x - amount > -(this.level.levelWidth - limitX);
+      onLevelPostWin = this.sprite.x + amount < this.level.levelWidth - this.level.stairs.width;
     }
-
+    if (gameMode === 'horde') {
+      withinScrollLimit = true;
+    }
     if ((!wonRound && atEnd) || !withinScrollLimit || walkAwayPostWin) {
       noScroll = true;
     }
@@ -419,13 +425,23 @@ function Fighter(character, scale) {
           this.cycleLegs(4);
         }
       } else {
-        if (wonRound && !endSequenceStarted) {
+        if (gameMode !== 'horde' && wonRound && !endSequenceStarted) {
           endSequenceStarted = true;
-          wonAt = counter;
+          wonAt = counter;          
         }
       }
+      
     }
-    if (!wonRound && !this.fightingBoss && Math.abs(this.sprite.x - this.level.boss.sprite.x) < gameWidth / 2) {
+    // if (reachedHordeBarrier) {
+    //   console.error('reached...');
+    //   arrow.sprite.visible = true;
+    //   if (arrow.sprite.scale.x > 0) {
+    //     arrow.sprite.scale.x *= -1;
+    //   }
+    //   arrow.bornAt = counter;
+    //   arrow.sprite.x = player.sprite.x + (gameWidth);
+    // }
+    if (gameMode !== 'horde' && !wonRound && !this.fightingBoss && Math.abs(this.sprite.x - this.level.boss.sprite.x) < gameWidth / 2) {
       this.fightingBoss = true;
       // if (this.weapon) {
       //     this.dropWeapon()
@@ -447,9 +463,13 @@ function Fighter(character, scale) {
     }
   };
 }
-function StickMan(scale) {
+function StickMan(scale, level=1) {
+  levelData[(level-1)].boss = this;
+  this.dark = false;
   if (!scale) {
     scale = fighterScale;
+  } else {
+    this.dark = true;
   }
   this.worth = 2000;
   this.character = 'stickman';
@@ -470,7 +490,7 @@ function StickMan(scale) {
   this.level = undefined;
   this.punchSpeed = 8;
   this.kickSpeed = 10;
-  this.walkSpeed = newPixelSize * 1.25;
+  this.walkSpeed = fighterScale * newPixelSize * 1.25;
   this.punching = this.kicking = this.ducking = false;
   this.currentMoveDuration = 0;
   this.dealtBlow = false;
@@ -499,6 +519,9 @@ function StickMan(scale) {
   };
   this.changeTexture = function(newText) {
     this.sprite.texture = PIXI.utils.TextureCache[newText];
+    if (this.dark) {
+      this.sprite.tint = 0x000000;
+    }
   };
   this.checkForPlayer = function() {
     var distance = Math.abs(this.sprite.x - player.sprite.x);
@@ -633,10 +656,10 @@ function StickMan(scale) {
   this.dance = function() {
     var distance = Math.abs(this.sprite.x - player.sprite.x);
     if (this.walkDirection > 0) {
-      var walkSpeed = this.walkSpeed;
+      var walkSpeed = fighterScale * this.walkSpeed;
       this.walk(walkSpeed * this.walkDirection);
     } else {
-      var walkSpeed = this.walkSpeed / 2;
+      var walkSpeed = fighterScale * this.walkSpeed / 2;
       if (Math.abs(this.sprite.x - walkSpeed - this.homeX) < gameWidth / 2) {
         this.walk(walkSpeed * this.walkDirection);
       }
@@ -949,6 +972,7 @@ function StickMan(scale) {
   };
 }
 function BoomerangMan(scale) {
+  levelData[1].boss = this;
   if (!scale) {
     scale = fighterScale;
   }
@@ -971,7 +995,7 @@ function BoomerangMan(scale) {
   this.level = undefined;
   this.punchSpeed = 8;
   this.kickSpeed = 10;
-  this.walkSpeed = newPixelSize * 1.25;
+  this.walkSpeed = fighterScale * newPixelSize * 1.25;
   this.punching = this.kicking = this.ducking = false;
   this.currentMoveDuration = 0;
   this.dealtBlow = false;
@@ -1113,13 +1137,13 @@ function BoomerangMan(scale) {
       var distance = Math.abs(this.sprite.x - player.sprite.x);
 
       if (this.walkDirection < 0) {
-        var walkSpeed = this.walkSpeed;
+        var walkSpeed = fighterScale * this.walkSpeed;
         // this.walk(walkSpeed*this.walkDirection)
         if (Math.abs(this.sprite.x - walkSpeed - this.homeX) < gameWidth / 2) {
           this.walk(walkSpeed * this.walkDirection);
         }
       } else {
-        var walkSpeed = this.walkSpeed / 2;
+        var walkSpeed = fighterScale * this.walkSpeed / 2;
         this.walk(walkSpeed * this.walkDirection);
       }
       if (counter % 30 === 0) {
@@ -1371,6 +1395,7 @@ function clearBoard(enemiesOnly) {
   grippers.length = tomtoms.length = knifethrowers.length = powerups.length = scoreBlips.length = knives.length = squibs.length = 0;
 }
 function resetGame() {
+  gameInitiated = false;
   if (player.level.boss.hp < player.level.boss.maxHP) {
     player.level.boss.hp = player.level.boss.maxHP;
     scoreDisplay.enemyBar.width = scoreDisplay.enemyBarMax;
@@ -1381,7 +1406,6 @@ function resetGame() {
     floorDisplay.timeUpLegend.visible = false;
   }
   levelTime = 2000;
-
   clearBoard();
   setVariables();
   gameContainer.x = 0;
@@ -1400,8 +1424,18 @@ function resetGame() {
   }
   if (lives > 0) {
     lives--;
+    gameInitiated = true;
     clearTitle();
+
+    // enemyFrequency = player.level.enemyFrequency;
+    // eggFrequency = player.level.eggFrequency;
+    // gripperLimit = player.level.limits.grippers;
+    // tomtomLimit = player.level.limits.tomtoms;
+
   } else {
+    console.warn('resetGame removing logos at lives === 0');
+    document.getElementById('brutal-logo').classList.remove('hidden');
+    document.getElementById('kung-fu-logo').classList.remove('hidden');
     titleScreen.container.visible = true;
     lives = startingLives;
     currentLevel = undefined;
@@ -1425,6 +1459,7 @@ function resetGame() {
   scoreDisplay.timeText.text = '0'.repeat(4 - levelTime.toString().length) + levelTime;
 }
 function Giant(scale) {
+  levelData[2].boss = this;
   if (!scale) {
     scale = fighterScale;
   }
@@ -1448,7 +1483,7 @@ function Giant(scale) {
   this.punchSpeed = 20;
   this.kickSpeed = 30;
   this.telegraphTime = 60;
-  this.walkSpeed = newPixelSize * 1.25;
+  this.walkSpeed = fighterScale * newPixelSize * 1.25;
   this.punching = this.kicking = this.ducking = false;
   this.currentMoveDuration = 0;
   this.dealtBlow = false;
@@ -1458,7 +1493,7 @@ function Giant(scale) {
   this.hopForce = newPixelSize * 3.5;
   this.gravityForce = newPixelSize / 2;
   this.grippers = [];
-  this.hp = this.maxHP = 10;
+  this.hp = this.maxHP = 150;
   this.dead = false;
   this.diedAt = -99;
   this.score = 0;
@@ -1620,10 +1655,10 @@ function Giant(scale) {
   this.dance = function() {
     var distance = Math.abs(this.sprite.x - player.sprite.x);
     if (this.walkDirection > 0) {
-      var walkSpeed = this.walkSpeed;
+      var walkSpeed = fighterScale * this.walkSpeed;
       this.walk(walkSpeed * this.walkDirection);
     } else {
-      var walkSpeed = this.walkSpeed / 2;
+      var walkSpeed = fighterScale * this.walkSpeed / 2;
       if (Math.abs(this.sprite.x - walkSpeed - this.homeX) < gameWidth / 2) {
         this.walk(walkSpeed * this.walkDirection);
       }
@@ -1850,6 +1885,7 @@ function Giant(scale) {
   };
 }
 function BlackMagician(scale) {
+  levelData[3].boss = this;
   if (!scale) {
     scale = fighterScale;
   }
@@ -1872,7 +1908,7 @@ function BlackMagician(scale) {
   this.level = undefined;
   this.punchSpeed = 8;
   this.kickSpeed = 10;
-  this.walkSpeed = newPixelSize * 1.25;
+  this.walkSpeed = fighterScale * newPixelSize * 1.25;
   this.punching = this.kicking = this.ducking = false;
   this.currentMoveDuration = 0;
   this.dealtBlow = false;
@@ -2026,13 +2062,13 @@ function BlackMagician(scale) {
       var distance = Math.abs(this.sprite.x - player.sprite.x);
 
       if (this.walkDirection < 0) {
-        var walkSpeed = this.walkSpeed;
+        var walkSpeed = fighterScale * this.walkSpeed;
         // this.walk(walkSpeed*this.walkDirection)
         if (Math.abs(this.sprite.x - walkSpeed - this.homeX) < gameWidth / 2) {
           this.walk(walkSpeed * this.walkDirection);
         }
       } else {
-        var walkSpeed = this.walkSpeed / 2;
+        var walkSpeed = fighterScale * this.walkSpeed / 2;
         this.walk(walkSpeed * this.walkDirection);
       }
       if (counter % 30 === 0) {

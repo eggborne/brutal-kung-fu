@@ -1,21 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<!-- <meta charset="UTF-8"> -->
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<meta content='width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' name='viewport' />
 	<meta http-equiv="X-UA-Compatible" content="ie=edge">
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<meta name="mobile-web-app-capable" content="yes">
-	<meta name="theme-color" content="#333">
-	<title>Kung Fu</title>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+	<meta name="theme-color" content="#000000">
+	<meta name="description" content="A gritty sequel to NES Kung Fu.">
+	<title>Brutal Kung Fu</title>
 	<link rel="stylesheet" type="text/css" href="css/style.css">
 	<link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet">
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.6.1/pixi.min.js"></script>
+	<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 	<link rel="icon" href="assets/favicon.png" type="image/x-icon">
 	<link rel="apple-touch-icon" sizes="120x120" href="assets/favicon.png"/>
 	<link rel="apple-touch-icon-precomposed" sizes="120x120" href="assets/favicon.png"/>
+	<meta name="msapplication-TileColor" content="#9290ff">    
+    <script async type='application/ld+json'> 
+      {
+        "@context": "http://www.schema.org",
+        "@type": "WebSite",
+        "name": "Brutal Kung Fu",
+        "url": "https://brutalkungfu.com",
+        "logo": "https://brutalkungfu.com/assets/favicon.png",
+        "description": "A gritty sequel to NES Kung Fu.",        
+      }
+    </script>
 </head>
 
 <body>
@@ -28,32 +40,97 @@
 	</div>
 
 	<div id='brutal-logo'></div>
-	<div id='kung-fu-logo'></div>
+	<div id='kung-fu-logo' class='shrunken'></div>
 	<div id="game-canvas"></div>
 
-	<input id="name-entry" type="text" maxlength="9" placeholder="ENTER NAME"></input>
-	<button disabled onclick="submitHighScore()" id="name-submit">OK!</button>
+	<input value="" id="name-entry" onkeyup="this.setAttribute('value', this.value);" type="text" maxlength="9" placeholder="ENTER NAME"></input>
+	<button disabled onclick="submitHighScore()" id="name-submit">SUBMIT</button>
+	<div id='skip-name-entry-button' class='close-button'>SKIP</div>
+
+	<div id='controls-hint'>
+		<div id='hint-title'>KEYBOARD CONTROLS</div>
+		<div id='hint-instructions'>CLICK TO CHANGE</div>
+		<div id='hint-grid'>
+			<div class='hint-action-area action-type-area'>
+				<div class='action-type-label'>MOVEMENT</div>
+				<div class='key-row clickable'>
+					<div class='action-listing'>WALK LEFT</div>
+					<div class='key-listing'>A</div>
+				</div>
+				<div class='key-row clickable'>
+					<div class='action-listing'>WALK RIGHT</div>
+					<div class='key-listing'>D</div>
+				</div>
+				<div class='key-row clickable'>
+					<div class='action-listing'>JUMP</div>
+					<div class='key-listing'>W</div>
+				</div>
+				<div class='key-row clickable'>
+					<div class='action-listing'>CROUCH</div>
+					<div class='key-listing'>S</div>
+				</div>
+			</div>
+			<div class='hint-action-area action-type-area'>
+				<div class='action-type-label'>ATTACK</div>
+				<div class='key-row clickable'>
+					<div class='action-listing'>PUNCH/WEAPON</div>
+					<div class='key-listing'>J</div>
+				</div>
+				<div class='key-row clickable'>
+					<div class='action-listing'>KICK</div>
+					<div class='key-listing'>K</div>
+				</div>
+				<div class='key-row clickable'>
+					<div class='action-listing'>THROW WEAPON</div>
+					<div class='key-listing'>L</div>
+				</div>
+				<div class='empty'>
+					<div class='action-listing'>SPECIAL</div>
+					<div class='key-listing'>0</div>
+				</div>
+			</div>		
+		</div>
+		<div id='hint-list'>
+			<div class='hint'>* CROUCH OVER DROPPED <span class='orange-text'>WEAPONS</span> TO PICK THEM UP.</div>
+		</div>
+		<div id='button-area'>
+			<div id='hint-close-button' class='close-button clickable'>OK</div>
+		</div>
+	</div>
 	<div id='options-screen'>
 		<header>OPTIONS</header>
 		<div id='options-body'>
 			<div id='options-grid'>
 				<div class='option-label'>SOUND FX</div>
-				<div id='sound-toggle' class='option-value'></div>
+				<div id='sound-toggle' class='option-switch clickable'>
+					<div class='switch-knob'></div>
+				</div>
 				<div class='option-label'>MUSIC</div>
-				<div id='music-toggle' class='option-value'></div>
+				<div id='music-toggle' class='option-switch clickable'>
+					<div class='switch-knob'></div>
+				</div>
+				<div class='option-label'>BLOOD</div>
+				<div id='blood-toggle' class='option-switch clickable on'>
+					<div class='switch-knob'></div>
+				</div>
 				<div class='option-label'>FULL SCREEN</div>
-				<div id='full-screen-toggle' class='option-value'></div>
+				<div id='full-screen-toggle' class='option-switch clickable'>
+					<div class='switch-knob'></div>
+				</div>
 				<!-- <div class='option-label ranged'>G-PAD POSITION</div>
 				<div class='option-range'>
 					<div id='gamepad-high-button' class='option-range-value ranged on'>HIGH</div>
 					<div id='gamepad-mid-button' class='option-range-value ranged'>MID</div>
 					<div id='gamepad-low-button' class='option-range-value ranged'>LOW</div>
 				</div> -->
-				<div id='controls-button'>CUSTOMIZE CONTROLS</div>
+				<div id='controls-button' class='clickable'>CUSTOMIZE CONTROLS</div>
 			</div>
 		</div>
-		<div id='close-options-button' class='close-button'>OK</div>
+		<div id='lower-area'>
+			<div id='close-options-button' class='close-button clickable'>SAVE & EXIT</div>
+		</div>
 	</div>
+	<div id='close-high-scores-button' class='close-button clickable'>BACK</div>
 	<div id='key-edit-modal'>
 		
 	</div>
@@ -71,28 +148,28 @@
 				<div class='action-type-label'>MOVEMENT</div>
 				<div class='action-listing'>WALK LEFT</div>
 				<div class='key-listing'>A</div>
-				<div class='key-edit-button'></div>
+				<div class='key-edit-button clickable'></div>
 				<div class='action-listing'>WALK RIGHT</div>
 				<div class='key-listing'>D</div>
-				<div class='key-edit-button'></div>
+				<div class='key-edit-button clickable'></div>
 				<div class='action-listing'>JUMP</div>
 				<div class='key-listing'>W</div>
-				<div class='key-edit-button'></div>
+				<div class='key-edit-button clickable'></div>
 				<div class='action-listing'>CROUCH</div>
 				<div class='key-listing'>S</div>
-				<div class='key-edit-button'></div>
+				<div class='key-edit-button clickable'></div>
 			</div>
 			<div class='action-type-area'>
 				<div class='action-type-label'>ATTACK</div>
-				<div class='action-listing'>PUNCH/<br />STAB</div>
+				<div class='action-listing'>PUNCH/WEAPON</div>
 				<div class='key-listing'>J</div>
-				<div class='key-edit-button'></div>
+				<div class='key-edit-button clickable'></div>
 				<div class='action-listing'>KICK</div>
 				<div class='key-listing'>K</div>
-				<div class='key-edit-button'></div>
-				<div class='action-listing'>THROW KNIFE</div>
+				<div class='key-edit-button clickable'></div>
+				<div class='action-listing'>THROW WEAPON</div>
 				<div class='key-listing'>L</div>
-				<div class='key-edit-button'></div>
+				<div class='key-edit-button clickable'></div>
 				<div class='action-listing empty'>BALLS</div>
 				<div class='key-edit-button empty'></div>
 			</div>
@@ -111,11 +188,11 @@
 			</div>
 			<div class='action-type-area'>
 				<div class='action-type-label'>ATTACK</div>
-				<div class='action-listing'>PUNCH/STAB</div>
+				<div class='action-listing'>PUNCH/WEAPON</div>
 				<div class='key-listing'>J</div>
 				<div class='action-listing'>KICK</div>
 				<div class='key-listing'>K</div>
-				<div class='action-listing'>THROW KNIFE</div>
+				<div class='action-listing'>THROW WEAPON</div>
 				<div class='key-listing'>L</div>
 				<div class='action-listing empty'>BALLS</div>
 				<div class='key-listing empty'></div>
@@ -124,35 +201,71 @@
 				Gamepad support is in the works :)
 			</div>
 		</div>
-		<div id='close-controls-button' class='close-button'>DONE</div>
+		<div id='close-controls-button' class='close-button clickable'>DONE</div>
+	</div>
+	<div id='mode-select-screen'>
+		<header>SELECT MODE</header>
+		<div id='mode-panel-area'>
+			<div id='story-mode-panel' class='mode-panel clickable selected'>
+				<div class='mode-title'>STORY</div>
+				<div class='mode-description'>
+					Return to Devil's Tower and help Thomas finally achieve his long-awaited vengeance.
+				</div>
+			</div>
+			<div id='horde-mode-panel' class='mode-panel clickable'>
+				<div class='mode-title'>HORDE</div>
+				<div class='mode-description'>
+					See how long you last against an endless wave of increasingly bloodthirsty enemies.
+				</div>
+			</div>
+			<div id='stage-select-mode-panel' class='mode-panel'>
+				<div class='mode-title'>STAGE SELECT</div>
+				<div id='stage-grid'>
+					<div class='stage-knob selected'>1</div>
+					<div class='stage-knob'>2</div>
+					<div class='stage-knob'>3</div>
+					<div class='stage-knob'>4</div>
+					<div class='stage-knob'>5</div>
+					<div class='stage-knob unavailable'>6</div>
+					<div class='stage-knob unavailable'>7</div>
+					<div class='stage-knob unavailable'>8</div>
+				</div>
+				<div class='mode-description'>
+					Choose any level and test your skills.
+				</div>
+			</div>
+		</div>
+		<div class='button-area'>
+			<div>
+				<div id='mode-back-button' class='close-button go-back-button clickable'><</div>
+			</div>
+			<div>
+				<div id='confirm-mode-button' class='close-button clickable'>PLAY!</div>
+			</div>
+			<div id='filler-button-area'>
+				<div style='opacity: 0' class='close-button go-back-button clickable'><</div>
+			</div>
+		</div>
 	</div>
 	<div id='turn-phone-shade'></div>
-	<div id='turn-phone-instructions' src='../assets/turnphoneicon.png'>
-		<caption>Landscape mode unavailable :(</caption>
+	<div id='turn-phone-instructions'>
+		<caption>Mobile landscape mode is currently unavailable :(</caption>
 		<img src='assets/turnphoneicon.png'/>
-		<caption>Please rotate your device to Portrait mode to play :)</caption>
+		<caption>Please rotate your device and reload to play :)</caption>
 		<small>(Or visit on desktop)</small>
 	</div>
+	<button onclick='window.location.reload(true)' id='hard-reload'>HARD RELOAD</button>
+	<div id='cinematic'>coks</div>
 
 	<!-- development -->
 
-	<!-- <script src="init.js"></script>
+	<script src="init.js"></script>	
 	<script async src="js/event.js"></script>
 	<script async src="js/enemies.js"></script>
 	<script async src="js/player.js"></script>
 	<script async src="js/levels.js"></script>
 	<script async src="js/gui.js"></script>
-	<script async src="js/exec.js"></script> -->
-
-	<!-- production -->
-
-	<script src="jsmin/init.js"></script>
-	<script async src="jsmin/event.js"></script>
-	<script async src="jsmin/enemies.js"></script>
-	<script async src="jsmin/player.js"></script>
-	<script async src="jsmin/levels.js"></script>
-	<script async src="jsmin/gui.js"></script>
-	<script async src="jsmin/exec.js"></script>
+	<script async src="js/exec.js"></script>
 
 	<script defer src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.1.2/howler.min.js"></script>
 </body>

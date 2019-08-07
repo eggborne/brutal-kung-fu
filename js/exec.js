@@ -1,30 +1,21 @@
-var enemyFrequency = 0;
-var eggFrequency = 0;
+// var enemyFrequency = 0;
+// var eggFrequency = 0;
+let startedZoom = -99;
 function update() {
-  if (enterNameScreen.container.visible) {
-    precounter++;
-    if (!document.getElementById('name-submit').disabled) {
-      if (precounter % 12 === 0) {
-        enterNameScreen.pulseButton();
-      }
-    } else {
-      $('#name-submit').css({
-        'background-color': 'grey',
-        transform: 'scale(1)'
-      });
-      if (document.getElementById('name-entry') !== document.activeElement && precounter % 12 === 0) {
-        enterNameScreen.pulseEntry();
-      } else if (document.getElementById('name-entry') === document.activeElement) {
-        $('#name-entry').css({
-          'background-color': 'white'
-        });
-      }
+  if (gameInitiated && gameMode === 'horde' && counter > 0 && counter % 1000 === 0) {
+    if (gripperLimit < 15) {
+      gripperLimit++;
+    }
+    if (tomtomLimit < 10) {
+      tomtomLimit++;
+    }
+    if (enemyFrequency > 5) {
+      enemyFrequency--;
     }
   }
-
-  if (!titleScreen.container.visible && !highScoresScreen.container.visible && !enterNameScreen.container.visible && counter < introTime) {
-  } else if (!titleScreen.container.visible && counter < introTime + walkupTime) {
-    var since = counter - introTime;
+  if (gameInitiated && !highScoresScreen.container.visible && !enterNameScreen.container.visible && counter < introTime) {
+  } else if (gameInitiated && counter < introTime + walkupTime) {
+    let since = counter - introTime;
     if (player.level.direction === 'left') {
       var walkDir = -player.walkSpeed;
       var offCenter = player.sprite.x > gameWidth / 2;
@@ -32,36 +23,38 @@ function update() {
       var walkDir = player.walkSpeed;
       var offCenter = player.sprite.x < gameWidth / 2;
     }
+    if (since === 0) {        
+      floorDisplay.bg.visible = true;
+      floorDisplay.legend.visible = true;
+    }
+    if (since === 54) {
+      floorDisplay.readyBg.visible = true;
+      floorDisplay.readyLegend.visible = true;
+    }
     if (offCenter) {
-      player.walk(walkDir, true);
-      if (since === 0) {
-        floorDisplay.bg.visible = true;
-        floorDisplay.legend.visible = true;
-      }
-      if (since % 6 === 0) {
-        playSound(stepSound);
-      }
-      if (since === 54) {
-        floorDisplay.readyBg.visible = true;
-        floorDisplay.readyLegend.visible = true;
+      if (gameMode !== 'horde') {
+        player.walk(walkDir, true);
+        if (since % 6 === 0) {
+          playSound(stepSound);
+        }
       }
     } else {
-      player.sprite.x = gameWidth / 2;
-
+      if (gameMode !== 'horde') { player.sprite.x = gameWidth / 2; }
       setTimeout(function() {
         floorDisplay.container.visible = false;
         floorDisplay.readyBg.visible = false;
         floorDisplay.readyLegend.visible = false;
         floorDisplay.bg.visible = false;
         floorDisplay.legend.visible = false;
-      }, 1000);
+        floorDisplay.bg.width = tileSize * 3.5;
+      }, 2000);
     }
   }
-  if (!titleScreen.container.visible && counter === introTime + walkupTime) {
+  if (gameInitiated && counter === introTime + walkupTime) {
     playSound(bgMusic);
   }
   // scoreDisplay.topText.text = "G-" + grippers.length + " T-" + tomtoms.length + " K-" + knifethrowers.length + " P-" + powerups.length
-  if (!titleScreen.container.visible && !wonRound && !arrow.sprite.visible && !player.fightingBoss && !titleScreen.container.visible && counter > introTime + walkupTime && counter % enemyFrequency === 0) {
+  if (gameInitiated && !wonRound && !arrow.sprite.visible && !player.fightingBoss && counter > introTime + walkupTime && counter % enemyFrequency === 0) {
     if (randomInt(0, 2)) {
       spawnRandomEnemy();
     } else if (counter - lastKT > 120 && knifethrowers.length < 2) {
@@ -78,28 +71,18 @@ function update() {
       }
 
       if (randomInt(0, 1)) {
-        var newKT = new Knifethrower(randSide);
-        // newKT.walkSpeed += (randomInt(-1,1)*(newPixelSize/20))
+        let newKT = new Knifethrower(randSide);
       } else if (knifethrowers.length === 0) {
-        var newKT = new Knifethrower(randSide, gameWidth / 2);
-        // setTimeout(function(){
-        //
-        //     if (randomInt(0,1)) {
-        //         var randSide = "left"
-        //     } else {
-        //         var randSide = "right"
-        //     }
-        //     var newKT2 = new Knifethrower(randSide)
-        //     newKT2.walkSpeed += (randomInt(-1,1)*(newPixelSize/20))
-        // },1000)
-        var newKT2 = new Knifethrower(randSide);
-        // newKT2.walkSpeed += (randomInt(-1,1)*(newPixelSize/20))
+        let newKT = new Knifethrower(randSide, gameWidth / 2);
+        let newKT2 = new Knifethrower(randSide);
       }
     } else {
-      // spawnRandomEnemy()
+      if (gameMode === 'horde') {
+        spawnRandomEnemy()
+      }
     }
   }
-  if (!titleScreen.container.visible && !wonRound && !player.fightingBoss && counter % eggFrequency === 0) {
+  if (gameInitiated && !wonRound && !player.fightingBoss && counter % eggFrequency === 0) {
     var eggSpot = player.sprite.x + tileSize * 8;
     if (Math.abs(lastEggX - eggSpot) > gameWidth / 2) {
       var newEgg = eggTypes[randomInt(0, 2)];
@@ -109,7 +92,7 @@ function update() {
   if (!landscape && !endSequenceStarted && !player.dead && touchingDPad) {
     nesPanel.monitorDPad();
   }
-  if (!titleScreen.container.visible) {
+  if (gameInitiated) {
     if (arrow.sprite.visible) {
       arrow.flash();
     }
@@ -243,7 +226,7 @@ function update() {
     var blip = scoreBlips[b];
     blip.fade();
   }
-  if (!titleScreen.container.visible) {
+  if (gameInitiated) {
     for (var s = 0; s < snakes.length; s++) {
       var snake = snakes[s];
       if (snake.sprite.visible) {
@@ -320,9 +303,9 @@ function update() {
     var knife = knives[v];
     if (knife.visible) {
       if (knife.scale.x > 0) {
-        knife.x += newPixelSize * 3;
+        knife.x += fighterScale * newPixelSize * 3;
       } else {
-        knife.x -= newPixelSize * 3;
+        knife.x -= fighterScale * newPixelSize * 3;
       }
       if (true) {
         if (knife.hit || Math.abs(knife.x - player.sprite.x) >= gameWidth) {
@@ -446,7 +429,7 @@ function update() {
       boss.die();
     }
   }
-  if (!titleScreen.container.visible && !player.dead) {
+  if (gameInitiated && !player.dead) {
     player.checkForProjectiles();
     // if (player.beganJump >= counter-30) {
     if (counter > introTime + walkupTime && player.beganJump >= counter - 20) {
@@ -496,7 +479,7 @@ function update() {
         }
       }
     }
-  } else if (!titleScreen.container.visible) {
+  } else if (gameInitiated) {
     player.sprite.texture = PIXI.utils.TextureCache[player.character + 'dead'];
     if (lives === 0 && counter - player.diedAt === 5) {
       floorDisplay.container.visible = true;
@@ -506,7 +489,6 @@ function update() {
       floorDisplay.legend.text = 'GAME OVER';
     }
     if (counter - player.diedAt === 110 && player.sprite.y > gameHeight + player.sprite.height) {
-      console.error('PLAYER DEAD... lives', lives);
       if (lives === 0) {
         getScoresFromDatabase(gameName, true, true);
       } else {
@@ -518,7 +500,7 @@ function update() {
       player.sprite.y += newPixelSize * 3.3;
     }
   }
-  if (!titleScreen.container.visible) {
+  if (gameInitiated) {
     scoreDisplay.blinkCurrentFloor();
     if (!endSequenceStarted) {
       player.applyGravity();

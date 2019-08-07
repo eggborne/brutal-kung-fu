@@ -1,3 +1,4 @@
 .htaccess
-jsmin/
+build/
 node_modules/
+*.sh

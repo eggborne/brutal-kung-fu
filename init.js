@@ -1,31 +1,77 @@
-viewWidth = window.screen.width;
-viewHeight = window.innerHeight;
-isTouchDevice = 'ontouchstart' in document.documentElement;
-landscape = viewWidth > viewHeight;
-gameName = 'kungfu';
-console.log('top of init at', window.performance.now())
-var kungFuSounds = undefined;
+const viewWidth = window.screen.width;
+const viewHeight = window.innerHeight;
+const isTouchDevice = 'ontouchstart' in document.documentElement;
+let landscape = viewWidth > viewHeight;
+const gameName = 'kungfu';
+let kungFuSounds;
 window.addEventListener('load', function () {
+  document.documentElement.style.setProperty('--screen-height', window.innerHeight + 'px');
   PIXI.loader
-    .add('assets/nessprites.json')
-    .add('assets/kfsprites.json')
-    .load(function() {
-      init();
-      document.body.style.opacity = 1;
-      document.body.style.transform = 'scaleY(1)';
-    });
-    
+  .add('assets/nessprites.json')
+  .add('assets/kfsprites.json')
+  .load(function() {
+    init();
+    document.body.style.opacity = 1;
+    document.body.style.transform = 'scaleY(1)';
+  });  
+  soundsLoaded = 0;
+  document.getElementById('name-entry').onkeyup = function() {
+    if (this.value !== '') {
+      document.getElementById('name-submit').disabled = false;
+    } else {
+      document.getElementById('name-submit').disabled = true;
+    }
+  }
+  // setTimeout(() => {
+  //   toggleNameEntry();
+  //   console.log(findRank('25100'))
+  // }, 2000);
+});
+function findRank(score) {
+  let rank;
+  scoreArray.map((entry, i) => {
+    console.log('comparing', score.toString(), 'to', entry[1].toString())
+    if (!rank && parseInt(score) === parseInt(currentRecord.score) && currentRecord.player === entry[0] && parseInt(score) === parseInt(entry[1])) {
+      rank = i + 1;
+    }
   });
+  return suffixedNumber(rank);
+}
+document.body.onload = () => {
+  document.getElementById('kung-fu-logo').classList.add('landed');
+  document.getElementById('brutal-logo').classList.add('landed');
+}
 
-let showInstructions = true;
+let gameMode = 'story';
+let showInstructions = landscape;
 let soundOn = false;
 let musicOn = false;
+let bloodOn = true;
 
 let assigningAction = undefined;
+let lastEnteredName = '';
 
-$(document).ready(function() {
-  document.getElementById('brutal-logo').classList.add('landed');
-  document.getElementById('kung-fu-logo').classList.add('landed');
+let gripperLimit = 4;
+let tomtomLimit = 3;
+
+let selectedStage = 1;
+
+let gameStartMusic = undefined;
+let bgMusic = undefined;
+let stepSound = undefined;
+let punchSound = 'thomaspunch';
+let kickSound = 'thomaskick';
+let jumpkickSound = 'thomasjumpkick';
+let knifeSound = undefined;
+let shortHitSound = undefined;
+let longHitSound = undefined;
+let highLaugh = undefined;
+let midLaugh = undefined;
+let lowLaugh = undefined;
+let deathSound = undefined;
+let gameStart = undefined;
+let loadSounds = function() {
+  Howler.autoSuspend = true;
   // gameOverMusic = new Howl({
   //     src: ['assets/sounds/gameover.mp3'],
   //     volume:1,
@@ -44,177 +90,106 @@ $(document).ready(function() {
   //     playing: false,
   //     preload:true,
   // });
-  soundsLoaded = 0;
-  $('#name-entry').keyup(function() {
-    if ($(this).val() != '') {
-      $('#name-submit').removeAttr('disabled');
-    } else {
-      $('#name-submit').attr('disabled', 'disabled');
-    }
-  });
-});
-
-var gameStartMusic = undefined;
-var bgMusic = undefined;
-var stepSound = undefined;
-var punchSound = 'thomaspunch';
-var kickSound = 'thomaskick';
-var jumpkickSound = 'thomasjumpkick';
-var knifeSound = undefined;
-var shortHitSound = undefined;
-var longHitSound = undefined;
-var highLaugh = undefined;
-var midLaugh = undefined;
-var lowLaugh = undefined;
-var deathSound = undefined;
-var gameStart = undefined;
-var loadSounds = function() {
-  Howler.autoSuspend = true;
   stepSound = new Howl({
-    // src: ['assets/sounds/step.mp3'],
     src: ['assets/sounds/step.mp3', 'assets/sounds/step.ogg'],
     html: true,
-
     onload: function() {
       soundsLoaded++;
-      loadMessage.text = 'SOUNDS LOADED: ' + soundsLoaded + '/13';
+      // loadMessage.text = 'SOUNDS LOADED: ' + soundsLoaded + '/13';
     }
   });
 
   punchSound = new Howl({
     src: ['assets/sounds/thomaspunch.mp3'],
     html: true,
-
     onload: function() {
       soundsLoaded++;
-      loadMessage.text = 'SOUNDS LOADED: ' + soundsLoaded + '/13';
     }
   });
   kickSound = new Howl({
     src: ['assets/sounds/thomaskick.mp3', 'assets/sounds/thomaskick.ogg'],
     html: true,
-
     onload: function() {
       soundsLoaded++;
-      loadMessage.text = 'SOUNDS LOADED: ' + soundsLoaded + '/13';
     }
   });
   jumpkickSound = new Howl({
-    // src: ['assets/sounds/thomasjumpkick.mp3'],
     src: ['assets/sounds/thomasjumpkick.mp3', 'assets/sounds/thomasjumpkick.ogg'],
     html: true,
-
     onload: function() {
       soundsLoaded++;
-      loadMessage.text = 'SOUNDS LOADED: ' + soundsLoaded + '/13';
     }
   });
-
   knifeSound = new Howl({
-    // src: ['assets/sounds/thomasknife.mp3'],
     src: ['assets/sounds/thomasknife.mp3', 'assets/sounds/thomasknife.ogg'],
     html: true,
-
     onload: function() {
       soundsLoaded++;
-      loadMessage.text = 'SOUNDS LOADED: ' + soundsLoaded + '/13';
     }
   });
   shortHitSound = new Howl({
-    // src: ['assets/sounds/shorthit.mp3'],
     src: ['assets/sounds/shorthit.mp3', 'assets/sounds/shorthit.ogg'],
     html: true,
-
     onload: function() {
       soundsLoaded++;
-      loadMessage.text = 'SOUNDS LOADED: ' + soundsLoaded + '/13';
     }
   });
   longHitSound = new Howl({
-    // src: ['assets/sounds/longhit.mp3'],
     src: ['assets/sounds/longhit.mp3', 'assets/sounds/longhit.ogg'],
     volume: 0.8,
     html: true,
-
     onload: function() {
       soundsLoaded++;
-      loadMessage.text = 'SOUNDS LOADED: ' + soundsLoaded + '/13';
     }
   });
   highLaugh = new Howl({
-    // src: ['assets/sounds/highlaugh.mp3'],
     src: ['assets/sounds/highlaugh.mp3', 'assets/sounds/highlaugh.ogg'],
     volume: 1,
     html: true,
-
     onload: function() {
       soundsLoaded++;
-      loadMessage.text = 'SOUNDS LOADED: ' + soundsLoaded + '/13';
     }
   });
   midLaugh = new Howl({
-    // src: ['assets/sounds/midlaugh.mp3'],
     src: ['assets/sounds/midlaugh.mp3', 'assets/sounds/midlaugh.ogg'],
-    // volume:1,
     html: true,
     onload: function() {
       soundsLoaded++;
-      loadMessage.text = 'SOUNDS LOADED: ' + soundsLoaded + '/13';
     }
   });
   lowLaugh = new Howl({
-    // src: ['assets/sounds/lowlaugh.mp3'],
     src: ['assets/sounds/lowlaugh.mp3', 'assets/sounds/lowlaugh.ogg'],
-    // volume:1,
-    // playing: false,
-
     html: true,
     onload: function() {
       soundsLoaded++;
-      loadMessage.text = 'SOUNDS LOADED: ' + soundsLoaded + '/13';
     }
   });
   deathSound = new Howl({
-    // src: ['assets/sounds/thomasdeath.mp3'],
     src: ['assets/sounds/thomasdeath.mp3', 'assets/sounds/thomasdeath.ogg'],
-    // playing: false,
     html: true,
-
     onload: function() {
       soundsLoaded++;
-      loadMessage.text = 'SOUNDS LOADED: ' + soundsLoaded + '/13';
     }
   });
   gameStartMusic = new Howl({
-    // src: ['assets/sounds/gamestart.mp3'],
     src: ['assets/sounds/gamestart.mp3', 'assets/sounds/gamestart.ogg'],
     volume: 0.5,
     html: true,
-
     onload: function() {
       soundsLoaded++;
-      loadMessage.text = 'SOUNDS LOADED: ' + soundsLoaded + '/13';
     }
   });
   bgMusic = new Howl({
-    // src: ['assets/sounds/bgmusiclow.mp3'],
     src: ['assets/sounds/bgmusiclow.mp3', 'assets/sounds/bgmusiclow.ogg'],
     volume: 0.6,
     html: true,
-
     loop: true,
     onload: function() {
       soundsLoaded++;
-      loadMessage.text = 'SOUNDS LOADED: ' + soundsLoaded + '/13';
-      loadMessage.style.fill = 0xeeeeee;
-      setTimeout(function() {
-        loadMessage.visible = false;
-      }, 500);
     }
   });
 };
 function playSound(sound) {
-  console.log('call playsoudnsdlsdddddddddddd')
   if (sound === gameStartMusic || sound === bgMusic) {
     if (musicOn) {
       sound.play();
@@ -227,7 +202,7 @@ function playSound(sound) {
 }
 PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
 PIXI.settings.RESOLUTION = window.devicePixelRatio;
-renderer = PIXI.autoDetectRenderer({
+const renderer = PIXI.autoDetectRenderer({
   // width: viewWidth,
   width: viewHeight / (15 / 16),
   height: viewHeight,
@@ -243,51 +218,53 @@ if (!isTouchDevice && landscape) {
 
 renderer.plugins.interaction.interactionFrequency = 1;
 // renderer.x = 0
-stage = new PIXI.Container();
-gameContainer = new PIXI.Container();
-nesContainer = new PIXI.Container();
+const stage = new PIXI.Container();
+const gameContainer = new PIXI.Container();
+const nesContainer = new PIXI.Container();
 stage.addChild(gameContainer);
-// if (!landscape) {
 stage.addChild(nesContainer);
-// }
 
 document.getElementById('game-canvas').appendChild(renderer.view);
 
-// var gameWidth = document.getElementById("game-canvas").offsetWidth
-var gameWidth = document.getElementById('game-canvas').offsetWidth;
-var gameHeight = document.getElementById('game-canvas').offsetHeight;
-
+// let gameWidth = document.getElementById("game-canvas").offsetWidth
+let gameWidth = document.getElementById('game-canvas').offsetWidth;
+let gameHeight = document.getElementById('game-canvas').offsetHeight;
+document.documentElement.style.setProperty('--game-x', document.getElementById('game-canvas').offsetLeft + 'px')
 document.documentElement.style.setProperty('--game-width', gameWidth + 'px')
 document.documentElement.style.setProperty('--game-height', gameHeight + 'px')
 const actualHeight = parseInt(gameHeight);
-var tilesPerHeight = 15;
-var tilesPerWidth = 16;
-currentLevel = undefined;
-currentScore = 0;
+let tilesPerHeight = 15;
+let tilesPerWidth = 16;
+let currentLevel = undefined;
+let currentScore = 0;
 lastEggX = undefined;
 
 // if (!landscape) {
 tileSize = Math.round(gameWidth / tilesPerWidth);
+document.documentElement.style.setProperty('--tile-size', tileSize)
 // } else {
 //     tileSize = Math.round(gameHeight/tilesPerHeight)
 // }
-var newPixelSize = tileSize / tilesPerWidth;
+let newPixelSize = tileSize / tilesPerWidth;
 document.documentElement.style.setProperty('--pixel-size', newPixelSize + 'px');
 
 
-introTime = 30;
-var walkupTime = 120;
-topScore = 0;
-lowScore = 0;
-currentRecord = { player: undefined, score: undefined };
-scoreArray = [];
-fighterScale = 1;
-levelReached = 1;
-dragonLevel = 0;
-livesAwarded = 0;
-newLifeScore = 50000;
+let introTime = 30;
+let walkupTime = 120;
+let topScore = 0;
+let lowScore = 0;
+let currentRecord = { player: undefined, score: undefined };
+let scoreArray = [];
+let fighterScale = 1;
+let levelReached = 1;
+let dragonLevel = 0;
+let livesAwarded = 0;
+let newLifeScore = 50000;
+
+let gameInitiated = false; 
 
 function setVariables() {
+  gameInitiated = false; 
   counter = 0;
   precounter = 0;
   grippers = [];
@@ -317,74 +294,86 @@ function setVariables() {
   lastGripperX = 0;
   playerSpeed = newPixelSize * 1.25;
 }
-var eggTypes = ['snake', 'dragon', 'confetti'];
+let eggTypes = ['snake', 'dragon', 'confetti'];
 
 function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
-titleStyle = {
+let titleStyle = {
   fontFamily: 'Press Start 2P',
   fontSize: tileSize * 0.7 + 'px',
-  fill: '#ddd'
+  fill: '#ddd',
 };
-titleStyle2 = {
+let titleStyle2 = {
   fontFamily: 'Press Start 2P',
   fontSize: tileSize * 0.5 + 'px',
-  fill: '#ddd'
+  fill: '#ddd',
 };
-highScoreStyle = {
+let highScoreStyle = {
   fontFamily: 'Press Start 2P',
   fontSize: tileSize / 1.75 + 'px',
   fill: '#ddd'
 };
-scoreStyle = {
+if (landscape) {
+  highScoreStyle.fontSize = Math.round(tileSize / 2.85) + 'px';
+}
+let scoreStyle = {
   fontFamily: 'Press Start 2P',
   fontSize: tileSize / 2.25 + 'px',
   fill: '#ddd'
 };
-blockStyle = {
+let blockFontSize = viewHeight / 40;
+if (blockFontSize > (viewWidth / 24)) {
+  blockFontSize = viewWidth / 24;
+}
+let blockStyle = {
   fontFamily: 'Press Start 2P',
-  fontSize: tileSize / 1.5 + 'px',
+  fontSize: Math.round(blockFontSize) + 'px',
   fill: '#ddd',
   wordWrap: true,
-  wordWrapWidth: gameWidth - tileSize * 4,
+  wordWrapWidth: gameWidth - tileSize * 5,
   align: 'center',
-  lineHeight: tileSize * 1.5
+  lineHeight: blockFontSize * 2
 };
-buttonStyle = {
+if (landscape) {
+  // blockStyle.fontSize = Math.round(tileSize / 2.25) + 'px';
+  // blockStyle.lineHeight = tileSize * 0.9;
+  blockStyle.wordWrapWidth = gameWidth - tileSize * 6;
+}
+let buttonStyle = {
   fontFamily: 'Press Start 2P',
   fontSize: tileSize / 2.5 + 'px',
   fill: '#ddd'
 };
-blipStyle = {
+let blipStyle = {
   fontFamily: 'Press Start 2P',
   fontSize: tileSize / 3 + 'px',
   fill: '#ddd'
 };
-created = false;
+let created = false;
 function clearTitle() {
   if (!startDisabled) {
     titleScreen.container.visible = false;
     if (!floorDisplay.container.visible) {
       floorDisplay.container.visible = true;
     }
+    console.warn('clearTitle hiding logos');
     document.getElementById('brutal-logo').classList.add('hidden');
     document.getElementById('kung-fu-logo').classList.add('hidden');
+    document.getElementById('hard-reload').classList.add('hidden');
     playSound(gameStartMusic);
   }
 }
 
 function toggleSound() {
-  console.warn('at toggle soundOn is', soundOn)
   if (!soundOn) {
     if (!soundsLoaded) {
-      loadMessage.visible = true;
+      // loadMessage.visible = true;
       loadSounds();
     }
     // Howler.mute(false);
   } else {
-    console.warn('turingin sound FFN')
     // Howler.mute(true);
   }
   soundOn = !soundOn;
@@ -392,7 +381,7 @@ function toggleSound() {
 function toggleMusic() {
   if (!musicOn) {
     if (!soundsLoaded) {
-      loadMessage.visible = true;
+      // loadMessage.visible = true;
       loadSounds();
     }
     // Howler.mute(false);
@@ -403,29 +392,88 @@ function toggleMusic() {
   }
   musicOn = !musicOn;
 }
-lives = startingLives = 1;
-bottomSpace = viewHeight - gameHeight;
-topEdge = gameHeight - tileSize * (tilesPerHeight - 3.5);
-groundY = gameHeight - newPixelSize * 20 - tileSize * 2;
+function toggleBlood() {
+  bloodOn = !bloodOn;
+}
+
+const startingLives = 2;
+let lives = startingLives;
+let bottomSpace = viewHeight - gameHeight;
+let topEdge = gameHeight - tileSize * (tilesPerHeight - 3.5);
+let groundY = gameHeight - newPixelSize * 20 - tileSize * 2;
+
+let level1, level2, level3, level4, level5, level6;
+let arrow, stickMan, boomerangMan, giant, blackMagician, misterX;
+
+let bosses = [];
+levelData = [
+  {
+    direction: 'left',
+    enemyFrequency: 50,
+    eggFrequency: 0,
+    limits: {
+      grippers: 4,
+      tomtoms: 3
+    },
+    tomtoms: false,
+    boss: stickMan,
+    water: 'waterbg'
+  },
+  {
+    direction: 'right',
+    enemyFrequency: 50,
+    eggFrequency: 12,
+    limits: {
+      grippers: 4,
+      tomtoms: 3
+    },
+    tomtoms: true,
+    boss: boomerangMan,
+    water: 'spinebg'
+  },
+  {
+    direction: 'left',
+    enemyFrequency: 30,
+    eggFrequency: 30,
+    limits: {
+      grippers: 6,
+      tomtoms: 4
+    },
+    tomtoms: true,
+    boss: giant,
+    water: 'spinebg'
+  },
+  {
+    direction: 'right',
+    enemyFrequency: 15,
+    eggFrequency: 10,
+    limits: {
+      grippers: 8,
+      tomtoms: 1
+    },
+    tomtoms: false,
+    boss: blackMagician,
+    water: 'spinebg'
+  },
+  {
+    direction: 'left',
+    enemyFrequency: 10,
+    eggFrequency: 0,
+    limits: {
+      grippers: 12,
+      tomtoms: 8
+    },
+    tomtoms: true,
+    boss: misterX,
+    water: 'spinebg'
+  }
+];
+
+// let enemyFrequency, eggFrequency;
 
 function createGame() {
-  // player = new Thomas()
-  // if (randomInt(0,1)) {
-  var dir = 'left';
-  // } else {
-  // var dir = "right"
-  // }
   created = true;
-
-  // if (bottomSpace < nesPanel.controls.height) {
-  // topEdge -= tileSize/2
-  // groundY -= tileSize/2
-  // stage.height -= tileSize
-  // gameContainer.height -= tileSize/2
-  // }
   level1 = new Level(1, 'left', gameHeight, 'waterbg', topEdge, groundY);
-  // levelReached = 2
-  // level1 = new Level(2,"right",gameHeight,"waterbg",topEdge,groundY)
   gameContainer.setChildIndex(player.sprite, gameContainer.children.length - 1);
 
   player.level = level1;
@@ -437,51 +485,16 @@ function createGame() {
   stickMan = new StickMan();
   boomerangMan = new BoomerangMan();
   giant = new Giant();
-  // blackMagician = new BlackMagician()
-  bosses = [stickMan, boomerangMan, giant, stickMan];
-  levelData = [
-    {
-      direction: 'left',
-      enemyFrequency: 50,
-      eggFrequency: 0,
-      tomtoms: false,
-      boss: stickMan,
-      water: 'waterbg'
-    },
-    {
-      direction: 'right',
-      enemyFrequency: 45,
-      eggFrequency: 20,
-      tomtoms: true,
-      boss: boomerangMan,
-      water: 'spinebg'
-    },
-    {
-      direction: 'left',
-      enemyFrequency: 30,
-      eggFrequency: 30,
-      tomtoms: true,
-      boss: giant,
-      water: 'spinebg'
-    },
-    {
-      direction: 'right',
-      enemyFrequency: 25,
-      eggFrequency: 20,
-      tomtoms: true,
-      boss: stickMan,
-      water: 'spinebg'
-    },
-    {
-      direction: 'left',
-      enemyFrequency: 15,
-      eggFrequency: 0,
-      tomtoms: true,
-      boss: stickMan,
-      water: 'spinebg'
-    }
-  ];
-  var lvlData = levelData[levelReached - 1];
+  blackMagician = new BlackMagician();
+  misterX = new StickMan(1.5, 5);
+  misterX.sprite.tint = 0x000000;
+  misterX.hp = 200;
+  misterX.worth = 10000;
+  bosses = [stickMan, boomerangMan, giant, blackMagician, misterX];
+  levelData.map((level, i) => {
+    level.boss = bosses[i]
+  });
+  let lvlData = levelData[levelReached - 1];
   player.level.boss = lvlData.boss;
   player.level.boss.level = player.level;
   player.level.boss.sprite.x = player.level.boss.homeX = player.level.bossSpotX;
@@ -491,32 +504,23 @@ function createGame() {
   } else {
     player.level.boss.sprite.scale.x *= -1;
   }
+
   enemyFrequency = lvlData.enemyFrequency;
   eggFrequency = lvlData.eggFrequency;
 
-  if (isTouchDevice) {
-    // nesContainer.addChild(soundButton)
-    // soundButton.x = (soundButton.width/2)+(tileSize/2)
-    // soundButton.y = gameHeight+(tileSize/2)
-    // titleScreen.addChild(soundButton)
-  } else {
-    // titleScreen.addChild(soundButton)
-  }
   floorDisplay = new FloorDisplay();
   scoreDisplay = new ScoreDisplay();
 
   if (!isTouchDevice) {
     nesPanel.container.visible = false;
   } else if (!landscape) {
-    var bottomSpace = viewHeight - gameHeight;
+    let bottomSpace = viewHeight - gameHeight;
+    let nesPanelHeight = document.getElementById('nes-panel-bg').offsetHeight;
     if (bottomSpace < nesPanel.controls.height) {
       nesPanel.controls.height = bottomSpace - newPixelSize * 6;
       nesPanel.hideDecor();
       nesPanel.controls.y = gameHeight + newPixelSize * 6;
-      // var extraY = bottomSpace-nesPanel.controls.height
-      // nesPanel.controls.y = viewHeight-nesPanel.controls.height-(extraY/2)
-    } else if (bottomSpace < $('#nes-panel-bg').outerHeight() + newPixelSize * 4) {
-      // nesPanel.controls.height = bottomSpace-(newPixelSize*6)
+    } else if (bottomSpace < nesPanelHeight + newPixelSize * 4) {
       nesPanel.controls.y = gameHeight + newPixelSize * 6;
       nesPanel.hideDecor();
     } else {
@@ -529,26 +533,11 @@ function createGame() {
     gameContainer.mask.x = 0;
     gameContainer.mask.y = 0;
     stage.addChild(gameContainer.mask);
-  } else {
-    var sideSpace = (window.innerWidth - gameWidth) / 2;
-    $('.blinder').css({
-      width: sideSpace
-    });
-    // $("#blinder-left").css({
-    //     left:0
-    // })
-    $('#right-control').css({
-      left: sideSpace + gameWidth
-    });
-    // controlsContainer.y = gameHeight-controlsContainer.height-(newPixelSize*4)
-    // nesPanel.dPad.x -= gameWidth/4
-    // nesPanel.dPad.y = 100
-    // nesPanel.container.y -= gameHeight
-    // nesPanel.bg.alpha = 0
   }
 }
 document.getElementById('controls-button').onclick = () => {
-  toggleControlScreen();
+  // toggleControlScreen();
+  document.getElementById('controls-hint').classList.add('showing');
 }
 if (landscape && !isTouchDevice) {
   
@@ -557,7 +546,6 @@ if (landscape && !isTouchDevice) {
   }
   document.getElementById('keyboard-controls-tab').onclick = function() {
     controlTabSelected = 'keyboard';
-    console.error(controlTabSelected);
     this.classList.add('selected');
     document.getElementById('gamepad-controls-tab').classList.remove('selected');
     document.getElementById('gamepad-controls-grid').classList.add('hidden');
@@ -565,21 +553,27 @@ if (landscape && !isTouchDevice) {
   }
   document.getElementById('gamepad-controls-tab').onclick = function() {
     controlTabSelected = 'gamepad';
-    console.error(controlTabSelected);
     this.classList.add('selected');
     document.getElementById('keyboard-controls-tab').classList.remove('selected');
     document.getElementById('keyboard-controls-grid').classList.add('hidden');
     document.getElementById('gamepad-controls-grid').classList.remove('hidden');
   }
 }
-[...document.querySelectorAll('.key-edit-button')].map((but, i) => {
+// [...document.querySelectorAll('.key-edit-button')].map((but, i) => {
+//   but.onpointerdown = function(e) {
+//     let action = Object.keys(actionKeys)[i];
+//     this.classList.add('depressed');
+//     callKeyEditModal(action);
+//   }
+// });
+[...document.querySelectorAll('.key-row')].map((but, i) => {
   but.onpointerdown = function(e) {
     let action = Object.keys(actionKeys)[i];
     this.classList.add('depressed');
     callKeyEditModal(action);
   }
 });
-document.getElementById('sound-toggle').onclick = () => {
+document.getElementById('sound-toggle').onpointerdown = () => {
   if (soundOn) {
     document.getElementById('sound-toggle').classList.remove('on');
   } else {
@@ -587,7 +581,7 @@ document.getElementById('sound-toggle').onclick = () => {
   }
   toggleSound();
 };
-document.getElementById('music-toggle').onclick = () => {
+document.getElementById('music-toggle').onpointerdown = () => {
   if (musicOn) {
     document.getElementById('music-toggle').classList.remove('on');
   } else {
@@ -595,7 +589,15 @@ document.getElementById('music-toggle').onclick = () => {
   }
   toggleMusic();
 };
-document.getElementById('full-screen-toggle').onclick = () => {
+document.getElementById('blood-toggle').onpointerdown = () => {
+  if (bloodOn) {
+    document.getElementById('blood-toggle').classList.remove('on');
+  } else {
+    document.getElementById('blood-toggle').classList.add('on');  
+  }
+  toggleBlood();
+};
+document.getElementById('full-screen-toggle').onpointerdown = () => {
   if (isFullScreen()) {
     document.getElementById('full-screen-toggle').classList.remove('on');
   } else {
@@ -633,19 +635,117 @@ document.getElementById('full-screen-toggle').onclick = () => {
 document.getElementById('close-options-button').onclick = function() {
   toggleOptionsScreen();
 }
+document.getElementById('close-high-scores-button').onclick = function() {
+  toggleHighScores();
+}
+document.getElementById('story-mode-panel').onclick = function() {
+  this.classList.add('selected');
+  document.getElementById('horde-mode-panel').classList.remove('selected');
+  document.getElementById('stage-select-mode-panel').classList.remove('selected');
+  document.getElementById('stage-select-mode-panel').classList.remove('expanded');
+  document.getElementById('game-canvas').style.backgroundColor = 'var(--original-bg-color)';
+  document.getElementById('story-mode-panel').classList.remove('truncated');
+  document.getElementById('horde-mode-panel').classList.remove('truncated');
+  gameMode = 'story';
+  floorDisplay.legend.text = 'LEVEL 1';
+  floorDisplay.bg.width = tileSize * 3.5;
+}
+document.getElementById('horde-mode-panel').onclick = function() {
+  this.classList.add('selected');
+  document.getElementById('story-mode-panel').classList.remove('selected');
+  document.getElementById('stage-select-mode-panel').classList.remove('selected');
+  document.getElementById('stage-select-mode-panel').classList.remove('expanded');
+  document.getElementById('game-canvas').style.backgroundColor = 'var(--horde-bg-color)';
+  document.getElementById('story-mode-panel').classList.remove('truncated');
+  document.getElementById('horde-mode-panel').classList.remove('truncated');
+  gameMode = 'horde';
+  floorDisplay.legend.text = 'HORDE MODE';
+  floorDisplay.bg.width = tileSize * 5;
+}
+document.getElementById('stage-select-mode-panel').onclick = function() {
+  this.classList.add('selected');
+  this.classList.add('expanded');
+  document.getElementById('story-mode-panel').classList.remove('selected');
+  document.getElementById('horde-mode-panel').classList.remove('selected');
+  document.getElementById('story-mode-panel').classList.add('truncated');
+  document.getElementById('horde-mode-panel').classList.add('truncated');
+  gameMode = 'story';
+}
+document.getElementById('hint-close-button').onclick = function() {
+  this.parentElement.parentElement.classList.remove('showing');
+  gameInitiated = true;
+}
+document.getElementById('confirm-mode-button').onclick = function() {
+  if (gameMode === 'horde') {
+    lives = 0;
+    gameContainer.x += level1.levelWidth / 2;
+    floorDisplay.container.x -= level1.levelWidth / 2;
+    player.sprite.x = (gameWidth / 2) - (level1.levelWidth / 2);
+    level1.tomtoms = true;
+    level1.boss.sprite.alpha = 0;
+    level1.container.alpha = 0;
+  } else if (gameMode === 'story') {
+    level1.tomtoms = false;
+    level1.boss.sprite.alpha = 1;
+    level1.container.alpha = 1;
+    if (selectedStage) {
+      levelUp(selectedStage - 1);
+      selectedStage = 0;
+    }
+  }
+  console.log('show?', showInstructions)
+  document.getElementById('mode-select-screen').classList.remove('showing');
+  if (showInstructions) {
+    document.getElementById('controls-hint').classList.add('showing');
+    showInstructions = false;
+  } else {
+    gameInitiated = true;
+  }
+}
+document.getElementById('skip-name-entry-button').onclick = function() {
+  toggleNameEntry();
+  startDisabled = true;
+  setTimeout(function() {
+    startDisabled = false;
+  }, 500);
+}
+Array.from(document.querySelectorAll('.stage-knob')).map((knob, i) => {
+  knob.onpointerdown = function() {
+    Array.from(this.parentElement.children).map(sibling => {
+      sibling.classList.remove('selected');
+    });
+    this.classList.add('selected');
+    selectedStage = this.innerHTML;
+  }
+});
+document.getElementById('mode-back-button').onclick = function() {
+  document.getElementById('mode-select-screen').classList.remove('showing');
+  console.warn('mode-back-button click showing logos')
+  document.getElementById('kung-fu-logo').classList.remove('hidden');
+  document.getElementById('brutal-logo').classList.remove('hidden');
+  titleScreen.container.visible = true;
+  lives = startingLives;
+  currentLevel = undefined;
+  levelReached = 1;
+  dragonLevel = 0;
+  livesAwarded = 0;
+  player.level = level1;
+  player.score = 0;
+  floorDisplay.legend.text = 'LEVEL ' + levelReached;
+  floorDisplay.container.x = gameWidth / 2;
+}
 scoreDisplay = undefined;
 function init() {
   setVariables();
   player = new Fighter('thomas');
   nesPanel = new NESPanel();
   createGame();
-
   titleScreen = new TitleScreen();
   stage.addChild(titleScreen.container);
-  highScoresScreen = new HighScoresScreen();
-  stage.addChild(highScoresScreen.container);
   enterNameScreen = new EnterNameScreen();
+  highScoresScreen = new HighScoresScreen();
   stage.addChild(enterNameScreen.container);
+  stage.addChild(highScoresScreen.container);
   selector = new DragonSelector();
   // alert("randerer x " + renderer.x + " gameC X " + gameContainer.x + " gameW " + gameWidth + " mask w " + gameContainer.mask.width + " at X " + gameContainer.mask.x)
   if (!landscape) {
@@ -654,7 +754,7 @@ function init() {
     gameContainer.mask.x = gameContainer.x;
     gameContainer.mask.y = gameContainer.y;
   }
-  // getScoresFromDatabase(gameName, true, false);
+  getScoresFromDatabase(gameName, true);
   PIXI.ticker.shared.add(function(time) {
     renderer.render(stage);
     update();

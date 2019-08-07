@@ -1,7 +1,8 @@
 function Gripper(side, scale) {
+  lastGripper = counter;
   if (!scale) {
     scale = fighterScale;
-  }
+  }  
   this.type = 'gripper';
   this.sprite = new PIXI.Sprite(PIXI.utils.TextureCache['gripperwalk1']);
   this.worth = {
@@ -10,13 +11,21 @@ function Gripper(side, scale) {
     jumpkick: 300,
     knife: 300
   };
-  lastGripper = counter;
+  this.drainRate = 15;
+  if (!randomInt(0,500)) {
+    this.drainRate = 2;
+    Object.values(this.worth).map((prize, i) => {
+      let newPrize = prize * 3;
+      this.worth[Object.keys(this.worth)[i]] = newPrize;
+    })
+    scale = fighterScale * 1.25;
+    this.sprite.tint = 0xffdddd;
+  }
   this.sprite.width = newPixelSize * 24 * scale;
   this.sprite.height = newPixelSize * 40 * scale;
   this.sprite.anchor.x = 0.5;
   this.sprite.anchor.y = 1;
   this.sprite.y = player.level.groundY;
-  this.drainRate = 15;
   this.walkFrames = ['gripperwalk1', 'gripperwalk2'];
   this.attackFrames = ['gripperattack1', 'gripperattack2'];
   this.currentFrames = this.walkFrames;
@@ -209,8 +218,8 @@ function Gripper(side, scale) {
         var punchRange = player.punchRange;
       }
 
-      // if (!player.dealtBlow && player.punching && this.playerFacing() && distance <= punchRange) {
-      if (!player.dealtBlow && player.punching && distance <= punchRange) {
+      if (!player.dealtBlow && player.punching && this.playerFacing() && distance <= punchRange) {
+      // if (!player.dealtBlow && player.punching && distance <= punchRange) {
         if (player.sprite.y === player.level.groundY) {
           this.dead = true;
           this.diedAt = counter;
@@ -298,20 +307,29 @@ function Tomtom(side, scale) {
   if (!scale) {
     scale = fighterScale;
   }
-  this.type = 'tomtom';
-  this.sprite = new PIXI.Sprite(PIXI.utils.TextureCache['tomtomwalk1']);
   this.worth = {
-    punch: 200,
-    kick: 100,
+    punch: 500,
+    kick: 200,
     jumpkick: 1000,
-    knife: 300
+    knife: 600
   };
+  this.type = 'tomtom';
+  this.drainRate = 10;
+  this.sprite = new PIXI.Sprite(PIXI.utils.TextureCache['tomtomwalk1']);
+  if (!randomInt(0,1000)) {
+    this.drainRate = 2;
+    Object.values(this.worth).map((prize, i) => {
+      let newPrize = prize * 3;
+      this.worth[Object.keys(this.worth)[i]] = newPrize;
+    })
+    scale = fighterScale * 1.5;
+    this.sprite.tint = 0xffdddd;
+  }
   this.sprite.width = newPixelSize * 16 * scale;
   this.sprite.height = newPixelSize * 24 * scale;
   this.sprite.anchor.x = 0.5;
   this.sprite.anchor.y = 1;
   this.sprite.y = player.level.groundY;
-  this.drainRate = 10;
   this.walkFrames = ['tomtomwalk0', 'tomtomwalk1'];
   this.jumpFrames = ['tomtomjump0', 'tomtomjump1', 'tomtomjump2', 'tomtomjump3'];
   this.currentFrames = this.walkFrames;
@@ -910,6 +928,9 @@ function Knifethrower(side, delayDistance, scale) {
       var punchRange = player.punchRange;
       var punchDamage = 1;
     }
+    if (godMode) {
+      punchDamage = 75;
+    }
     if (!player.dealtBlow && player.punching && distance <= punchRange) {
       if (player.sprite.y === player.level.groundY) {
         if (player.weapon !== 'knife') {
@@ -1056,6 +1077,9 @@ function Knifethrower(side, delayDistance, scale) {
   gameContainer.addChildAt(this.sprite, gameContainer.children.indexOf(player.sprite));
 }
 function Squib(victim, posX, posY, size, cause, hitFrom) {
+  if (!bloodOn) {
+    return;
+  }
   this.hitFrom = hitFrom;
   this.bornAt = counter;
   this.terminus = { x: posX, y: posY };
@@ -1256,17 +1280,17 @@ function spawnRandomEnemy() {
   }
 
   // if (randomInt(0,1)) {
-  if (grippers.length < 4 && randomInt(0, 4)) {
+  if (grippers.length < gripperLimit && (randomInt(0, 4) || gameMode === 'horde')) {
     var newGripper = new Gripper(randSide);
     // newGripper.walkSpeed += randomInt(-3,2)*(newPixelSize/16)
-    if (grippers.length < 4 && !randomInt(0, 2)) {
+    if (grippers.length < gripperLimit && (!randomInt(0, 2) || gameMode === 'horde')) {
       // setTimeout(function(){
       var grp = new Gripper(randSide);
       // grp.sprite.tint = 0xff0000
       // newGripper.walkSpeed += randomInt(-3,2)*(newPixelSize/16)
       // },500)
     }
-  } else if (levelData[player.level.floor - 1].tomtoms && tomtoms.length < 3 && levelReached > 1) {
+  } else if (levelData[player.level.floor - 1].tomtoms && tomtoms.length < tomtomLimit && levelReached > 1) {
     var newTomtom = new Tomtom(randSide);
     // newTomtom.walkSpeed += randomInt(-2,4)*(newPixelSize/12)
   } else {

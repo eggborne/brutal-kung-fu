@@ -1,18 +1,34 @@
 let controlScreenOn = optionsScreenOn = false;
 let controlTabSelected = 'keyboard';
 let editingKeyForAction = false;
+let scoresToDisplay = 12;
+// if (landscape) {
+//   scoresToDisplay = 12;
+// }
 let actionKeys = {
   'WALK LEFT': 'a',
   'WALK RIGHT': 'd',
   'JUMP': 'w',
   'CROUCH': 's',
-  'PUNCH': 'j',
+  'PUNCH/WEAPON': 'j',
   'KICK': 'k',
-  'THROW': 'l'
+  'THROW WEAPON': 'l'
+}
+function suffixedNumber(num) {
+  if (num === 1) {
+    return num + 'ST';
+  }
+  if (num === 2) {
+    return num + 'ND';
+  }
+  if (num === 3) {
+    return num + 'RD';
+  }
+  return num + 'TH';
 }
 function checkIfPressing(spr) {
-  var pressing = false;
-  var pressSpot = touches[0].pos;
+  let pressing = false;
+  let pressSpot = touches[0].pos;
   if (pressSpot.x > spr.x + newPixelSize && pressSpot.x < spr.x + spr.width - newPixelSize && pressSpot.y > spr.y + newPixelSize && pressSpot.y < spr.y + spr.height - newPixelSize) {
     pressing = true;
   }
@@ -26,38 +42,32 @@ function checkIfPressing(spr) {
 function toggleControlScreen() {
   controlScreenOn = !controlScreenOn;
   if (controlScreenOn) {
-    // document.getElementById('brutal-logo').classList.add('hidden');
-    // document.getElementById('kung-fu-logo').classList.add('hidden');
     document.getElementById('controls-screen').classList.add('showing');    
   } else {
-    // document.getElementById('brutal-logo').classList.remove('hidden');
-    // document.getElementById('kung-fu-logo').classList.remove('hidden');
     document.getElementById('controls-screen').classList.remove('showing');
   }
-  console.warn('control screen', controlScreenOn);
 }
 function toggleOptionsScreen() {
   optionsScreenOn = !optionsScreenOn;
   if (optionsScreenOn) {
+    console.warn('toggleOptionsScreen hiding logos');
     document.getElementById('brutal-logo').classList.add('hidden');
     document.getElementById('kung-fu-logo').classList.add('hidden');
     document.getElementById('options-screen').classList.add('showing');    
   } else {
+    console.warn('toggleOptionsScreen showing logos');
     document.getElementById('brutal-logo').classList.remove('hidden');
     document.getElementById('kung-fu-logo').classList.remove('hidden');
     document.getElementById('options-screen').classList.remove('showing');
+    document.getElementById('hard-reload').classList.add('hidden');
   }
-  console.warn('options screen', optionsScreenOn);
 }
 function callKeyEditModal(action) {
-  let displayAction = action;
-  if (action === 'PUNCH') {
-    displayAction += '/STAB';
-  }
+  console.log('calling callKeyEditModal with', action);
   document.getElementById('turn-phone-shade').style.display = 'flex';
   document.getElementById('key-edit-modal').innerHTML = `
     <div>
-      Press the new key for<div id='modal-action-display'>${displayAction}</div>now.
+      Press the new key for<div id='modal-action-display'>${displayAction}</div>
     </div>
     <div id='modal-cancel-message'>or press ESC to cancel.</div>
   `;
@@ -70,37 +80,63 @@ function dismissKeyEditModal(action) {
   editingKeyForAction = undefined;
 }
 function refreshKeyDisplay() {
-  let rowRelevant = false;
-  [...document.getElementById('keyboard-controls-grid').children].map((typeArea, t) => {
-    [...typeArea.children].map((rowMember, r) => {
-      if (rowMember.classList.contains('action-listing')) {
-        if (rowMember.innerHTML === editingKeyForAction) {
-          rowRelevant = true;
-        }
-      };
-      if (rowMember.classList.contains('key-listing')) {
-        if (rowRelevant) {
-          let displayKey = actionKeys[editingKeyForAction];
-          if (displayKey === ' ') {
-            displayKey = 'SPACE';
-          }
-          if (displayKey.length > 1) {
-            rowMember.classList.add('long-name');
-          } else {
-            rowMember.classList.remove('long-name');
-            displayKey = displayKey.toUpperCase();       
-          }
-          rowMember.innerHTML = displayKey;
-          rowMember.classList.add('just-changed');
-          setTimeout(() => {
-            rowMember.classList.remove('just-changed');
-          }, 400)
-          rowRelevant = false;
-        }
-      };      
-    })
-  })
+  console.log('refrehsing keys while editingkeysforatonhkgn', editingKeyForAction)
+  let newlyAssignedKey = actionKeys[editingKeyForAction];
+  Array.from(document.querySelectorAll('.key-row')).map((row, i) => {
+    let action = row.children[0].innerHTML;
+    let key = row.children[1].innerHTML;
+    console.log('checking', action, 'found set to', key)
+    if (action === editingKeyForAction) {
+      if (newlyAssignedKey === ' ') {
+        newlyAssignedKey = 'SPACE';
+      }
+      if (newlyAssignedKey.length > 1) {
+        row.classList.add('long-name');
+      } else {
+        row.classList.remove('long-name');
+        newlyAssignedKey = newlyAssignedKey.toUpperCase();
+
+      }
+      console.error('fir action', action)
+      console.error('about to replace', key)
+      row.children[1].innerHTML = newlyAssignedKey;
+      console.error('putting a', newlyAssignedKey)
+    }
+  });
+
 }
+// function refreshKeyDisplay() {
+//   let rowRelevant = false;
+//   [...document.getElementById('keyboard-controls-grid').children].map((typeArea, t) => {
+//     [...typeArea.children].map((rowMember, r) => {
+//       if (rowMember.classList.contains('action-listing')) {
+//         if (rowMember.innerHTML === editingKeyForAction) {
+//           rowRelevant = true;
+//         }
+//       };
+//       if (rowMember.classList.contains('key-listing')) {
+//         if (rowRelevant) {
+//           let displayKey = actionKeys[editingKeyForAction];
+//           if (displayKey === ' ') {
+//             displayKey = 'SPACE';
+//           }
+//           if (displayKey.length > 1) {
+//             rowMember.classList.add('long-name');
+//           } else {
+//             rowMember.classList.remove('long-name');
+//             displayKey = displayKey.toUpperCase();       
+//           }
+//           rowMember.innerHTML = displayKey;
+//           rowMember.classList.add('just-changed');
+//           setTimeout(() => {
+//             rowMember.classList.remove('just-changed');
+//           }, 400)
+//           rowRelevant = false;
+//         }
+//       };      
+//     })
+//   })
+// }
 function ScoreDisplay() {
   this.lineHeight = tileSize / 2.5;
   this.xPadding = tileSize / 1.5;
@@ -109,7 +145,8 @@ function ScoreDisplay() {
   this.bg = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
   this.bg.width = gameWidth;
   this.bg.height = level1.topEdge;
-  this.bg.tint = 0x111111;
+  // this.bg.tint = 0x111111;
+  this.bg.tint = 0x000000;
   this.container.addChild(this.bg);
   this.scoreText = new PIXI.Text('SCORE-000000', scoreStyle);
   this.topText = new PIXI.Text('TOP-000000', scoreStyle);
@@ -157,15 +194,15 @@ function ScoreDisplay() {
   this.livesText = new PIXI.Text('-' + lives, scoreStyle);
   this.livesIcon.width = this.livesIcon.height = this.enemyBar.height;
   this.livesIcon.x = this.enemyBar.x + this.enemyBar.width + newPixelSize * 9;
-  for (var f = 0; f < 5; f++) {
-    var knob = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
+  for (let f = 0; f < 5; f++) {
+    let knob = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
     knob.width = knob.height = this.playerBar.height;
     knob.tint = 0x9290ff;
     knob.x = this.livesIcon.x + f * (knob.width + this.lineHeight * 1.4);
     knob.y = this.playerBar.y;
     this.container.addChild(knob);
     if (f < 4) {
-      var dash = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
+      let dash = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
       dash.width = knob.width * 0.8;
       dash.height = knob.height / 4;
       dash.tint = 0xea9f22;
@@ -183,7 +220,7 @@ function ScoreDisplay() {
   this.dragonText = new PIXI.Text('-0', scoreStyle);
   this.dragonIcon.width = this.enemyBar.height * 2;
   this.dragonIcon.height = this.enemyBar.height;
-  var lastKnob = this.floorKnobs[this.floorKnobs.length - 1];
+  let lastKnob = this.floorKnobs[this.floorKnobs.length - 1];
   this.dragonText.x = lastKnob.x + lastKnob.width - this.dragonText.width;
   this.dragonIcon.x = this.dragonText.x - this.dragonIcon.width - newPixelSize;
   this.dragonIcon.y = this.dragonText.y = this.enemyBar.y;
@@ -196,8 +233,8 @@ function ScoreDisplay() {
   this.timeText.y = this.enemyBar.y - newPixelSize;
 
   this.updateScore = function(newScore) {
-    var newStr = newScore.toString();
-    var scoreString = '0'.repeat(6 - newStr.length) + newStr;
+    let newStr = newScore.toString();
+    let scoreString = '0'.repeat(6 - newStr.length) + newStr;
     this.scoreText.text = 'SCORE-' + scoreString;
     if (topScore < player.score) {
       this.topText.text = 'TOP-' + scoreString;
@@ -215,7 +252,7 @@ function ScoreDisplay() {
     this.livesText.text = '-' + newAmount;
   };
   this.blinkCurrentFloor = function() {
-    var box = this.floorKnobs[player.level.floor - 1];
+    let box = this.floorKnobs[player.level.floor - 1];
     if (counter % 40 === 0) {
       if (box.tint === 0xea9f22) {
         box.tint = 0x9290ff;
@@ -241,34 +278,27 @@ function ScoreDisplay() {
   this.container.addChild(this.timeText);
   nesContainer.addChild(this.container);
 }
-nesGreen = 0x788368;
+const nesGreen = 0x788368;
 function NESPanel() {
   this.container = new PIXI.Container();
   this.controls = new PIXI.Container();
   this.bg = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
   this.backing = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
-  // if (landscape) {
-  //     this.bg.width = gameWidth
-  //     this.bg.height = gameHeight
-  // } else {
   this.bg.width = gameWidth;
   this.bg.height = window.innerHeight - gameHeight;
   this.bg.y = gameHeight;
-
-  // }
-  // this.bg.tint = 0xaaaaaa
-  // this.container.addChild(this.bg)
   if (landscape) {
     this.bg.alpha = 0;
   } else {
     this.controls.addChild(this.backing);
   }
   this.dPad = new PIXI.Container();
+  let pieceSize;
   if (!landscape) {
-    var pieceSize = tileSize * 2.2;
+    pieceSize = tileSize * 2.2;
     this.pieceSize = tileSize * 2.2;
   } else {
-    var pieceSize = tileSize * 2;
+    pieceSize = tileSize * 2;
     this.pieceSize = tileSize * 2;
   }
   this.dPadBg = new PIXI.Sprite(PIXI.utils.TextureCache['nespadbacking']);
@@ -283,8 +313,8 @@ function NESPanel() {
   this.centerPiece = new PIXI.Sprite(PIXI.utils.TextureCache['nescenter']);
   this.dButtons = [this.upButton, this.leftButton, this.rightButton, this.downButton, this.centerPiece, this.upLeftButton, this.upRightButton, this.downLeftButton, this.downRightButton];
 
-  for (var b = 0; b < this.dButtons.length; b++) {
-    var button = this.dButtons[b];
+  for (let b = 0; b < this.dButtons.length; b++) {
+    let button = this.dButtons[b];
     button.width = button.height = pieceSize;
     if (b > 4) {
       button.alpha = 0;
@@ -325,52 +355,18 @@ function NESPanel() {
   this.downButton.x = pieceSize;
   this.downButton.y = pieceSize * 2;
 
-  // this.controls.addChild(this.dPadBg)
-
-  // this.leftButton.y -= pieceSize*0.08
-  // this.rightButton.y -= pieceSize*0.08
-  // this.upButton.width = this.downButton.width = pieceSize*this.pieceRatio
-  // this.upButton.height = this.downButton.height = pieceSize
-
-  // this.leftButton.width = this.rightButton.width = this.upButton.height
-  // this.leftButton.height = this.rightButton.height = this.upButton.width
-
-  // this.centerPiece.x += this.leftButton.width
-  // this.centerPiece.y += this.upButton.height
-
-  // this.upButton.x = this.downButton.x = this.leftButton.width*0.9
-  // this.downButton.y = this.leftButton.y+this.leftButton.height+(this.leftButton.height*0.665)
-  // this.leftButton.y = this.rightButton.y = this.leftButton.width*0.9
-  // this.rightButton.x = this.upButton.x+this.upButton.width*0.91
-
-  // this.centerPiece.x -= this.upButton.width*0.075
-  // this.centerPiece.y -= this.upButton.width*0.0875
-
   this.upRightButton.anchor.x = this.downRightButton.anchor.x = this.downRightButton.anchor.y = this.downLeftButton.anchor.y = 1;
   this.upRightButton.x = this.downRightButton.x = this.dPad.width - this.upRightButton.width;
   this.downRightButton.y = this.downLeftButton.y = this.dPad.height - this.downRightButton.height;
 
-  // this.dPadBg.anchor.set(0.5)
-  // this.dPadBg.x = this.centerPiece.x+(this.centerPiece.width/2)
-  // this.dPadBg.y = this.centerPiece.y+(this.centerPiece.height/2)
-
-  // if (!landscape) {
   this.backing.width = this.kickButton.width * 2 + newPixelSize * 6;
   this.backing.height = this.dPad.height;
-  // this.backing.x = this.kickButton.x-(newPixelSize*3)
-  // this.backing.y = this.dPad.y
   this.backing.x = gameWidth - this.backing.width - newPixelSize * 6;
   this.backing.y = this.dPad.y;
   this.backing.tint = 0x999999;
   this.kickButton.x = this.backing.x + newPixelSize * 2;
   this.punchButton.x = this.kickButton.x + this.kickButton.width;
   this.punchButton.y = this.kickButton.y = this.backing.height - this.kickButton.height - newPixelSize;
-  // } else {
-  //     this.punchButton.x = gameWidth-(this.kickButton.width*1.1)
-  //     this.kickButton.x = this.punchButton.x-(this.punchButton.width)
-  //     this.punchButton.y = this.kickButton.y = gameHeight-(this.kickButton.width*1.1)
-
-  // }
   this.throwButton = new PIXI.Container();
   this.throwButton.interactive = true;
 
@@ -484,7 +480,7 @@ function NESPanel() {
   this.dPadBg.y -= newPixelSize * 4;
   this.dPadBg.tint = 0x999999;
 
-  var dPadXSpace = gameWidth / 2 + newPixelSize * 3;
+  let dPadXSpace = gameWidth / 2 + newPixelSize * 3;
   this.dPad.x = (dPadXSpace - this.dPad.width) / 2;
 
   this.punchLabel = new PIXI.Sprite(PIXI.utils.TextureCache[player.character + 'punch']);
@@ -548,9 +544,9 @@ function NESPanel() {
 
   this.depressButton = function(button) {
     if (button.type === 'punch') {
-      var since = counter - player.beganPunch;
+      let since = counter - player.beganPunch;
     } else {
-      var since = counter - player.beganKick;
+      let since = counter - player.beganKick;
     }
     if (since === 0) {
       button.texture = PIXI.utils.TextureCache('nes' + button.type + 'pressed1');
@@ -583,7 +579,7 @@ function NESPanel() {
     }
   };
   this.monitorDPad = function() {
-    var touch = touches[0].pos;
+    let touch = touches[0].pos;
     if (this.upButton.containsPoint(touch)) {
       if (!pressingUp) {
         pressUp();
@@ -709,37 +705,28 @@ function NESPanel() {
   // this.controls.y = gameHeight+(newPixelSize*16)
 
   this.sizeElements = function() {
-    $('#d-pad').css({
-      width: this.dPad.width,
-      height: this.dPad.height,
-      top: this.controls.y + this.dPad.y,
-      left: this.controls.x + this.dPad.x
+      document.getElementById('d-pad').style.width = this.dPad.width + 'px',
+      document.getElementById('d-pad').style.height = this.dPad.height + 'px',
+      document.getElementById('d-pad').style.top = this.controls.y + this.dPad.y + 'px',
+      document.getElementById('d-pad').style.left = this.controls.x + this.dPad.x + 'px'
+      document.getElementById('nes-panel-bg').style.width = gameWidth - newPixelSize * 4 + 'px',
+      document.getElementById('nes-panel-bg').style.height = this.dPadBg.height + newPixelSize * 20 + 'px',
+      document.getElementById('nes-panel-bg').style.top = this.controls.y + this.dPadBg.y - newPixelSize * 10 + 'px',
+      document.getElementById('nes-panel-bg').style.left = newPixelSize * 2 + 'px';
+    
+    Array.from(document.querySelectorAll('.button-back')).map(bback => {
+      bback.style.width = pieceSize * 1.75 - newPixelSize * 6 + 'px';
+      bback.style.height = pieceSize * 1.75 - newPixelSize * 6 + 'px';
+      bback.style.top = this.controls.y + this.punchButton.y + newPixelSize * 3 + 'px';
     });
-    $('#nes-panel-bg').css({
-      width: gameWidth - newPixelSize * 4,
-      height: this.dPadBg.height + newPixelSize * 20,
-      top: this.controls.y + this.dPadBg.y - newPixelSize * 10,
-      left: newPixelSize * 2
-    });
-    $('.button-back').css({
-      width: pieceSize * 1.75 - newPixelSize * 6,
-      height: pieceSize * 1.75 - newPixelSize * 6,
-      top: this.controls.y + this.punchButton.y + newPixelSize * 3
-    });
-    $('#b-back').css({
-      left: this.punchButton.x + newPixelSize * 3
-    });
-    $('#a-back').css({
-      left: this.kickButton.x + newPixelSize * 3
-    });
-    $('#nes-border').css({
-      height: this.dPadBg.height + newPixelSize * 30,
-      top: this.controls.y + this.dPadBg.y - newPixelSize * 15
-    });
+    document.getElementById('b-back').style.left = this.punchButton.x + newPixelSize * 3 + 'px';
+    document.getElementById('a-back').style.left = this.kickButton.x + newPixelSize * 3 + 'px';
+    document.getElementById('nes-border').style.height = this.dPadBg.height + newPixelSize * 30 + 'px';
+    document.getElementById('nes-border').style.top = this.controls.y + this.dPadBg.y - newPixelSize * 15 + 'px';
   };
   this.hideDecor = function() {
-    $('#nes-panel-bg').css({ display: 'none' });
-    $('.button-back').css({ display: 'none' });
+    document.getElementById('nes-panel-bg').style.display = 'none';
+    Array.from(document.getElementsByClassName('button-back')).map(bback => {bback.style.display = 'none' });
   };
   this.sizeElements();
 }
@@ -839,7 +826,7 @@ function scoreBlip(amount, victim) {
   scoreBlips.push(this);
 
   this.fade = function() {
-    var sinceBorn = counter - this.bornAt;
+    let sinceBorn = counter - this.bornAt;
     if (sinceBorn > 5) {
       this.legend.y -= (sinceBorn / 10) * newPixelSize;
       this.legend.alpha -= 0.075;
@@ -849,12 +836,18 @@ function scoreBlip(amount, victim) {
     }
   };
 }
+function callModeSelectScreen() {
+  document.getElementById('mode-select-screen').classList.add('showing');
+}
 function TitleScreen() {
   this.container = new PIXI.Container();
   this.titleCard = new PIXI.Sprite(PIXI.utils.TextureCache['titlescreen']);
   this.startButton = new PIXI.Container();
+  this.startButton.buttonMode = true;
   this.highScoresButton = new PIXI.Container();
+  this.highScoresButton.buttonMode = true;
   this.optionsButton = new PIXI.Container();
+  this.optionsButton.buttonMode = true;
   this.fullScreenButton = new PIXI.Container();
   this.kungFuLogo = new PIXI.Sprite()
   this.highScoresBg = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
@@ -883,7 +876,7 @@ function TitleScreen() {
   this.soundBg.tint = this.fullScreenBg.tint = 0x444444;
   this.controlsBg.tint = 0x446666;
   this.startBg.width = tileSize * 7;
-  this.startBg.height = tileSize * 1.5;
+  this.startBg.height = tileSize * 1.65;  
   this.highScoresBg.width = this.optionsBg.width = this.startBg.width;
   this.highScoresBg.height = this.optionsBg.height = this.startBg.height;
   this.soundBg.width = tileSize * 5;
@@ -893,11 +886,10 @@ function TitleScreen() {
   this.controlsBg.width = this.startBg.width * 1.15;
   this.controlsBg.height = this.soundBg.height;
   this.fullScreenText.y = this.controlsText.y = this.fullScreenBg.y + this.fullScreenBg.height / 2;
-  this.startBg.y = newPixelSize * 84 + tileSize;
+  this.startBg.y = newPixelSize * 90 + tileSize;
   this.highScoresBg.y = this.startBg.y + this.startBg.height + newPixelSize * 12;
   this.startText.y = this.startBg.y + this.startBg.height / 2;
   this.highScoresText.y = this.highScoresBg.y + this.highScoresBg.height / 2;
-  // this.soundBg.y = this.startBg.y+this.startBg.height+(this.soundBg.height/2)
   this.optionsButton.y = this.highScoresBg.y + this.highScoresBg.height + this.highScoresBg.height / 2;
   this.soundButton.y = this.highScoresBg.y + this.highScoresBg.height + this.highScoresBg.height / 2;
   this.soundText.y = this.soundBg.y + this.soundBg.height / 2;
@@ -911,29 +903,17 @@ function TitleScreen() {
   this.highScoresButton.addChild(this.highScoresText);
   this.optionsButton.addChild(this.optionsBg);
   this.optionsButton.addChild(this.optionsText);
-  // this.soundButton.addChild(this.soundBg);
-  // this.soundButton.addChild(this.soundText);
-  // this.controlsButton.addChild(this.controlsBg);
-  // this.controlsButton.addChild(this.controlsText);
-  // this.fullScreenButton.addChild(this.fullScreenBg);
-  // this.fullScreenButton.addChild(this.fullScreenText);
-  loadMessage = new PIXI.Text('SOUNDS LOADED: 0/13', scoreStyle);
-  loadMessage.anchor.x = 0.5;
-  loadMessage.x = this.startBg.x;
-  loadMessage.y = gameHeight - (this.startBg.height / 2);
-  loadMessage.visible = false;
-  this.startButton.addChild(loadMessage);
   this.titleCard.anchor.x = 0.5;
   this.titleCard.x = gameWidth / 2;
   this.titleCard.width = gameWidth;
   this.titleCard.height = gameHeight;
+  console.warn('sized title at', gameWidth, gameHeight)
   this.startButton.interactive = this.highScoresButton.interactive = this.optionsButton.interactive = true;
   this.startButton.on('pointerdown', function() {
     selector.move(0, 0);
   });
   this.startButton.on('pointerup', function() {
-    // if (!created) { createGame() }
-    // stage.setChildIndex(gameContainer,stage.children.length-1)
+    callModeSelectScreen()
     clearTitle();
   });
   this.highScoresButton.on('pointerdown', function() {
@@ -952,12 +932,6 @@ function TitleScreen() {
   this.container.addChild(this.startButton);
   this.container.addChild(this.highScoresButton);
   this.container.addChild(this.optionsButton);
-  // this.container.addChild(this.soundButton);
-  // if (landscape) {
-  //   this.container.addChild(this.controlsButton);
-  // } else {
-  //   this.container.addChild(this.fullScreenButton);
-  // }
 }
 function DragonSelector() {
   this.container = new PIXI.Container();
@@ -970,7 +944,6 @@ function DragonSelector() {
   this.leftDragon.x = gameWidth / 2 - titleScreen.startBg.width / 2 - tileSize;
   this.rightDragon.x = gameWidth / 2 + titleScreen.startBg.width / 2 + tileSize;
   this.rightDragon.scale.x *= -1;
-  // this.leftDragon.y = this.rightDragon.y = titleScreen.startText.y
   this.container.y = titleScreen.startText.y;
   this.container.addChild(this.leftDragon);
   this.container.addChild(this.rightDragon);
@@ -997,8 +970,7 @@ function DragonSelector() {
       }
     }
 
-    var selected = this.selections[this.selected];
-    console.log('SEL', selected)
+    let selected = this.selections[this.selected];
     if (selected === 'start') {
       this.container.y = titleScreen.startText.y;
       this.leftDragon.x = gameWidth / 2 - titleScreen.startBg.width / 2 - tileSize;
@@ -1029,38 +1001,11 @@ function DragonSelector() {
       this.highlight.width = titleScreen.optionsBg.width + this.highlight.borderSize;
       this.highlight.height = titleScreen.optionsBg.height + this.highlight.borderSize;
     }
-    // if (selected === 'fullscreen') {
-    //   this.container.y = titleScreen.fullScreenButton.y + titleScreen.fullScreenText.y;
-    //   // this.leftDragon.x = gameWidth / 2 - titleScreen.fullScreenBg.width / 2 - tileSize;
-    //   // this.rightDragon.x = gameWidth / 2 + titleScreen.fullScreenBg.width / 2 + tileSize;
-    //   // titleScreen.fullScreenBg.alpha = 1
-    //   titleScreen.startBg.alpha = 0.5;
-    //   titleScreen.highScoresBg.alpha = 0.5;
-    //   if (landscape) {
-    //     this.leftDragon.x = gameWidth / 2 - titleScreen.controlsBg.width / 2 - tileSize;
-    //     this.rightDragon.x = gameWidth / 2 + titleScreen.controlsBg.width / 2 + tileSize;
-    //     this.highlight.width = titleScreen.controlsBg.width + this.highlight.borderSize;
-    //   } else {
-    //     this.leftDragon.x = gameWidth / 2 - titleScreen.fullScreenBg.width / 2 - tileSize;
-    //     this.rightDragon.x = gameWidth / 2 + titleScreen.fullScreenBg.width / 2 + tileSize;
-    //     this.highlight.width = titleScreen.fullScreenBg.width + this.highlight.borderSize;
-    //   }
-    //   this.highlight.height = titleScreen.fullScreenBg.height + this.highlight.borderSize;
-    // }
-  };
-  this.adjust = function(direction) {
-    var selected = this.selections[this.selected];
-    if (selected === 'sound') {
-      toggleSound();
-    }
-    if (selected === 'fullscreen') {
-      // toggleFullScreen();
-    }
   };
   this.chooseSelection = function() {
-    var selected = this.selections[this.selected];
+    let selected = this.selections[this.selected];
     if (selected === 'start') {
-      // if (!created) { createGame() }
+      callModeSelectScreen();
       clearTitle();
     }
     if (selected === 'highscores') {
@@ -1070,7 +1015,6 @@ function DragonSelector() {
       toggleOptionsScreen();
     }
   };
-
   this.highlightSelection = function() {
     if (precounter % 4 < 2) {
       this.highlight.tint = 0xffa000;
@@ -1088,63 +1032,70 @@ function HighScoresScreen() {
   this.bg.tint = 0x000000;
   this.header = new PIXI.Sprite(PIXI.utils.TextureCache['highscoresheader']);
   this.header.width = gameWidth;
+  this.marginX = tileSize * 2.25;
+  if (landscape) {
+    this.header.width = gameWidth * 0.75;
+    this.header.anchor.x = 0.5;
+    this.header.x = gameWidth / 2;
+    this.marginX = tileSize * 3.8;
+  }
   this.header.height = this.header.width / 4;
-  this.marginX = newPixelSize * 30 + tileSize;
   this.startY = tileSize + newPixelSize * 64;
-  var dragonsNeeded = Math.ceil((viewHeight - (this.header.height + tileSize)) / (tileSize + newPixelSize * 32));
+  if (landscape) {
+    this.startY *= 0.75;
+  }
+  let dragonsNeeded = Math.ceil((viewHeight - (this.header.height + tileSize)) / (tileSize + newPixelSize * 32));
   this.container.addChild(this.bg);
   this.container.addChild(this.header);
-  this.backButton = new PIXI.Container();
-  this.backBg = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
-  this.backBg.width = tileSize * 8;
-  this.backBg.height = tileSize * 3;
-  this.backBg.anchor.x = 0.5;
-  this.backBg.tint = 0x444444;
-  this.backBg.x = gameWidth / 2;
-  this.backBg.y = viewHeight - (this.backBg.height + tileSize * 2);
-  this.backText = new PIXI.Text('BACK', titleStyle);
-  this.backText.anchor.set(0.5);
-  this.backText.x = this.backBg.x;
-  this.backText.y = this.backBg.y + this.backBg.height / 2;
-  this.backButton.addChild(this.backBg);
-  this.backButton.addChild(this.backText);
-  this.container.addChild(this.backButton);
-  this.backButton.interactive = true;
-  this.backButton.on('click', function() {
-    toggleHighScores();
-    startDisabled = true;
-    setTimeout(function() {
-      startDisabled = false;
-    }, 500);
-  });
   this.entries = new PIXI.Container();
   this.container.addChild(this.entries);
-  for (var d = 0; d < dragonsNeeded; d++) {
-    var dragon1 = new PIXI.Sprite(PIXI.utils.TextureCache['fulldragon']);
-    var dragon2 = new PIXI.Sprite(PIXI.utils.TextureCache['fulldragon']);
+  for (let d = 0; d < dragonsNeeded; d++) {
+    let dragon1 = new PIXI.Sprite(PIXI.utils.TextureCache['fulldragon']);
+    let dragon2 = new PIXI.Sprite(PIXI.utils.TextureCache['fulldragon']);
+    dragon1.anchor.x = dragon2.anchor.x = 0.5;
     dragon1.width = dragon2.width = newPixelSize * 24;
     dragon1.height = dragon2.height = newPixelSize * 32;
-    dragon1.anchor.x = dragon2.anchor.x = 0.5;
     dragon1.x = tileSize;
     dragon2.x = gameWidth - tileSize;
     dragon1.y = dragon2.y = this.startY + (tileSize + dragon1.height) * d;
+    if (landscape) {
+      dragon1.width = dragon2.width = newPixelSize * 18;
+      dragon1.height = dragon2.height = newPixelSize * 24;
+      dragon1.x = tileSize * 3;
+      dragon2.x = gameWidth - (tileSize * 3);
+      dragon1.y = dragon2.y = this.startY + (tileSize + dragon1.height) * d;
+    }
     dragon2.scale.x *= -1;
     this.container.addChild(dragon1);
     this.container.addChild(dragon2);
   }
   this.populateEntries = function() {
     this.entries.removeChildren();
-    var newEntries = scoreArray.length;
-    if (scoreArray.length > 10) {
-      newEntries = 10;
+    let newEntries = scoreArray.length;
+    if (scoreArray.length > scoresToDisplay) {
+      newEntries = scoresToDisplay;
     }
-    for (var e = 0; e < newEntries; e++) {
-      var newPlayerText = new PIXI.Text(scoreArray[e][0], highScoreStyle);
-      var sixDigit = '0'.repeat(6 - scoreArray[e][1].length) + scoreArray[e][1];
-      var newScoreText = new PIXI.Text(sixDigit, highScoreStyle);
-      newPlayerText.x = this.marginX;
+    for (let e = 0; e < newEntries; e++) {
+      let rankNumber = new PIXI.Text((e + 1), highScoreStyle);
+      if (!landscape) {
+        rankNumber.style.fontSize = tileSize / 2;
+      }
+      rankNumber.style.fill = '#8f8';
+      rankNumber.anchor.x = 1;
+      let newPlayerText = new PIXI.Text(scoreArray[e][0], highScoreStyle);
+      if (!landscape) {
+        newPlayerText.style.fontSize = tileSize / 1.6;
+      }
+      let sixDigit = '0'.repeat(6 - scoreArray[e][1].length) + scoreArray[e][1];
+      let newScoreText = new PIXI.Text(sixDigit, highScoreStyle);
+      if (landscape) {
+        newScoreText.style.fontSize = newPlayerText.style.fontSize = tileSize / 3;
+      }
+      rankNumber.x = this.marginX + (tileSize * 0.75);
+      newPlayerText.x = rankNumber.x + (tileSize / 1.5);
       newScoreText.x = gameWidth - newScoreText.width - this.marginX;
-      newPlayerText.y = newScoreText.y = this.startY + newPlayerText.height * 2 * e;
+      rankNumber.y = newPlayerText.y = newScoreText.y = this.startY + newPlayerText.height * 2 * e;
+      this.entries.addChild(rankNumber);
       this.entries.addChild(newPlayerText);
       this.entries.addChild(newScoreText);
       if (scoreArray[e][0] == currentRecord.player && scoreArray[e][1] == currentRecord.score) {
@@ -1158,6 +1109,7 @@ function HighScoresScreen() {
 function EnterNameScreen() {
   this.container = new PIXI.Container();
   this.container.interactive = true;
+  this.container.zIndex = 30;
   this.bg = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
   this.bg.width = gameWidth;
   this.bg.height = viewHeight;
@@ -1165,53 +1117,42 @@ function EnterNameScreen() {
   this.header = new PIXI.Sprite(PIXI.utils.TextureCache['emptyheader']);
   this.header.width = gameWidth;
   this.header.height = this.header.width / 4;
-
   this.marginX = newPixelSize * 30 + tileSize;
-  this.startY = tileSize + newPixelSize * 64;
-  var dragonsNeeded = Math.ceil((viewHeight - (this.header.height + tileSize)) / (tileSize + newPixelSize * 32));
+  this.startY = gameHeight / 2.25;
+  let dragonsNeeded = Math.ceil((viewHeight - (this.header.height + tileSize)) / (tileSize + newPixelSize * 32));
   this.container.addChild(this.bg);
   this.container.addChild(this.header);
-  this.backButton = new PIXI.Container();
-  this.backBg = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
-  this.backBg.width = tileSize * 8;
-  this.backBg.height = tileSize * 3;
-  this.backBg.anchor.x = 0.5;
-  this.backBg.tint = 0x444444;
-  this.backBg.x = gameWidth / 2;
-  this.backBg.y = viewHeight - (this.backBg.height + tileSize * 2);
-  this.backText = new PIXI.Text('BACK', titleStyle);
-  this.backText.anchor.set(0.5);
-  this.backText.x = this.backBg.x;
-  this.backText.y = this.backBg.y + this.backBg.height / 2;
-  this.backButton.addChild(this.backBg);
-  this.backButton.addChild(this.backText);
-  this.container.addChild(this.backButton);
-  this.backButton.interactive = true;
-  this.backButton.on('pointerdown', function() {
-    toggleNameEntry();
-    startDisabled = true;
-    setTimeout(function() {
-      startDisabled = false;
-    }, 500);
-  });
   this.entries = new PIXI.Container();
-  this.legend = new PIXI.Text('CONGRATULATIONS.\nYOU ARE A TRUE KUNG FU MASTER.\n \nENTER YOUR NAME TO TAKE YOUR PLACE AMONG THE OTHER TOP FIGHTERS.', blockStyle);
-  this.legend.anchor.x = 0.5;
-  this.legend.x = gameWidth / 2;
-  this.legend.y = this.header.y + this.header.height + tileSize * 1.5;
-
-  this.container.addChild(this.legend);
-
-  $('#name-entry').css({
-    fontSize: tileSize * 0.95
-  });
-  $('#name-submit').css({
-    fontSize: tileSize * 0.8
-  });
-
-  for (var d = 0; d < dragonsNeeded; d++) {
-    var dragon1 = new PIXI.Sprite(PIXI.utils.TextureCache['fulldragon']);
-    var dragon2 = new PIXI.Sprite(PIXI.utils.TextureCache['fulldragon']);
+  this.legendTitle = new PIXI.Text('HIGH SCORE!', blockStyle);
+  this.rankDisplay = new PIXI.Text('5TH PLACE', blockStyle);
+  this.legendTitle.style.fill = 0x44ff44;
+  this.rankDisplay.style.fill = 0xffff00;
+  largeFontSize = gameWidth / 12;
+  this.legendTitle.style.fontSize = largeFontSize;
+  this.rankDisplay.style.fontSize = largeFontSize;
+  this.rankDisplay.style.lineHeight = '5';
+  if (landscape) {
+    this.rankDisplay.style.fontSize = largeFontSize / 1.5;
+    this.rankDisplay.style.lineHeight = '8';
+  }
+  this.legendTitle.style.wordWrapWidth = gameWidth;
+  this.legend = new PIXI.Text('ENTER YOUR NAME TO CLAIM YOUR PLACE AMONG THE WORLD\'S TOP FIGHTERS.', blockStyle);
+  this.legend.anchor.x = this.legendTitle.anchor.x = this.rankDisplay.anchor.x = 0.5;
+  this.legend.x = this.legendTitle.x = this.rankDisplay.x = gameWidth / 2;
+  this.legendTitle.y = this.startY - (this.legendTitle.height * 1.5);
+  this.rankDisplay.y = this.startY + tileSize;
+  this.legend.y = viewHeight * 0.5;
+  if (landscape) {
+    this.legend.y = gameHeight * 0.65;
+  }
+  
+  this.container.addChild(this.legendTitle);  
+  this.container.addChild(this.rankDisplay);  
+  this.container.addChild(this.legend);  
+  
+  for (let d = 0; d < dragonsNeeded; d++) {
+    let dragon1 = new PIXI.Sprite(PIXI.utils.TextureCache['fulldragon']);
+    let dragon2 = new PIXI.Sprite(PIXI.utils.TextureCache['fulldragon']);
     dragon1.width = dragon2.width = newPixelSize * 24;
     dragon1.height = dragon2.height = newPixelSize * 32;
     dragon1.anchor.x = dragon2.anchor.x = 0.5;
@@ -1222,52 +1163,31 @@ function EnterNameScreen() {
     this.container.addChild(dragon1);
     this.container.addChild(dragon2);
   }
-  this.pulseButton = function() {
-    if (precounter % 24 === 0) {
-      $('#name-submit').css({
-        'background-color': '#565',
-        transform: 'scale(1.025)'
-      });
-    } else {
-      $('#name-submit').css({
-        'background-color': '#464',
-        transform: 'scale(0.975)'
-      });
-    }
-  };
-  this.pulseEntry = function() {
-    if (precounter % 24 === 0) {
-      $('#name-entry').css({
-        'background-color': '#afa'
-      });
-    } else {
-      $('#name-entry').css({
-        'background-color': '#fff'
-      });
-    }
-  };
   this.container.visible = false;
 }
 function submitHighScore() {
-  saveScoreToDatabase(gameName, document.getElementById('name-entry').value, currentRecord.score);
+  lastEnteredName = document.getElementById('name-entry').value.toUpperCase();
+  console.info('player', player)
+  saveScoreToDatabase(gameName, lastEnteredName, currentRecord.score);
 }
-function toggleNameEntry() {
+function toggleNameEntry(rankAchieved) {
   if (enterNameScreen.container.visible) {
     enterNameScreen.container.visible = false;
-    $('#name-entry').css({
-      display: 'none'
-    });
-    $('#name-submit').css({
-      display: 'none'
-    });
+    document.getElementById('brutal-logo').classList.remove('hidden');
+    document.getElementById('kung-fu-logo').classList.remove('hidden');
+    document.getElementById('skip-name-entry-button').classList.remove('showing');
+    document.getElementById('name-entry').classList.remove('showing');
+    document.getElementById('name-submit').classList.remove('showing');
+    document.body.classList.remove('scored');    
   } else {
+    document.getElementById('brutal-logo').classList.add('hidden');
+    document.getElementById('kung-fu-logo').classList.add('hidden');
+    document.getElementById('skip-name-entry-button').classList.add('showing');
+    document.getElementById('name-entry').classList.add('showing');
+    document.getElementById('name-submit').classList.add('showing');
+    enterNameScreen.rankDisplay.text = `${rankAchieved} PLACE`;
     enterNameScreen.container.visible = true;
-    $('#name-entry').css({
-      display: 'block'
-    });
-    $('#name-submit').css({
-      display: 'block'
-    });
+    document.body.classList.add('scored')
   }
 }
 function toggleHighScores() {
@@ -1275,29 +1195,38 @@ function toggleHighScores() {
     highScoresScreen.container.visible = true;
     document.getElementById('brutal-logo').classList.add('hidden');
     document.getElementById('kung-fu-logo').classList.add('hidden');
+    document.getElementById('close-high-scores-button').classList.add('showing');
+    document.getElementById('hard-reload').classList.add('hidden');
     getScoresFromDatabase(gameName, true);
     // highScoresScreen.populateEntries()
   } else {
     document.getElementById('brutal-logo').classList.remove('hidden');
     document.getElementById('kung-fu-logo').classList.remove('hidden');
+    document.getElementById('close-high-scores-button').classList.remove('showing');
     highScoresScreen.container.visible = false;
+    
   }
 }
 function getScoresFromDatabase(gameName, populate, check) {
   console.log('CALLING FOR SCORES ----------------');
-  $.ajax({
-    type: 'get',
+  axios({
+    method: 'get',
     url: 'https://www.eggborne.com/scripts/getscores.php',
-    data: { game: gameName },
-
-    success: function(text) {
+    headers: {
+      'Content-type': 'application/x-www-form-urlencoded'
+    },
+    params: {
+      game: gameName
+    }
+  }).then((response) => {
+    if (response.data) {
+      let text = response.data;
       scoreArray.length = 0;
-      pairArray = text.split(' - ');
+      pairArray = response.data.split(' - ');
       for (item in pairArray) {
-        var scoreEntry = pairArray[item].split(' ');
-        var literalName = scoreEntry[0];
+        let scoreEntry = pairArray[item].split(' ');
         if (scoreEntry.length > 2) {
-          var fixedEntry = [];
+          let fixedEntry = [];
           fixedEntry[1] = scoreEntry.pop();
           fixedEntry[0] = scoreEntry.join(' ');
           scoreArray.push(fixedEntry);
@@ -1309,50 +1238,59 @@ function getScoresFromDatabase(gameName, populate, check) {
       } else {
         highScoresScreen.populateEntries();
       }
-      var lowestIndex = 9;
-      if (scoreArray.length < 10) {
+      let lowestIndex = scoresToDisplay - 1;
+      if (scoreArray.length < scoresToDisplay) {
         lowestIndex = scoreArray.length - 1;
         lowScore = 0;
       } else {
         lowScore = scoreArray[lowestIndex][1];
       }
       topScore = scoreArray[0][1];
-
-      console.warn('topScore', topScore, 'lowScore', lowScore);
       if (scoreDisplay) {
         scoreDisplay.topText.text = 'TOP-' + ('0'.repeat(6 - topScore.toString().length) + topScore);
       }
       if (check) {
-        console.warn('checking! playerscore', player.score, 'low', lowScore);
-        if (player.score > lowScore) {
-          currentRecord.score = player.score;
-          toggleNameEntry();
-        } else {
+        if (gameMode !== 'horde') {
+          console.warn('checking! player.score', player.score, 'against lowest of top', scoresToDisplay, '-', lowScore);
+          if (player.score > lowScore) {
+            currentRecord.score = player.score;
+            let playerRank = findRank(player.score);
+            console.error('-------------------')
+            console.error('playerRank ------------------', playerRank)
+            console.error('-------------------')
+            toggleNameEntry(playerRank);
+          }
         }
         resetGame();
-        player.score = 0;
       }
-    },
-    error: function() {
-      console.log('Could not connect to get!');
+    } else {
+      console.log('getScoresFromDatabase could not connect :(');
       scoreArray = [['void', 1212]];
     }
   });
 }
 function saveScoreToDatabase(gameName, playerName, playerScore) {
-  playerName = playerName.toUpperCase();
+  console.log('currrec', currentRecord)
+  console.log('passing', gameName, playerName, playerScore)
   currentRecord.player = playerName;
-  $.ajax({
-    type: 'post',
+  axios({
+    method: 'post',
     url: 'https://www.eggborne.com/scripts/savescores.php',
-    data: { game: gameName, name: playerName, score: playerScore },
-    success: function(data) {
+    headers: {
+      'Content-type': 'application/x-www-form-urlencoded'
+    },
+    data: {
+      game: gameName,
+      name: playerName,
+      score: playerScore
+    }
+  }).then(response => {
+    if (response.data) {
       toggleNameEntry();
       toggleHighScores();
       getScoresFromDatabase(gameName, true);
-    },
-    error: function() {
-      console.log('Could not connect to post!');
+    } else {
+      console.log('Could not connect to post score!');
     }
   });
 }

@@ -14,11 +14,11 @@ function Level(floor, direction, startY, water, topEdge, groundY, length) {
   this.topEdge = topEdge;
   this.groundY = groundY;
   // this.groundY = startY-(newPixelSize*20)-(tileSize*3)
-  console.log('groundY at level ' + this.groundY);
-  var perWidth = Math.ceil(gameWidth / (newPixelSize * 64));
-  console.log('per width? ' + perWidth);
+  // console.log('groundY at level ' + this.groundY);
+  // var perWidth = Math.ceil(gameWidth / (newPixelSize * 64));
+  // console.log('per width? ' + perWidth);
   var segmentsNeeded = (segsWide = 29);
-  console.log('need ' + segmentsNeeded);
+  // console.log('need ' + segmentsNeeded);
   if (direction === 'left') {
     var signIndex = 5;
   } else {
@@ -84,6 +84,77 @@ function Level(floor, direction, startY, water, topEdge, groundY, length) {
   this.container.addChild(this.stairs);
   this.levelWidth = this.container.width;
   gameContainer.addChild(this.container);
+}
+function levelUp(amount) {
+  levelReached += amount;
+  bosses.map((boss, i) => {
+    console.log('check', boss)
+    if ((i+1) < levelReached) {
+      boss.sprite.alpha = 0;
+    }
+  });
+  gameContainer.removeChild(player.level.container);
+  console.log('levelReached is now', levelReached);
+  console.log('levelData is', levelData);
+
+  var lvlData = levelData[levelReached - 1];
+  console.log('lvlData', lvlData)
+  var nextLevel = new Level(levelReached, lvlData.direction, gameHeight, lvlData.water, topEdge, groundY);
+  scoreDisplay.floorKnobs[levelReached - 1].tint = 0xea9f22;
+  player.level = nextLevel;
+  gameContainer.setChildIndex(player.sprite, gameContainer.children.indexOf(player.level.container));
+  floorDisplay.legend.text = 'LEVEL ' + levelReached;
+  scoreSequenceStarted = endSequenceStarted = false;
+  if (player.level.direction === 'left') {
+  }
+  player.sprite.x = player.level.playerStartX;
+  player.sprite.y = player.level.groundY;
+  player.fightingBoss = false;
+
+  floorDisplay.container.visible = true;
+
+  gameContainer.x = 0;
+  levelTime = 2000;
+  player.hp = player.maxHP;
+  // player.level.boss.hp = player.level.boss.maxHP
+  player.beganJump = 0;
+  player.beganPunch = 0;
+  player.beganKick = 0;
+  player.punching = player.kicking = player.ducking = false;
+  counter = 0;
+  lastKT = 0;
+  scoreDisplay.timeText.text = '0'.repeat(4 - levelTime.toString().length) + levelTime;
+  scoreDisplay.updateScore(player.score);
+  scoreDisplay.playerBar.width = scoreDisplay.playerBarMax / (player.maxHP / player.hp);
+  // scoreDisplay.enemyBar.width = scoreDisplay.enemyBarMax/(player.level.boss.maxHP/player.level.boss.hp)
+  player.level.boss = bosses[levelReached - 1];
+  var newBoss = lvlData.boss;
+  newBoss.level = player.level;
+  newBoss.sprite.x = newBoss.homeX = player.level.bossSpotX;
+  newBoss.sprite.scale.x *= -1;
+  newBoss.sprite.y = player.level.groundY;
+  newBoss.hp = newBoss.maxHP;
+  newBoss.dead = false;
+  newBoss.changeTexture(newBoss.character + 'walk0');
+  if (player.level.direction === 'left') {
+    if (player.sprite.scale.x > 0) {
+      player.sprite.scale.x *= -1;
+    }
+    if (newBoss.sprite.scale.x < 0) {
+      newBoss.sprite.scale.x *= -1;
+    }
+  }
+  if (player.level.direction === 'right') {
+    if (player.sprite.scale.x < 0) {
+      player.sprite.scale.x *= -1;
+    }
+    if (newBoss.sprite.scale.x > 0) {
+      newBoss.sprite.scale.x *= -1;
+    }
+  }
+  enemyFrequency = lvlData.enemyFrequency;
+  eggFrequency = lvlData.eggFrequency;
+  scoreDisplay.enemyBar.width = scoreDisplay.enemyBarMax;
 }
 function playEndSequence() {
   var since = counter - wonAt;
@@ -153,65 +224,71 @@ function playEndSequence() {
           scoreDisplay.updateScore(player.score);
         }
         if (levelTime === 0) {
-          levelReached++;
-          gameContainer.removeChild(player.level.container);
-          var lvlData = levelData[levelReached - 1];
-          var nextLevel = new Level(levelReached, lvlData.direction, gameHeight, lvlData.water, topEdge, groundY);
-          scoreDisplay.floorKnobs[levelReached - 1].tint = 0xea9f22;
-          player.level = nextLevel;
-          gameContainer.setChildIndex(player.sprite, gameContainer.children.indexOf(player.level.container));
-          floorDisplay.legend.text = 'LEVEL ' + levelReached;
-          scoreSequenceStarted = endSequenceStarted = false;
-          if (player.level.direction === 'left') {
+          if (levelReached === 5) {
+            levelReached = 1;
+            levelUp(0);
+          } else {
+            levelUp(1);
           }
-          player.sprite.x = player.level.playerStartX;
-          player.sprite.y = player.level.groundY;
-          player.fightingBoss = false;
+          // levelReached++;
+          // gameContainer.removeChild(player.level.container);
+          // var lvlData = levelData[levelReached - 1];
+          // var nextLevel = new Level(levelReached, lvlData.direction, gameHeight, lvlData.water, topEdge, groundY);
+          // scoreDisplay.floorKnobs[levelReached - 1].tint = 0xea9f22;
+          // player.level = nextLevel;
+          // gameContainer.setChildIndex(player.sprite, gameContainer.children.indexOf(player.level.container));
+          // floorDisplay.legend.text = 'LEVEL ' + levelReached;
+          // scoreSequenceStarted = endSequenceStarted = false;
+          // if (player.level.direction === 'left') {
+          // }
+          // player.sprite.x = player.level.playerStartX;
+          // player.sprite.y = player.level.groundY;
+          // player.fightingBoss = false;
 
-          floorDisplay.container.visible = true;
+          // floorDisplay.container.visible = true;
 
-          gameContainer.x = 0;
-          levelTime = 2000;
-          player.hp = player.maxHP;
-          // player.level.boss.hp = player.level.boss.maxHP
-          player.beganJump = 0;
-          player.beganPunch = 0;
-          player.beganKick = 0;
-          player.punching = player.kicking = player.ducking = false;
-          counter = 0;
-          lastKT = 0;
-          scoreDisplay.timeText.text = '0'.repeat(4 - levelTime.toString().length) + levelTime;
-          scoreDisplay.updateScore(player.score);
-          scoreDisplay.playerBar.width = scoreDisplay.playerBarMax / (player.maxHP / player.hp);
-          // scoreDisplay.enemyBar.width = scoreDisplay.enemyBarMax/(player.level.boss.maxHP/player.level.boss.hp)
-          player.level.boss = bosses[levelReached - 1];
-          var newBoss = lvlData.boss;
-          newBoss.level = player.level;
-          newBoss.sprite.x = newBoss.homeX = player.level.bossSpotX;
-          newBoss.sprite.scale.x *= -1;
-          newBoss.sprite.y = player.level.groundY;
-          newBoss.hp = newBoss.maxHP;
-          newBoss.dead = false;
-          newBoss.changeTexture(newBoss.character + 'walk0');
-          if (player.level.direction === 'left') {
-            if (player.sprite.scale.x > 0) {
-              player.sprite.scale.x *= -1;
-            }
-            if (newBoss.sprite.scale.x < 0) {
-              newBoss.sprite.scale.x *= -1;
-            }
-          }
-          if (player.level.direction === 'right') {
-            if (player.sprite.scale.x < 0) {
-              player.sprite.scale.x *= -1;
-            }
-            if (newBoss.sprite.scale.x > 0) {
-              newBoss.sprite.scale.x *= -1;
-            }
-          }
-          enemyFrequency = lvlData.enemyFrequency;
-          eggFrequency = lvlData.eggFrequency;
-          scoreDisplay.enemyBar.width = scoreDisplay.enemyBarMax;
+          // gameContainer.x = 0;
+          // levelTime = 2000;
+          // player.hp = player.maxHP;
+          // // player.level.boss.hp = player.level.boss.maxHP
+          // player.beganJump = 0;
+          // player.beganPunch = 0;
+          // player.beganKick = 0;
+          // player.punching = player.kicking = player.ducking = false;
+          // counter = 0;
+          // lastKT = 0;
+          // scoreDisplay.timeText.text = '0'.repeat(4 - levelTime.toString().length) + levelTime;
+          // scoreDisplay.updateScore(player.score);
+          // scoreDisplay.playerBar.width = scoreDisplay.playerBarMax / (player.maxHP / player.hp);
+          // // scoreDisplay.enemyBar.width = scoreDisplay.enemyBarMax/(player.level.boss.maxHP/player.level.boss.hp)
+          // player.level.boss = bosses[levelReached - 1];
+          // var newBoss = lvlData.boss;
+          // newBoss.level = player.level;
+          // newBoss.sprite.x = newBoss.homeX = player.level.bossSpotX;
+          // newBoss.sprite.scale.x *= -1;
+          // newBoss.sprite.y = player.level.groundY;
+          // newBoss.hp = newBoss.maxHP;
+          // newBoss.dead = false;
+          // newBoss.changeTexture(newBoss.character + 'walk0');
+          // if (player.level.direction === 'left') {
+          //   if (player.sprite.scale.x > 0) {
+          //     player.sprite.scale.x *= -1;
+          //   }
+          //   if (newBoss.sprite.scale.x < 0) {
+          //     newBoss.sprite.scale.x *= -1;
+          //   }
+          // }
+          // if (player.level.direction === 'right') {
+          //   if (player.sprite.scale.x < 0) {
+          //     player.sprite.scale.x *= -1;
+          //   }
+          //   if (newBoss.sprite.scale.x > 0) {
+          //     newBoss.sprite.scale.x *= -1;
+          //   }
+          // }
+          // enemyFrequency = lvlData.enemyFrequency;
+          // eggFrequency = lvlData.eggFrequency;
+          // scoreDisplay.enemyBar.width = scoreDisplay.enemyBarMax;
           setTimeout(function() {
             wonRound = false;
           }, 1000);
@@ -234,13 +311,9 @@ function isFullScreen() {
 function toggleFullScreen() {
   if (!isFullScreen()) {
     fullScreenCall().call(document.body);
-    titleScreen.fullScreenText.text = 'FULL SCREEN: ON';
-    titleScreen.fullScreenBg.tint = 0x224422;
-    titleScreen.fullScreenText.tint = 0xaaaaaa;
+    document.documentElement.style.setProperty('--screen-height', window.innerHeight + 'px');
   } else {
     exitFullScreenCall().call(document);
-    titleScreen.fullScreenText.text = 'FULL SCREEN: OFF';
-    titleScreen.fullScreenBg.tint = 0x444444;
-    titleScreen.fullScreenText.tint = 0x777777;
+    document.documentElement.style.setProperty('--screen-height', window.innerHeight + 'px');
   }
 }

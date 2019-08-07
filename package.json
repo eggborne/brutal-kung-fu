@@ -1,12 +1,13 @@
 {
   "name": "brutalkungfu",
+  "title": "Brutal Kung Fu",
   "version": "1.0.0",
   "description": "NES Kung Fu but you can stab people",
   "private": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "main": "init.js",
+  "main": ".",
   "author": "mike@mikedonovan.dev",
   "license": "ISC",
   "devDependencies": {},

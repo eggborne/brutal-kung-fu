@@ -60,9 +60,7 @@ dPad.addEventListener('touchmove', touchMove, { passive: true });
 dPad.addEventListener('touchend', touchEnd, { passive: true });
 
 document.onkeydown = function(event) {
-  console.log('key event', event);
   let letter = event.key;
-  console.error('------------', letter)
   if (!pressingUp && letter === actionKeys['JUMP']) {
     pressUp();
   }
@@ -75,7 +73,7 @@ document.onkeydown = function(event) {
   if (!pressingRight && letter === actionKeys['WALK RIGHT']) {
     pressRight();
   }
-  if (letter === actionKeys['THROW']) {
+  if (letter === actionKeys['THROW WEAPON']) {
     if (player.weapon === 'knife') {
       player.throw('knife');
       if (nesPanel) {
@@ -100,20 +98,24 @@ document.onkeydown = function(event) {
       }, 100);
     }
   }
-  if (!pressingPunch && letter === actionKeys['PUNCH']) {
+  if (!pressingPunch && letter === actionKeys['PUNCH/WEAPON']) {
     pressPunch();
   }
   if (!pressingKick && letter === actionKeys['KICK']) {
     pressKick();
   }
   if (editingKeyForAction) {
-    if (letter === 'ESCAPE') {
+    console.log('keter?', letter)
+    if (letter.toUpperCase() === 'ESCAPE') {
       dismissKeyEditModal();
     } else {
-      console.error('letter', letter);      
       actionKeys[editingKeyForAction] = letter;
       refreshKeyDisplay();
       dismissKeyEditModal();
+    }
+  } else {
+    if (letter.toUpperCase() === 'ESCAPE') {
+      
     }
   }
 };
@@ -132,7 +134,7 @@ document.onkeyup = function(event) {
   if (letter === actionKeys['WALK RIGHT']) {
     releaseRight();
   }
-  if (letter === actionKeys['PUNCH']) {
+  if (letter === actionKeys['PUNCH/WEAPON']) {
     releasePunch();
   }
   if (letter === actionKeys['KICK']) {
@@ -151,9 +153,6 @@ function pressRight() {
   if (!player.ducking && !player.grippers.length) {
     player.stance = false;
     player.beganMove = counter;
-  }
-  if (titleScreen.container.visible) {
-    selector.adjust(1);
   }
 }
 function releaseRight() {
@@ -175,9 +174,6 @@ function pressLeft() {
     player.stance = false;
     player.beganMove = counter;
   }
-  if (titleScreen.container.visible) {
-    selector.adjust(-1);
-  }
 }
 function releaseLeft() {
   if (nesPanel) {
@@ -194,7 +190,6 @@ function pressUp() {
     player.beganJump = counter;
   }
   pressingUp = true;
-  console.log('moving selelgeruoghsdfs')
   if (titleScreen.container.visible) {
     selector.move(-1);
   }
@@ -251,7 +246,12 @@ function pressPunch() {
   player.beganPunch = counter;
   player.punching = true;
   pressingPunch = true;
-  if (titleScreen.container.visible) {
+  let titleShowing = titleScreen.container.visible
+  && !highScoresScreen.container.visible
+  && !document.getElementById('mode-select-screen').style.display
+  && !document.getElementById('options-screen').classList.contains('showing')
+  && !document.getElementById('controls-hint').classList.contains('showing');
+  if (titleShowing) {
     selector.chooseSelection();
     // if (selector.selected===3) {
     //     toggleFullScreen()
@@ -280,7 +280,12 @@ function pressKick() {
   player.beganKick = counter;
   player.kicking = true;
   pressingKick = true;
-  if (titleScreen.container.visible) {
+  let titleShowing = titleScreen.container.visible
+  && !highScoresScreen.container.visible
+  && !document.getElementById('mode-select-screen').style.display
+  && !document.getElementById('options-screen').classList.contains('showing')
+  && !document.getElementById('controls-hint').classList.contains('showing');
+  if (titleShowing) {
     selector.chooseSelection();
   }
   // if (titleScreen.container.visible) {
