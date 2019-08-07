@@ -486,6 +486,7 @@ function update() {
       floorDisplay.container.x = player.sprite.x;
       floorDisplay.bg.visible = true;
       floorDisplay.legend.visible = true;
+      floorDisplay.bg.width = tileSize * 4.5;
       floorDisplay.legend.text = 'GAME OVER';
     }
     if (counter - player.diedAt === 110 && player.sprite.y > gameHeight + player.sprite.height) {

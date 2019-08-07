@@ -1077,7 +1077,7 @@ function Knifethrower(side, delayDistance, scale) {
   gameContainer.addChildAt(this.sprite, gameContainer.children.indexOf(player.sprite));
 }
 function Squib(victim, posX, posY, size, cause, hitFrom) {
-  if (!bloodOn) {
+  if (!gameOptions.bloodOn) {
     return;
   }
   this.hitFrom = hitFrom;

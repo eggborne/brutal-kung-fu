@@ -100,22 +100,36 @@
 	<div id='options-screen'>
 		<header>OPTIONS</header>
 		<div id='options-body'>
-			<div id='options-grid'>
-				<div class='option-label'>SOUND FX</div>
-				<div id='sound-toggle' class='option-switch clickable'>
-					<div class='switch-knob'></div>
+			<div id='options-switch-list'>
+				<div class='option-row'>
+					<div class='option-label'>SOUND FX</div>
+					<div id='sound-toggle' class='option-switch clickable'>
+						<div class='switch-knob'></div>
+					</div>
 				</div>
-				<div class='option-label'>MUSIC</div>
-				<div id='music-toggle' class='option-switch clickable'>
-					<div class='switch-knob'></div>
+				<div class='option-row'>
+					<div class='option-label'>MUSIC</div>
+					<div id='music-toggle' class='option-switch clickable'>
+						<div class='switch-knob'></div>
+					</div>
 				</div>
-				<div class='option-label'>BLOOD</div>
-				<div id='blood-toggle' class='option-switch clickable on'>
-					<div class='switch-knob'></div>
+				<div class='option-row'>
+					<div class='option-label'>BLOOD</div>
+					<div id='blood-toggle' class='option-switch clickable on'>
+						<div class='switch-knob'></div>
+					</div>
 				</div>
-				<div class='option-label'>FULL SCREEN</div>
-				<div id='full-screen-toggle' class='option-switch clickable'>
-					<div class='switch-knob'></div>
+				<div class='option-row'>
+					<div class='option-label'>SCAN LINES</div>
+					<div id='scan-lines-toggle' class='option-switch clickable'>
+						<div class='switch-knob'></div>
+					</div>
+				</div>
+				<div class='option-row'>
+					<div class='option-label'>FULL SCREEN</div>
+					<div id='full-screen-toggle' class='option-switch clickable'>
+						<div class='switch-knob'></div>
+					</div>
 				</div>
 				<!-- <div class='option-label ranged'>G-PAD POSITION</div>
 				<div class='option-range'>
@@ -123,6 +137,8 @@
 					<div id='gamepad-mid-button' class='option-range-value ranged'>MID</div>
 					<div id='gamepad-low-button' class='option-range-value ranged'>LOW</div>
 				</div> -->
+			</div>
+			<div id='options-button-list'>
 				<div id='controls-button' class='clickable'>CUSTOMIZE CONTROLS</div>
 			</div>
 		</div>
@@ -132,9 +148,10 @@
 	</div>
 	<div id='close-high-scores-button' class='close-button clickable'>BACK</div>
 	<div id='key-edit-modal'>
-		
+		Press the new key for<div id='modal-action-display'></div>
+		<div id='modal-cancel-message'>or press ESC to cancel.</div>
 	</div>
-	<div id='controls-screen'>
+	<!-- <div id='controls-screen'>
 		<div id='controls-title'>
 			<div id='keyboard-controls-tab' class='controls-tab selected'>
 				KEYBOARD
@@ -202,7 +219,7 @@
 			</div>
 		</div>
 		<div id='close-controls-button' class='close-button clickable'>DONE</div>
-	</div>
+	</div> -->
 	<div id='mode-select-screen'>
 		<header>SELECT MODE</header>
 		<div id='mode-panel-area'>
@@ -254,8 +271,9 @@
 		<caption>Please rotate your device and reload to play :)</caption>
 		<small>(Or visit on desktop)</small>
 	</div>
-	<button onclick='window.location.reload(true)' id='hard-reload'>HARD RELOAD</button>
+	<button onclick='destroyCookie();window.location.reload(true)' id='hard-reload'>HARD RELOAD</button>
 	<div id='cinematic'>coks</div>
+	<div id='scan-lines' class='screen-cover'></div>
 
 	<!-- development -->
 

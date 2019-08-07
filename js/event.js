@@ -61,19 +61,19 @@ dPad.addEventListener('touchend', touchEnd, { passive: true });
 
 document.onkeydown = function(event) {
   let letter = event.key;
-  if (!pressingUp && letter === actionKeys['JUMP']) {
+  if (!pressingUp && letter === gameOptions.actionKeys['JUMP']) {
     pressUp();
   }
-  if (!pressingDown && letter === actionKeys['CROUCH']) {
+  if (!pressingDown && letter === gameOptions.actionKeys['CROUCH']) {
     pressDown();
   }
-  if (!pressingLeft && letter === actionKeys['WALK LEFT']) {
+  if (!pressingLeft && letter === gameOptions.actionKeys['WALK LEFT']) {
     pressLeft();
   }
-  if (!pressingRight && letter === actionKeys['WALK RIGHT']) {
+  if (!pressingRight && letter === gameOptions.actionKeys['WALK RIGHT']) {
     pressRight();
   }
-  if (letter === actionKeys['THROW WEAPON']) {
+  if (letter === gameOptions.actionKeys['THROW WEAPON']) {
     if (player.weapon === 'knife') {
       player.throw('knife');
       if (nesPanel) {
@@ -98,10 +98,10 @@ document.onkeydown = function(event) {
       }, 100);
     }
   }
-  if (!pressingPunch && letter === actionKeys['PUNCH/WEAPON']) {
+  if (!pressingPunch && letter === gameOptions.actionKeys['PUNCH/WEAPON']) {
     pressPunch();
   }
-  if (!pressingKick && letter === actionKeys['KICK']) {
+  if (!pressingKick && letter === gameOptions.actionKeys['KICK']) {
     pressKick();
   }
   if (editingKeyForAction) {
@@ -109,7 +109,7 @@ document.onkeydown = function(event) {
     if (letter.toUpperCase() === 'ESCAPE') {
       dismissKeyEditModal();
     } else {
-      actionKeys[editingKeyForAction] = letter;
+      gameOptions.actionKeys[editingKeyForAction] = letter;
       refreshKeyDisplay();
       dismissKeyEditModal();
     }
@@ -122,22 +122,22 @@ document.onkeydown = function(event) {
 
 document.onkeyup = function(event) {
   let letter = event.key;
-  if (letter === actionKeys['JUMP']) {
+  if (letter === gameOptions.actionKeys['JUMP']) {
     releaseUp();
   }
-  if (letter === actionKeys['CROUCH']) {
+  if (letter === gameOptions.actionKeys['CROUCH']) {
     releaseDown();
   }
-  if (letter === actionKeys['WALK LEFT']) {
+  if (letter === gameOptions.actionKeys['WALK LEFT']) {
     releaseLeft();
   }
-  if (letter === actionKeys['WALK RIGHT']) {
+  if (letter === gameOptions.actionKeys['WALK RIGHT']) {
     releaseRight();
   }
-  if (letter === actionKeys['PUNCH/WEAPON']) {
+  if (letter === gameOptions.actionKeys['PUNCH/WEAPON']) {
     releasePunch();
   }
-  if (letter === actionKeys['KICK']) {
+  if (letter === gameOptions.actionKeys['KICK']) {
     releaseKick();
   }
 };

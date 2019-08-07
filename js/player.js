@@ -181,7 +181,7 @@ function Fighter(character, scale) {
     this.dead = true;
     this.diedAt = counter;
     this.sprite.texture = PIXI.utils.TextureCache[this.character + 'dead'];
-    if (musicOn) {
+    if (gameOptions.musicOn) {
       bgMusic.stop();
     }
     setTimeout(function() {

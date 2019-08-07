@@ -5,15 +5,6 @@ let scoresToDisplay = 12;
 // if (landscape) {
 //   scoresToDisplay = 12;
 // }
-let actionKeys = {
-  'WALK LEFT': 'a',
-  'WALK RIGHT': 'd',
-  'JUMP': 'w',
-  'CROUCH': 's',
-  'PUNCH/WEAPON': 'j',
-  'KICK': 'k',
-  'THROW WEAPON': 'l'
-}
 function suffixedNumber(num) {
   if (num === 1) {
     return num + 'ST';
@@ -41,36 +32,50 @@ function checkIfPressing(spr) {
 }
 function toggleControlScreen() {
   controlScreenOn = !controlScreenOn;
-  if (controlScreenOn) {
-    document.getElementById('controls-screen').classList.add('showing');    
-  } else {
-    document.getElementById('controls-screen').classList.remove('showing');
+  document.getElementById('controls-screen').classList.toggle('showing');  
+}
+function applyUserOptions(options) {
+  for (let option in defaultOptions) {
+    console.log('def', option, defaultOptions[option])
+    console.log('cook', option, options[option])
+    if (options[option] !== defaultOptions[option]) {
+      if (option === 'bloodOn') {
+        console.log('toggling blood!')
+        toggleBlood();
+      }
+      if (option === 'scanLines') {
+        console.log('toggling scan lines!')
+        toggleScanLines();
+      }
+    }
   }
+  gameOptions.actionKeys = {...options.actionKeys};
+  refreshAllKeyDisplay(gameOptions.actionKeys);
+}
+function nonDefaultOptions() {
+  for (let option in defaultOptions) {
+    if (gameOptions[option] !== defaultOptions[option]) {
+      console.warn('different', option);
+      return true;
+    }
+  }
+  return false;
 }
 function toggleOptionsScreen() {
   optionsScreenOn = !optionsScreenOn;
-  if (optionsScreenOn) {
-    console.warn('toggleOptionsScreen hiding logos');
-    document.getElementById('brutal-logo').classList.add('hidden');
-    document.getElementById('kung-fu-logo').classList.add('hidden');
-    document.getElementById('options-screen').classList.add('showing');    
-  } else {
-    console.warn('toggleOptionsScreen showing logos');
-    document.getElementById('brutal-logo').classList.remove('hidden');
-    document.getElementById('kung-fu-logo').classList.remove('hidden');
-    document.getElementById('options-screen').classList.remove('showing');
-    document.getElementById('hard-reload').classList.add('hidden');
-  }
+  document.getElementById('brutal-logo').classList.toggle('hidden');
+  document.getElementById('kung-fu-logo').classList.toggle('hidden');
+  document.getElementById('options-screen').classList.toggle('showing');
+  console.info('GO', gameOptions)
+  if (!optionsScreenOn) {
+    if (useCookie) {
+      setCookie(JSON.stringify(gameOptions));
+    }
+  }  
 }
 function callKeyEditModal(action) {
-  console.log('calling callKeyEditModal with', action);
   document.getElementById('turn-phone-shade').style.display = 'flex';
-  document.getElementById('key-edit-modal').innerHTML = `
-    <div>
-      Press the new key for<div id='modal-action-display'>${displayAction}</div>
-    </div>
-    <div id='modal-cancel-message'>or press ESC to cancel.</div>
-  `;
+  document.getElementById('modal-action-display').innerText = action;
   document.getElementById('key-edit-modal').classList.add('showing');
   editingKeyForAction = action;
 }
@@ -78,14 +83,36 @@ function dismissKeyEditModal(action) {
   document.getElementById('turn-phone-shade').style.display = 'none';
   document.getElementById('key-edit-modal').classList.remove('showing');
   editingKeyForAction = undefined;
+  if (useCookie) {
+    setCookie(JSON.stringify(gameOptions));
+  }
 }
-function refreshKeyDisplay() {
-  console.log('refrehsing keys while editingkeysforatonhkgn', editingKeyForAction)
-  let newlyAssignedKey = actionKeys[editingKeyForAction];
+
+function refreshAllKeyDisplay(newKeys) {
   Array.from(document.querySelectorAll('.key-row')).map((row, i) => {
     let action = row.children[0].innerHTML;
     let key = row.children[1].innerHTML;
-    console.log('checking', action, 'found set to', key)
+    let newlyAssignedKey = newKeys[action];
+    if (newlyAssignedKey === ' ') {
+      newlyAssignedKey = 'SPACE';
+    }
+    if (newlyAssignedKey.length > 1) {
+      row.classList.add('long-name');
+    } else {
+      row.classList.remove('long-name');
+      newlyAssignedKey = newlyAssignedKey.toUpperCase();
+    }
+    console.error('about to replace', key, 'for', action)
+    row.children[1].innerHTML = newlyAssignedKey;
+    console.error('replaced with', newlyAssignedKey)
+  });
+}
+function refreshKeyDisplay() {
+  console.log('refrehsing keys while editingkeysforatonhkgn', editingKeyForAction)
+  let newlyAssignedKey = gameOptions.actionKeys[editingKeyForAction];
+  Array.from(document.querySelectorAll('.key-row')).map((row, i) => {
+    let action = row.children[0].innerHTML;
+    let key = row.children[1].innerHTML;
     if (action === editingKeyForAction) {
       if (newlyAssignedKey === ' ') {
         newlyAssignedKey = 'SPACE';
@@ -97,10 +124,9 @@ function refreshKeyDisplay() {
         newlyAssignedKey = newlyAssignedKey.toUpperCase();
 
       }
-      console.error('fir action', action)
-      console.error('about to replace', key)
+      console.error('about to replace', key, 'for', action)
       row.children[1].innerHTML = newlyAssignedKey;
-      console.error('putting a', newlyAssignedKey)
+      console.error('replaced with', newlyAssignedKey)
     }
   });
 
@@ -116,7 +142,7 @@ function refreshKeyDisplay() {
 //       };
 //       if (rowMember.classList.contains('key-listing')) {
 //         if (rowRelevant) {
-//           let displayKey = actionKeys[editingKeyForAction];
+//           let displayKey = gameOptions.actionKeys[editingKeyForAction];
 //           if (displayKey === ' ') {
 //             displayKey = 'SPACE';
 //           }
@@ -733,7 +759,7 @@ function NESPanel() {
 function FloorDisplay() {
   this.container = new PIXI.Container();
   this.bg = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
-  this.bg.width = tileSize * 4.5;
+  this.bg.width = tileSize * 3.5;
   this.bg.height = tileSize * 0.9;
   this.bg.anchor.set(0.5);
   this.container.x = gameWidth / 2;
@@ -747,7 +773,7 @@ function FloorDisplay() {
   this.legend.x = this.bg.x;
   this.legend.y = this.bg.y;
   this.readyBg = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
-  this.readyBg.width = tileSize * 3.5;
+  this.readyBg.width = tileSize * 2.8;
   this.readyBg.height = this.bg.height;
   this.readyBg.anchor.set(0.5);
   this.readyBg.tint = 0x000000;

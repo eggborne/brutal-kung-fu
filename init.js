@@ -40,13 +40,37 @@ function findRank(score) {
 document.body.onload = () => {
   document.getElementById('kung-fu-logo').classList.add('landed');
   document.getElementById('brutal-logo').classList.add('landed');
+  let userCookie = getCookie('brutalkungfu');
+  if (userCookie) {
+    console.warn('gameOpt now', gameOptions);
+    applyUserOptions(userCookie);
+    gameOptions = {...userCookie};
+    console.warn('options set to user')
+  } else {    
+    console.warn('options left at default')
+  }
 }
 
 let gameMode = 'story';
+
 let showInstructions = landscape;
-let soundOn = false;
-let musicOn = false;
-let bloodOn = true;
+const defaultOptions = {
+  soundOn: false,
+  musicOn: false,
+  bloodOn: true,
+  scanLines: false,
+  actionKeys: {
+    'WALK LEFT': 'a',
+    'WALK RIGHT': 'd',
+    'JUMP': 'w',
+    'CROUCH': 's',
+    'PUNCH/WEAPON': 'j',
+    'KICK': 'k',
+    'THROW WEAPON': 'l'
+  },
+  showInstructions: landscape
+}
+let gameOptions = {...defaultOptions};
 
 let assigningAction = undefined;
 let lastEnteredName = '';
@@ -191,11 +215,11 @@ let loadSounds = function() {
 };
 function playSound(sound) {
   if (sound === gameStartMusic || sound === bgMusic) {
-    if (musicOn) {
+    if (gameOptions.musicOn) {
       sound.play();
     }
   } else {
-    if (soundOn) {
+    if (gameOptions.soundOn) {
       sound.play();
     }
   }
@@ -367,36 +391,29 @@ function clearTitle() {
 }
 
 function toggleSound() {
-  if (!soundOn) {
-    if (!soundsLoaded) {
-      // loadMessage.visible = true;
-      loadSounds();
-    }
-    // Howler.mute(false);
-  } else {
-    // Howler.mute(true);
-  }
-  soundOn = !soundOn;
+  !soundsLoaded ? loadSounds() : null;
+  document.getElementById('sound-toggle').classList.toggle('on'); 
+  gameOptions.soundOn = !gameOptions.soundOn;
 }
 function toggleMusic() {
-  if (!musicOn) {
-    if (!soundsLoaded) {
-      // loadMessage.visible = true;
-      loadSounds();
-    }
-    // Howler.mute(false);
-    introTime = 300;
-  } else {
-    // Howler.mute(true);
-    introTime = 30;
-  }
-  musicOn = !musicOn;
+  !soundsLoaded ? loadSounds() : null;
+  introTime = gameOptions.musicOn ? 300 : 30;
+  document.getElementById('music-toggle').classList.toggle('on');
+  gameOptions.musicOn = !gameOptions.musicOn;
 }
 function toggleBlood() {
-  bloodOn = !bloodOn;
+  
+  document.getElementById('blood-toggle').classList.toggle('on');
+  gameOptions.bloodOn = !gameOptions.bloodOn;
+}
+function toggleScanLines() {
+  console.log('gameopt.scanLines', gameOptions.scanLines)
+  document.getElementById('scan-lines-toggle').classList.toggle('on');
+  document.getElementById('scan-lines').classList.toggle('showing');
+  gameOptions.scanLines = !gameOptions.scanLines;
 }
 
-const startingLives = 2;
+const startingLives = 3;
 let lives = startingLives;
 let bottomSpace = viewHeight - gameHeight;
 let topEdge = gameHeight - tileSize * (tilesPerHeight - 3.5);
@@ -541,61 +558,46 @@ document.getElementById('controls-button').onclick = () => {
 }
 if (landscape && !isTouchDevice) {
   
-  document.getElementById('close-controls-button').onclick = () => {
-    toggleControlScreen();
-  }
-  document.getElementById('keyboard-controls-tab').onclick = function() {
-    controlTabSelected = 'keyboard';
-    this.classList.add('selected');
-    document.getElementById('gamepad-controls-tab').classList.remove('selected');
-    document.getElementById('gamepad-controls-grid').classList.add('hidden');
-    document.getElementById('keyboard-controls-grid').classList.remove('hidden');
-  }
-  document.getElementById('gamepad-controls-tab').onclick = function() {
-    controlTabSelected = 'gamepad';
-    this.classList.add('selected');
-    document.getElementById('keyboard-controls-tab').classList.remove('selected');
-    document.getElementById('keyboard-controls-grid').classList.add('hidden');
-    document.getElementById('gamepad-controls-grid').classList.remove('hidden');
-  }
-}
-// [...document.querySelectorAll('.key-edit-button')].map((but, i) => {
-//   but.onpointerdown = function(e) {
-//     let action = Object.keys(actionKeys)[i];
-//     this.classList.add('depressed');
-//     callKeyEditModal(action);
+  // document.getElementById('close-controls-button').onclick = () => {
+  //   toggleControlScreen();
+  // }
+//   document.getElementById('keyboard-controls-tab').onclick = function() {
+//     controlTabSelected = 'keyboard';
+//     this.classList.add('selected');
+//     document.getElementById('gamepad-controls-tab').classList.remove('selected');
+//     document.getElementById('gamepad-controls-grid').classList.add('hidden');
+//     document.getElementById('keyboard-controls-grid').classList.remove('hidden');
 //   }
-// });
+//   document.getElementById('gamepad-controls-tab').onclick = function() {
+//     controlTabSelected = 'gamepad';
+//     this.classList.add('selected');
+//     document.getElementById('keyboard-controls-tab').classList.remove('selected');
+//     document.getElementById('keyboard-controls-grid').classList.add('hidden');
+//     document.getElementById('gamepad-controls-grid').classList.remove('hidden');
+//   }
+}
 [...document.querySelectorAll('.key-row')].map((but, i) => {
   but.onpointerdown = function(e) {
-    let action = Object.keys(actionKeys)[i];
+    let action = Object.keys(gameOptions.actionKeys)[i];
     this.classList.add('depressed');
     callKeyEditModal(action);
   }
 });
 document.getElementById('sound-toggle').onpointerdown = () => {
-  if (soundOn) {
-    document.getElementById('sound-toggle').classList.remove('on');
-  } else {
-    document.getElementById('sound-toggle').classList.add('on');  
-  }
   toggleSound();
 };
 document.getElementById('music-toggle').onpointerdown = () => {
-  if (musicOn) {
-    document.getElementById('music-toggle').classList.remove('on');
-  } else {
-    document.getElementById('music-toggle').classList.add('on');  
-  }
   toggleMusic();
 };
-document.getElementById('blood-toggle').onpointerdown = () => {
-  if (bloodOn) {
-    document.getElementById('blood-toggle').classList.remove('on');
-  } else {
-    document.getElementById('blood-toggle').classList.add('on');  
-  }
+document.getElementById('blood-toggle').onpointerdown = () => {    
+  console.log('clicked while gameOptions.bloodOn', gameOptions.bloodOn)
   toggleBlood();
+  console.log('after toggleScanLines gameOptions.bloodOn is', gameOptions.bloodOn)
+};
+document.getElementById('scan-lines-toggle').onpointerdown = () => {
+  console.log('clicked while gameOptions.scanLines', gameOptions.scanLines)
+  toggleScanLines();
+  console.log('after toggleScanLines gameOptions.scanLines is', gameOptions.scanLines)
 };
 document.getElementById('full-screen-toggle').onpointerdown = () => {
   if (isFullScreen()) {
@@ -647,8 +649,7 @@ document.getElementById('story-mode-panel').onclick = function() {
   document.getElementById('story-mode-panel').classList.remove('truncated');
   document.getElementById('horde-mode-panel').classList.remove('truncated');
   gameMode = 'story';
-  floorDisplay.legend.text = 'LEVEL 1';
-  floorDisplay.bg.width = tileSize * 3.5;
+  
 }
 document.getElementById('horde-mode-panel').onclick = function() {
   this.classList.add('selected');
@@ -658,9 +659,7 @@ document.getElementById('horde-mode-panel').onclick = function() {
   document.getElementById('game-canvas').style.backgroundColor = 'var(--horde-bg-color)';
   document.getElementById('story-mode-panel').classList.remove('truncated');
   document.getElementById('horde-mode-panel').classList.remove('truncated');
-  gameMode = 'horde';
-  floorDisplay.legend.text = 'HORDE MODE';
-  floorDisplay.bg.width = tileSize * 5;
+  gameMode = 'horde';  
 }
 document.getElementById('stage-select-mode-panel').onclick = function() {
   this.classList.add('selected');
@@ -673,11 +672,16 @@ document.getElementById('stage-select-mode-panel').onclick = function() {
 }
 document.getElementById('hint-close-button').onclick = function() {
   this.parentElement.parentElement.classList.remove('showing');
-  gameInitiated = true;
+  if (!document.getElementById('options-screen').classList.contains('showing')) {
+    gameInitiated = true;
+  }
 }
 document.getElementById('confirm-mode-button').onclick = function() {
   if (gameMode === 'horde') {
+    floorDisplay.legend.text = 'HORDE MODE';
+    floorDisplay.bg.width = tileSize * 5;
     lives = 0;
+    scoreDisplay.updateLives(0);
     gameContainer.x += level1.levelWidth / 2;
     floorDisplay.container.x -= level1.levelWidth / 2;
     player.sprite.x = (gameWidth / 2) - (level1.levelWidth / 2);
@@ -685,6 +689,8 @@ document.getElementById('confirm-mode-button').onclick = function() {
     level1.boss.sprite.alpha = 0;
     level1.container.alpha = 0;
   } else if (gameMode === 'story') {
+    floorDisplay.legend.text = 'LEVEL 1';
+    floorDisplay.bg.width = tileSize * 3.5;
     level1.tomtoms = false;
     level1.boss.sprite.alpha = 1;
     level1.container.alpha = 1;
@@ -735,6 +741,32 @@ document.getElementById('mode-back-button').onclick = function() {
   floorDisplay.container.x = gameWidth / 2;
 }
 scoreDisplay = undefined;
+useCookie = true;
+const setCookie = (value) => {
+  let date = new Date();
+  date.setTime(date.getTime() + 365 * 24 * 60 * 60 * 1000);
+  let expires = 'expires=' + date.toUTCString();
+  document.cookie = 'brutalkungfu' + '=' + value + ';' + expires + ';path=/';
+  console.warn('SET COOKIE!', document.cookie);
+};
+const getCookie = cookieName => {
+  console.info('document.cookie is', document.cookie)
+  let cookieObj;
+  let decodedCookie = decodeURIComponent(document.cookie).split('; ');
+  cookieObj = decodedCookie.filter(str => str.split('=')[0] === cookieName);
+  if (cookieObj.length) {
+    cookieObj = JSON.parse(cookieObj[0].split('=')[1]);
+  } else {
+    cookieObj = undefined;
+  }
+  return cookieObj;
+};
+const destroyCookie = () => {
+  var d = new Date();
+  d.setTime(d.getTime() + 0 * 24 * 60 * 60 * 1000);
+  var expires = 'expires=' + d.toUTCString();
+  document.cookie = 'brutalkungfu' + '=' + null + ';' + expires + ';path=/';
+}
 function init() {
   setVariables();
   player = new Fighter('thomas');

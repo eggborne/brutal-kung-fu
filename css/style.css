@@ -38,6 +38,26 @@ body {
   /* -moz-osx-font-smoothing: auto; */
   will-change: transition;
 }
+.screen-cover {
+  position: absolute;
+  width: 100vw;
+  height: var(--screen-height);
+  top: 0;
+  left: 0;
+}
+#scan-lines {
+  background-image: url(../assets/scanline.png);
+  opacity: 0.4;
+  background-repeat: repeat-y;
+  /* background-position-x: var(--game-x); */
+  background-size: 100vw calc(var(--pixel-size) * 1.5);
+  pointer-events: none;
+  display: none;
+  z-index: 100;
+}
+#scan-lines.showing {
+  display: block;
+}
 #controls-hint {
   position: fixed;
   width: calc(var(--game-width) - (var(--tile-size) * 2));
@@ -342,79 +362,100 @@ body {
   top: 0;
   left: 0;
   width: 100vw;
-  height: calc(100vw * (15/16));
   height: var(--screen-height);
   background: #050505;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  /* justify-content: space-between; */
   color: white;
   /* font-size: calc(100vh / calc(15 / 16) / 64); */
   font-size: calc(var(--pixel-size) * 7);
   display: none;
   z-index: 20;
 }
-#options-body {
-  display: flex;
-  width: 100%;
-  justify-content: center;
-  /* flex-grow: 1; */
-}
 #options-screen > header {
   font-size: var(--header-font-size);
 }
-#options-grid {
-  padding: calc(var(--pixel-size) * 32) 6vw;
-  width: calc(var(--game-height) - (var(--pixel-size) * 36));
-  display: grid;
-  grid-template-columns: 1fr calc(var(--pixel-size) * 72);
-  justify-items: stretch;
-  z-index: 0;
-  grid-row-gap: calc(var(--pixel-size) * 10);
+#options-screen > div {
+  margin-bottom: var(--tile-size);
 }
-#options-grid > div {
+#options-body {
+  width: 100vw;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+#options-screen #options-switch-list {
+  width: var(--game-width);
+  /* max-height: calc(var(--screen-height) - (var(--tile-size) * 5.5)); */
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-items: center;
+  padding: 6vh;
+  z-index: 0;
+  /* background: blue; */
+}
+#options-switch-list .option-row {
+  width: calc(var(--tile-size) * 10);
+  height: calc((var(--tile-size) * 1.6) + 1vh);  
+  display: flex;
+  align-items: center;
+  margin: calc(var(--pixel-size) * 6);
+  justify-content: space-between;
+}
+#options-switch-list .option-row > div {
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  max-height: calc(var(--game-height) / 8);
-  min-height: calc(var(--game-height) / 8);
   border: calc(var(--pixel-size) / 2) solid #333;
 }
-#options-grid > .option-label {
+#options-switch-list .option-label {
   height: 100%;  
   border-right: 0;
   border-color: #111;
 }
 #lower-area {
-  flex-grow: 0.25;
   width: 100%;
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   justify-content: center;
 }
-#options-grid > #controls-button {
+#options-screen #options-button-list {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
   width: 100%;
-  justify-self: center;
-  grid-column-end: span 2;
-  font-size: 3vw;
-  padding: 3vmin;
-  margin: 1vh;
+}
+#options-screen #controls-button { 
+  /* justify-self: center; */
+  font-size: calc(var(--pixel-size) * 6);
+  padding: calc(var(--pixel-size) * 8);
+  align-self: center;
   background: rgb(42, 60, 73);
   border: var(--pixel-size) outset #333;
 }
-#options-grid > .option-value, .option-range-value {
+#options-switch-list .option-value, .option-range-value {
   background: #222;
   /* border: var(--pixel-size) outset #111; */
   height: 100%;
 }
-#options-grid > .option-switch {
+#options-switch-list .option-switch {
   display: flex;
   align-items: stretch;
+  justify-content: space-between;
   height: 100%;
+  width: 70% !important;
 }
-#options-grid > .option-switch > .switch-knob {
+#options-switch-list .option-switch:hover > .switch-knob {
+  background: #444;
+}
+#options-switch-list .option-switch > .switch-knob {
   /* flex-grow: 1; */
+  height: 100%;
   background-color: #222;
   display: flex;
   align-items: center;
@@ -422,19 +463,15 @@ body {
   transform: translateX(-50%);
   width: 50%;
   transition: transform 210ms ease;
-  font-size: 1.2em;
 }
-#options-grid > .option-switch.on {
-    
-}
-#options-grid > .option-switch.on > .switch-knob {
+#options-switch-list .option-switch.on > .switch-knob {
   transform: translateX(50%);
   background-color: rgb(77, 122, 73);
 }
-#options-grid > .option-switch > .switch-knob::after {
+#options-switch-list .option-switch > .switch-knob::after {
   content: 'OFF';
 }
-#options-grid > .option-switch.on > .switch-knob::after {
+#options-switch-list .option-switch.on > .switch-knob::after {
   content: 'ON';
 }
 #mode-select-screen .button-area {
@@ -894,7 +931,7 @@ body.scored #kung-fu-logo, body.scored #brutal-logo {
   #landscape-nes-controls {
     display: none;
   }
-  #options-grid > #controls-button {
+  #controls-button {
     display: none;
   }
   #controls-screen {
@@ -1002,42 +1039,42 @@ body.scored #kung-fu-logo, body.scored #brutal-logo {
     pointer-events: none;
   }
   #options-screen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    /* width: 100vw; */
-    height: 100vh;
-    background: #050505;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
-    color: white;
-    /* font-size: calc(100vh / calc(15 / 16) / 64); */
-    font-size: calc(var(--pixel-size) * 5.5);
+    font-size: calc(var(--pixel-size) * 4.5);
     padding: calc(var(--pixel-size) * 16);
-    display: none;
+    justify-content: space-between;
   }
-  #options-grid > .option-switch > .switch-knob {
-    font-size: calc(var(--pixel-size) * 5);
+  #options-body, #lower-area {
+    margin: 0 !important;
   }
-  #options-grid {
+  #options-switch-list {
+    max-height: calc(var(--screen-height) - (var(--tile-size) * 6));
+  }
+  #options-switch-list .option-row {
+    width: calc(var(--tile-size) * 6.5);
+    height: calc(var(--tile-size) * 1.25);  
+    display: flex;
+    margin: calc(var(--pixel-size) * 2);
+  }
+  #options-switch-list .option-row {
+  }
+  /* #options-switch-list {
     margin: 0;
     padding-top: 0;
     padding-bottom: 0;
     width: 75vh;
     grid-template-columns: 1fr calc(var(--game-width) / 5);
   }
-  #options-grid > div {
+  #options-switch-list > div {
     border-width: var(--pixel-size);
     min-height: 9vh;
     height: 9vh;
   }
-  #options-grid > #controls-button {
+  #options-switch-list > #controls-button {
     font-size: calc(var(--pixel-size) * 5.5);
     margin-left: 4vw;
     margin-right: 4vw;
     width: 90%;
-  }
+  } */
   #skip-name-entry-button.close-button {
     position: absolute;
     top: calc(var(--screen-height) - (var(--pixel-size) * 8));
