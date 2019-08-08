@@ -15,24 +15,29 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.6.1/pixi.min.js"></script>
 	<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 	<link rel="icon" href="assets/favicon.png" type="image/x-icon">
-	<link rel="apple-touch-icon" sizes="120x120" href="assets/favicon.png"/>
-	<link rel="apple-touch-icon-precomposed" sizes="120x120" href="assets/favicon.png"/>
-	<meta name="msapplication-TileColor" content="#9290ff">    
 	<script async type='application/ld+json'> 
 		{
 			"@context": "http://www.schema.org",
 			"@type": "WebSite",
 			"name": "Brutal Kung Fu",
 			"url": "https://brutalkungfu.com",
-			"logo": "https://brutalkungfu.com/assets/favicon.png",
+			"logo": "https://brutalkungfu.com/assets/logo.png",
 			"description": "A gritty sequel to NES Kung Fu.",        
 		}
 	</script>
+	<link rel="manifest" href="manifest.json" />
+	<link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/bkf-icon-16x16.png">  
+	<link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/bkf-icon-32x32.png">
+	<link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/bkf-icon-192x192.png">
+	<link rel="icon" type="image/png" sizes="512x512" href="/assets/icons/bkf-icon-512x512.png">
+	<link rel="apple-touch-startup-image" href="/assets/icons/bkf-icon-120x120.png">
+	<link rel="apple-touch-icon" sizes="120x120" href="/assets/icons/bkf-icon-120x120.png"/>
+	<link rel="apple-touch-icon-precomposed" sizes="120x120" href="/assets/icons/bkf-icon-120x120.png"/>	
+	<link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/bkf-icon-180x180.png">
 </head>
 
-<body>
-		<div id='cookie-display'>by <a href='https://twitter.com/eggborne_dev'>@eggborne_dev</a></div>
-
+<body>		
+	<address id='credit'>made just for fun by <a href='https://twitter.com/eggborne_dev'>@eggborne_dev</a></address>
 	<div id='gamepad-container'>
 		<div id="nes-border"></div>
 		<div id="nes-panel-bg"></div>
@@ -141,16 +146,16 @@
 				</div> -->
 			</div>
 			<div id='options-button-list'>
-				<div id='controls-button' class='clickable'>CUSTOMIZE CONTROLS</div>
+				<div id='controls-button' class='option-button clickable'>CUSTOMIZE CONTROLS</div>
+				<div id='home-screen-button' class='option-button clickable'>ADD TO HOME SCREEN</div>
 			</div>
 		</div>
 		<div id='lower-area'>
-			<div id='close-options-button' class='close-button clickable'>SAVE & EXIT</div>
-			<!-- <div id='cookie-confirmation'>
-				<input name='cookie-checkbox' id='cookie-checkbox' type='checkbox' class='clickable' />
-				<span class='nice-checkbox'></span>
-				<label for='use-cookie'>REMEMBER (USES COOKIE)</label>
-			</div> -->
+			<div id='close-options-button' class='close-button clickable'>EXIT</div>
+			<div id='cookie-confirmation'>
+				<input id='cookie-checkbox' type='checkbox' class='clickable'>				
+				<label for='cookie-checkbox'>REMEMBER PREFERENCES<br />(USES COOKIE)</label>
+			</div>
 		</div>
 	</div>
 
@@ -209,13 +214,13 @@
 	<div id='turn-phone-instructions'>
 		<caption>Mobile landscape mode is currently unavailable :(</caption>
 		<img src='assets/turnphoneicon.png'/>
-		<caption>Please rotate your device and reload to play :)</caption>
+		<caption>Please rotate your device and reload to play</caption>
 		<small>(Or visit on desktop)</small>
 	</div>
 	<button onclick='destroyCookie();window.location.reload(true)' id='hard-reload'>HARD RELOAD & CLEAR COOKIE</button>
-	<div id='cinematic'>coks</div>
+	<div id='cinematic'></div>
 	<div id='scan-lines' class='screen-cover'></div>
-
+	<noscript>You need to enable JavaScript to play Brutal Kung Fu :(</noscript>
 	<script src="init.js"></script>	
 	<script async src="js/event.js"></script>
 	<script async src="js/enemies.js"></script>
@@ -223,7 +228,16 @@
 	<script async src="js/levels.js"></script>
 	<script async src="js/gui.js"></script>
 	<script async src="js/exec.js"></script>
-
 	<script async src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.1.2/howler.min.js"></script>
 </body>
+<script>
+	if ('serviceWorker' in navigator) {
+		navigator.serviceWorker.register('service-worker.js')
+			.then(function(reg){
+				console.log('Service worker registered.');
+			}).catch(function(err) {
+				console.log('Service worker failed :(', err)
+			});
+	}
+</script>
 </html>
