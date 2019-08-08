@@ -1279,18 +1279,19 @@ function spawnRandomEnemy() {
     }
   }
 
-  // if (randomInt(0,1)) {
-  if (grippers.length < gripperLimit && (randomInt(0, 4) || gameMode === 'horde')) {
+  let tomtomChance = gameMode === 'horde' ? randomInt(0, 4) : randomInt(0, 2);
+
+  if (grippers.length < gripperLimit && tomtomChance) {
     var newGripper = new Gripper(randSide);
-    // newGripper.walkSpeed += randomInt(-3,2)*(newPixelSize/16)
-    if (grippers.length < gripperLimit && (!randomInt(0, 2) || gameMode === 'horde')) {
+    newGripper.walkSpeed += randomInt(-3,2)*(newPixelSize/16)
+    if (grippers.length < gripperLimit && !randomInt(0, 2)) {
       // setTimeout(function(){
       var grp = new Gripper(randSide);
       // grp.sprite.tint = 0xff0000
-      // newGripper.walkSpeed += randomInt(-3,2)*(newPixelSize/16)
+      newGripper.walkSpeed += randomInt(-3,2)*(newPixelSize/16)
       // },500)
     }
-  } else if (levelData[player.level.floor - 1].tomtoms && tomtoms.length < tomtomLimit && levelReached > 1) {
+  } else if (tomtoms.length < tomtomLimit) {
     var newTomtom = new Tomtom(randSide);
     // newTomtom.walkSpeed += randomInt(-2,4)*(newPixelSize/12)
   } else {

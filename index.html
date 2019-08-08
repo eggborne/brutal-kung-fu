@@ -18,19 +18,21 @@
 	<link rel="apple-touch-icon" sizes="120x120" href="assets/favicon.png"/>
 	<link rel="apple-touch-icon-precomposed" sizes="120x120" href="assets/favicon.png"/>
 	<meta name="msapplication-TileColor" content="#9290ff">    
-    <script async type='application/ld+json'> 
-      {
-        "@context": "http://www.schema.org",
-        "@type": "WebSite",
-        "name": "Brutal Kung Fu",
-        "url": "https://brutalkungfu.com",
-        "logo": "https://brutalkungfu.com/assets/favicon.png",
-        "description": "A gritty sequel to NES Kung Fu.",        
-      }
-    </script>
+	<script async type='application/ld+json'> 
+		{
+			"@context": "http://www.schema.org",
+			"@type": "WebSite",
+			"name": "Brutal Kung Fu",
+			"url": "https://brutalkungfu.com",
+			"logo": "https://brutalkungfu.com/assets/favicon.png",
+			"description": "A gritty sequel to NES Kung Fu.",        
+		}
+	</script>
 </head>
 
 <body>
+		<div id='cookie-display'>by <a href='https://twitter.com/eggborne_dev'>@eggborne_dev</a></div>
+
 	<div id='gamepad-container'>
 		<div id="nes-border"></div>
 		<div id="nes-panel-bg"></div>
@@ -43,7 +45,7 @@
 	<div id='kung-fu-logo' class='shrunken'></div>
 	<div id="game-canvas"></div>
 
-	<input value="" id="name-entry" onkeyup="this.setAttribute('value', this.value);" type="text" maxlength="9" placeholder="ENTER NAME"></input>
+	<input value="" id="name-entry" autofocus onkeyup="this.setAttribute('value', this.value);" type="text" maxlength="9" placeholder="ENTER NAME"></input>
 	<button disabled onclick="submitHighScore()" id="name-submit">SUBMIT</button>
 	<div id='skip-name-entry-button' class='close-button'>SKIP</div>
 
@@ -97,7 +99,7 @@
 			<div id='hint-close-button' class='close-button clickable'>OK</div>
 		</div>
 	</div>
-	<div id='options-screen'>
+	<div id='options-screen' class='hidden'>
 		<header>OPTIONS</header>
 		<div id='options-body'>
 			<div id='options-switch-list'>
@@ -144,82 +146,21 @@
 		</div>
 		<div id='lower-area'>
 			<div id='close-options-button' class='close-button clickable'>SAVE & EXIT</div>
+			<!-- <div id='cookie-confirmation'>
+				<input name='cookie-checkbox' id='cookie-checkbox' type='checkbox' class='clickable' />
+				<span class='nice-checkbox'></span>
+				<label for='use-cookie'>REMEMBER (USES COOKIE)</label>
+			</div> -->
 		</div>
 	</div>
+
+	<div id='scores-grid' class='hidden'></div>
 	<div id='close-high-scores-button' class='close-button clickable'>BACK</div>
+
 	<div id='key-edit-modal'>
 		Press the new key for<div id='modal-action-display'></div>
 		<div id='modal-cancel-message'>or press ESC to cancel.</div>
 	</div>
-	<!-- <div id='controls-screen'>
-		<div id='controls-title'>
-			<div id='keyboard-controls-tab' class='controls-tab selected'>
-				KEYBOARD
-			</div>
-			<div id='gamepad-controls-tab' class='controls-tab'>
-				GAMEPAD
-			</div>
-		</div>
-		<div id='keyboard-controls-grid' class='controls-grid'>
-			<div class='action-type-area'>
-				<div class='action-type-label'>MOVEMENT</div>
-				<div class='action-listing'>WALK LEFT</div>
-				<div class='key-listing'>A</div>
-				<div class='key-edit-button clickable'></div>
-				<div class='action-listing'>WALK RIGHT</div>
-				<div class='key-listing'>D</div>
-				<div class='key-edit-button clickable'></div>
-				<div class='action-listing'>JUMP</div>
-				<div class='key-listing'>W</div>
-				<div class='key-edit-button clickable'></div>
-				<div class='action-listing'>CROUCH</div>
-				<div class='key-listing'>S</div>
-				<div class='key-edit-button clickable'></div>
-			</div>
-			<div class='action-type-area'>
-				<div class='action-type-label'>ATTACK</div>
-				<div class='action-listing'>PUNCH/WEAPON</div>
-				<div class='key-listing'>J</div>
-				<div class='key-edit-button clickable'></div>
-				<div class='action-listing'>KICK</div>
-				<div class='key-listing'>K</div>
-				<div class='key-edit-button clickable'></div>
-				<div class='action-listing'>THROW WEAPON</div>
-				<div class='key-listing'>L</div>
-				<div class='key-edit-button clickable'></div>
-				<div class='action-listing empty'>BALLS</div>
-				<div class='key-edit-button empty'></div>
-			</div>
-		</div>
-		<div id='gamepad-controls-grid' class='controls-grid hidden'>
-			<div class='action-type-area'>
-				<div class='action-type-label'>MOVEMENT</div>
-				<div class='action-listing'>WALK LEFT</div>
-				<div class='key-listing'>A</div>
-				<div class='action-listing'>WALK RIGHT</div>
-				<div class='key-listing'>D</div>
-				<div class='action-listing'>JUMP</div>
-				<div class='key-listing'>W</div>
-				<div class='action-listing'>CROUCH</div>
-				<div class='key-listing'>S</div>
-			</div>
-			<div class='action-type-area'>
-				<div class='action-type-label'>ATTACK</div>
-				<div class='action-listing'>PUNCH/WEAPON</div>
-				<div class='key-listing'>J</div>
-				<div class='action-listing'>KICK</div>
-				<div class='key-listing'>K</div>
-				<div class='action-listing'>THROW WEAPON</div>
-				<div class='key-listing'>L</div>
-				<div class='action-listing empty'>BALLS</div>
-				<div class='key-listing empty'></div>
-			</div>
-			<div id='coming-soon-message'>
-				Gamepad support is in the works :)
-			</div>
-		</div>
-		<div id='close-controls-button' class='close-button clickable'>DONE</div>
-	</div> -->
 	<div id='mode-select-screen'>
 		<header>SELECT MODE</header>
 		<div id='mode-panel-area'>
@@ -271,11 +212,9 @@
 		<caption>Please rotate your device and reload to play :)</caption>
 		<small>(Or visit on desktop)</small>
 	</div>
-	<button onclick='destroyCookie();window.location.reload(true)' id='hard-reload'>HARD RELOAD</button>
+	<button onclick='destroyCookie();window.location.reload(true)' id='hard-reload'>HARD RELOAD & CLEAR COOKIE</button>
 	<div id='cinematic'>coks</div>
 	<div id='scan-lines' class='screen-cover'></div>
-
-	<!-- development -->
 
 	<script src="init.js"></script>	
 	<script async src="js/event.js"></script>
@@ -285,6 +224,6 @@
 	<script async src="js/gui.js"></script>
 	<script async src="js/exec.js"></script>
 
-	<script defer src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.1.2/howler.min.js"></script>
+	<script async src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.1.2/howler.min.js"></script>
 </body>
 </html>

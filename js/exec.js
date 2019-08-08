@@ -1,16 +1,21 @@
-// var enemyFrequency = 0;
-// var eggFrequency = 0;
 let startedZoom = -99;
 function update() {
-  if (gameInitiated && gameMode === 'horde' && counter > 0 && counter % 1000 === 0) {
-    if (gripperLimit < 15) {
+  if (gameInitiated && gameMode === 'horde' && counter > 0 && counter % 1200 === 0) {
+    if (counter % 2400 === 0 && gripperLimit < 15) {
       gripperLimit++;
+      console.error('UP --------------> gripperLimit', gripperLimit)
     }
-    if (tomtomLimit < 10) {
+    if (counter % 3600 === 0 && tomtomLimit < 10) {
       tomtomLimit++;
+      console.error('UP --------------> tomtomLimit', tomtomLimit)
     }
     if (enemyFrequency > 5) {
       enemyFrequency--;
+      console.error('UP --------------> enemyFrequency', enemyFrequency)
+    }
+    if (eggFrequency > 10) {
+      eggFrequency--;
+      console.error('UP --------------> eggFrequency', eggFrequency)
     }
   }
   if (gameInitiated && !highScoresScreen.container.visible && !enterNameScreen.container.visible && counter < introTime) {
@@ -82,11 +87,12 @@ function update() {
       }
     }
   }
-  if (gameInitiated && !wonRound && !player.fightingBoss && counter % eggFrequency === 0) {
+  if (gameInitiated && !wonRound && !player.fightingBoss && eggFrequency > 0 && counter % eggFrequency === 0) {
     var eggSpot = player.sprite.x + tileSize * 8;
     if (Math.abs(lastEggX - eggSpot) > gameWidth / 2) {
-      var newEgg = eggTypes[randomInt(0, 2)];
-      new Egg(newEgg, eggSpot);
+      var newEggType = eggTypes[randomInt(0, 2)];
+      new Egg(newEggType, eggSpot);
+      console.warn('------- EGG --------')
     }
   }
   if (!landscape && !endSequenceStarted && !player.dead && touchingDPad) {
@@ -308,7 +314,7 @@ function update() {
         knife.x -= fighterScale * newPixelSize * 3;
       }
       if (true) {
-        if (knife.hit || Math.abs(knife.x - player.sprite.x) >= gameWidth) {
+        if (knife.hit || Math.abs(knife.x - player.sprite.x) >= (gameWidth / 2)) {
           // knife.visible = false
           knives.splice(knives.indexOf(knife), 1);
           gameContainer.removeChild(knife);

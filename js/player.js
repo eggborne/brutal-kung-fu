@@ -86,13 +86,13 @@ function Fighter(character, scale) {
       var knife = new PIXI.Sprite(PIXI.utils.TextureCache['knife']);
       if (this.ducking) {
         knife.type = 'low';
-        var knifeY = this.sprite.y - tileSize;
+        var knifeY = this.sprite.y - (tileSize * 1.3 * fighterScale);
       } else if (this.sprite.y < this.level.groundY) {
         knife.type = 'air';
-        var knifeY = this.sprite.y - tileSize * 2;
+        var knifeY = this.sprite.y - (tileSize * 2 * fighterScale);
       } else {
         knife.type = 'high';
-        var knifeY = this.sprite.y - tileSize * 2;
+        var knifeY = this.sprite.y - (tileSize * 1.75 * fighterScale);
       }
       knife.width = newPixelSize * 9 * fighterScale;
       knife.height = newPixelSize * 4.5 * fighterScale;
@@ -1416,6 +1416,7 @@ function resetGame() {
   player = new Fighter('thomas');
   nesPanel.toggleThrow('off');
   player.level = currentLevel;
+  player.levelData = levelData[levelReached - 1]
   player.score = currentScore;
   player.sprite.x = player.level.playerStartX;
   player.sprite.y = player.level.groundY;
@@ -1427,10 +1428,10 @@ function resetGame() {
     gameInitiated = true;
     clearTitle();
 
-    // enemyFrequency = player.level.enemyFrequency;
-    // eggFrequency = player.level.eggFrequency;
-    // gripperLimit = player.level.limits.grippers;
-    // tomtomLimit = player.level.limits.tomtoms;
+    enemyFrequency = player.levelData.enemyFrequency;
+    eggFrequency = player.levelData.eggFrequency;
+    gripperLimit = player.levelData.limits.grippers;
+    tomtomLimit = player.levelData.limits.tomtoms;
 
   } else {
     console.warn('resetGame removing logos at lives === 0');
@@ -1443,6 +1444,7 @@ function resetGame() {
     dragonLevel = 0;
     livesAwarded = 0;
     player.level = level1;
+    player.levelData = levelData[0]
     player.score = 0;
     floorDisplay.legend.text = 'LEVEL ' + levelReached;
     floorDisplay.container.x = gameWidth / 2;

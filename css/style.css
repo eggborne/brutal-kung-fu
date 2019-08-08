@@ -3,16 +3,18 @@ root {
   --game-width: 0;
   --game-height: 0;
   --game-x: 0;
+  --gamepad-height: 0;
   --screen-height: 100vh;
-  
 }
 * {
   box-sizing: border-box;
 }
 body {
+  --extra-y-space: calc(var(--screen-height) - var(--game-height));
   --kf-orange: #ffa000;
   --kf-light-orange: #ffd8a0;
   --kf-dark-orange: #e05000;
+  --kf-green: #98e800;
   --tile-size: calc(var(--pixel-size) * 16); 
   --header-font-size: calc(var(--pixel-size) * 16);
   --original-bg-color: #9290ff;
@@ -38,6 +40,7 @@ body {
   /* -moz-osx-font-smoothing: auto; */
   will-change: transition;
 }
+
 .screen-cover {
   position: absolute;
   width: 100vw;
@@ -53,10 +56,66 @@ body {
   background-size: 100vw calc(var(--pixel-size) * 1.5);
   pointer-events: none;
   display: none;
-  z-index: 100;
+  z-index: 3;
 }
 #scan-lines.showing {
   display: block;
+}
+#scores-grid > div {
+  /* align-self: center; */
+  /* justify-self: stretch; */
+  width: 100%;
+  padding: calc(var(--tile-size) / 2) 0;
+}
+#scores-grid > div.highlighted {
+  color: var(--kf-green);
+}
+#scores-grid > div.gray-bg {
+  background-color: #111;  
+}
+#scores-grid {
+  position: fixed;
+  transform: translateX(-50%);
+  width: calc(var(--game-width) - (var(--tile-size) * 4.5));
+  /* height: 60vh; */
+  height: calc(var(--screen-height) - (var(--tile-size) * 5) - (var(--pixel-size) * 32) - (var(--pixel-size) * 32));
+  top: calc(var(--tile-size) * 4.75);
+  left: calc(50vw - calc(var(--pixel-size) * 2));
+  /* pointer-events: none; */
+  color: white;
+  font-size: calc(var(--pixel-size) * 10);
+  display: grid;
+  grid-template-columns: calc(var(--tile-size) * 1.5) 1fr min-content;
+  grid-auto-rows: calc(var(--tile-size) * 1.5);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+#scores-grid > .score-rank {
+  font-size: calc(var(--pixel-size) * 8);
+  color: var(--kf-orange);
+  text-align: right;
+  padding-right: calc(var(--tile-size) / 2)
+}
+#scores-grid > .score-name {
+  justify-self: start;
+  text-align: left;
+}
+#scores-grid > .score-amount {
+  justify-self: end;
+  text-align: right;
+  padding-right: calc(var(--tile-size) /4);
+}
+#close-high-scores-button.close-button {
+  position: absolute;
+  font-size: calc(var(--pixel-size) * 10);
+  color: white;
+  transform: translateX(-50%) translateY(-100%);
+  top: calc(var(--screen-height) - (var(--pixel-size) * 16));
+  left: 50vw;
+  display: none;
+}
+#close-high-scores-button.showing, #mode-select-screen.showing {
+  display: flex;
 }
 #controls-hint {
   position: fixed;
@@ -159,28 +218,45 @@ body {
   border: calc(var(--pixel-size) * 1.5) solid rgb(37, 53, 37);
   margin: calc(var(--tile-size) / 3);
 }
-#hard-reload {
-  position: absolute;
+#cookie-display, #hard-reload {
+  position: fixed;
   color: rgb(226, 165, 157);
-  background: transparent;
-  border-color: #111;
-  border-style: solid;
-  width: calc(var(--tile-size) * 5);
+  background: transparent;  
+  width: max-content;
   height: var(--tile-size);
   transform: translateX(-50%);
-  left: 50vw;
-  bottom: calc(var(--tile-size) / 3);
+  left: 50vw;  
   opacity: 0.5;
 }
-#hard-reload.hidden {
-  display: none;
+#cookie-display {
+  font-size: calc((var(--screen-height) / 56) - (var(--extra-y-space) / 300));
+  /* bottom: calc(var(--game-height) / 84); */
+  bottom: calc((var(--extra-y-space) - var(--tile-size) / 4) * -1);
+  color: var(--kf-green);
+  font-family: sans-serif;
+  z-index: 0;
 }
+#hard-reload {
+  border-color: #111;
+  border-style: solid;
+  bottom: calc((var(--extra-y-space) - var(--tile-size) / 2) * -1);
+  display: none !important;
+}
+a {
+  /* text-decoration: none; */
+  color: unset;
+}
+.hidden {
+  display: none !important;
+}
+/* #hard-reload.hidden {
+  display: none;
+} */
 #game-canvas {
   position: relative;
   margin: 0 auto;
-  /* width:calc(100vh / calc(15 / 16) ) ; */
-  /* width:100vw; */
-  /* height:100vh; */
+  width: var(--game-width);
+  height: var(--game-height);
   background-color: var(--original-bg-color);
 }
 #cinematic {
@@ -217,6 +293,9 @@ body {
   /* display: none; */
   z-index: 0;
 }
+#gamepad-container.mid {
+  transform: translateY(calc(var(--extra-y-space)));
+}
 #kung-fu-logo, #brutal-logo {
   position: absolute;
   width: 100vw;
@@ -228,9 +307,9 @@ body {
   z-index: 1;
   pointer-events: none;
 }
-#kung-fu-logo.hidden, #brutal-logo.hidden {
+/* #kung-fu-logo.hidden, #brutal-logo.hidden {
   display: none;
-}
+} */
 #kung-fu-logo {
   /* background-size: calc(var(--pixel-size) * 220); */
   /* top: calc(var(--pixel-size) * 70); */
@@ -368,10 +447,10 @@ body {
   align-items: center;
   /* justify-content: space-between; */
   color: white;
-  /* font-size: calc(100vh / calc(15 / 16) / 64); */
+  /* font-size: calc(var(--screen-height) / calc(15 / 16) / 64); */
   font-size: calc(var(--pixel-size) * 7);
-  display: none;
-  z-index: 20;
+  display: flex;
+  z-index: 2;
 }
 #options-screen > header {
   font-size: var(--header-font-size);
@@ -421,8 +500,22 @@ body {
 #lower-area {
   width: 100%;
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
   justify-content: center;
+}
+#cookie-confirmation {
+  font-size: calc(var(--pixel-size) * 6);
+  background: green;
+  height: var(--tile-size);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+#cookie-confirmation > input {
+  opacity: 0.5;
+  cursor: pointer;
 }
 #options-screen #options-button-list {
   display: flex;
@@ -486,7 +579,7 @@ body {
   justify-content: center;
 }
 #mode-back-button, #filler-button-area > .close-button {
-  padding: 3vh;
+  padding: 2vh;
 }
 #mode-select-screen .button-area .close-button {
   z-index: 21;
@@ -517,42 +610,15 @@ body {
 }
 #confirm-mode-button {
   border: var(--pixel-size) solid rgb(7, 73, 7);
+  max-width: 50vw;
+  font-size: calc(var(--tile-size));
 }
 #close-options-button.close-button {
   font-size: calc(var(--pixel-size) * 10);
   /* top: calc(var(--screen-height) - (var(--pixel-size) * 16)); */
   left: 50vw;
 }
-#close-high-scores-button.close-button {
-  position: absolute;
-  font-size: calc(var(--pixel-size) * 10);
-  color: white;
-  transform: translateX(-50%) translateY(-100%);
-  top: calc(var(--screen-height) - (var(--pixel-size) * 32));
-  left: 50vw;
-  display: none;
-}
-#close-high-scores-button.showing, #mode-select-screen.showing {
-  display: flex;
-}
-#controls-screen {
-  position: fixed;
-  transform: translateX(-50%) translateY(-50%);
-  top: 50vh;
-  left: 50vw;
-  width: calc(100vh / calc(15 / 16));
-  height: var(--screen-height);
-  /* background: black !important; */
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-evenly;
-  color: white;
-  font-size: calc(100vh / calc(15 / 16) / 48);
-  padding: calc(var(--pixel-size) * 24) var(--tile-size);
-  display: none;
-  z-index: 20;
-}
-#controls-screen.showing, #options-screen.showing {
+#options-screen.showing {
   display: flex;
 }
 .controls-grid {
@@ -569,9 +635,9 @@ body {
   z-index: 0;  
   margin-bottom: 2vh;
 }
-.controls-grid.hidden {
+/* .controls-grid.hidden {
   display: none;
-}
+} */
 .action-type-area {
   /* box-sizing: border-box; */
   padding: 1vw;
@@ -613,7 +679,7 @@ body {
   line-height: 150%;
   text-align: center;
   padding: 0 1.5vw;
-  font-size: calc(100vh / calc(15 / 16) / 54);
+  font-size: calc(var(--screen-height) / calc(15 / 16) / 54);
 }
 .action-type-area > .key-listing {
   color: rgb(134, 224, 134);
@@ -790,7 +856,7 @@ body {
   position: relative;
   background-color: #222;
   border: var(--pixel-size) solid #444;
-  width: 100%;
+  width: 100%;  
   /* height: 50%; */
   flex-grow: 1;
   margin: calc(var(--screen-height) / 64);
@@ -899,7 +965,7 @@ body {
   width: 90%;
   position: absolute;
   bottom: 2vh;
-  font-size: 2.75vw;
+  font-size: calc((var(--screen-height) / 56) - (var(--extra-y-space) / 300));
   line-height: 150%;
   padding: 3vw;
   padding-right: 0;
@@ -925,7 +991,7 @@ body.scored #kung-fu-logo, body.scored #brutal-logo {
   }
   #game-canvas {
     height: calc(100vw * calc(15 / 16));
-    /* height: 100vh; */
+    /* height: var(--screen-height); */
     /* background-color:black; */
   }
   #landscape-nes-controls {
@@ -933,14 +999,6 @@ body.scored #kung-fu-logo, body.scored #brutal-logo {
   }
   #controls-button {
     display: none;
-  }
-  #controls-screen {
-    transform: none;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: calc(100vw * (16/15));
-    font-size: calc(var(--pixel-size) * 8);
   }
   #turn-phone-shade, #turn-phone-instructions, #turn-phone-instructions > img {
     display: none;
@@ -952,6 +1010,26 @@ body.scored #kung-fu-logo, body.scored #brutal-logo {
   body {
     --header-font-size: calc(var(--pixel-size) * 12);
     background-color: black;
+  }
+  #scores-grid {
+    width: calc(var(--game-width) - (var(--tile-size) * 7.5));
+    height: calc(var(--screen-height) - (var(--tile-size) * 5) - (var(--pixel-size) * 32));
+    top: calc(var(--tile-size) * 3.5);
+    left: calc(50vw - calc(var(--pixel-size) * 2));
+    color: white;
+    font-size: 2.5vh;
+    display: grid;
+    grid-template-columns: calc(var(--tile-size)) 1fr min-content;
+    grid-auto-rows: 6vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  #scores-grid > div {
+    padding: 2vh;
+    padding-left: 0;
+  }
+  #scores-grid > .score-rank {
+    font-size: 2vh;
   }
   #mode-select-screen > #mode-panel-area #stage-select-mode-panel > #stage-grid {  
     display: grid;
@@ -1016,7 +1094,7 @@ body.scored #kung-fu-logo, body.scored #brutal-logo {
   }
   #game-canvas {
     width: calc(100vh / calc(15 / 16));
-    height: 100vh;
+    height: var(--screen-height);
   }
   #nes-panel-bg {
     display: none;
@@ -1030,7 +1108,7 @@ body.scored #kung-fu-logo, body.scored #brutal-logo {
   #landscape-nes-controls {
     position: fixed;
     width: 100vw;
-    height: 100vh;
+    height: var(--screen-height);
     top: 0;
     left: 0;
     background-color: aquamarine;

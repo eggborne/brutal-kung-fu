@@ -1,7 +1,7 @@
 let controlScreenOn = optionsScreenOn = false;
 let controlTabSelected = 'keyboard';
 let editingKeyForAction = false;
-let scoresToDisplay = 12;
+let scoresToDisplay = 100;
 // if (landscape) {
 //   scoresToDisplay = 12;
 // }
@@ -65,13 +65,13 @@ function toggleOptionsScreen() {
   optionsScreenOn = !optionsScreenOn;
   document.getElementById('brutal-logo').classList.toggle('hidden');
   document.getElementById('kung-fu-logo').classList.toggle('hidden');
-  document.getElementById('options-screen').classList.toggle('showing');
+  document.getElementById('options-screen').classList.toggle('hidden');
   console.info('GO', gameOptions)
   if (!optionsScreenOn) {
     if (useCookie) {
       setCookie(JSON.stringify(gameOptions));
     }
-  }  
+  }
 }
 function callKeyEditModal(action) {
   document.getElementById('turn-phone-shade').style.display = 'flex';
@@ -79,7 +79,7 @@ function callKeyEditModal(action) {
   document.getElementById('key-edit-modal').classList.add('showing');
   editingKeyForAction = action;
 }
-function dismissKeyEditModal(action) {
+function dismissKeyEditModal() {
   document.getElementById('turn-phone-shade').style.display = 'none';
   document.getElementById('key-edit-modal').classList.remove('showing');
   editingKeyForAction = undefined;
@@ -131,38 +131,6 @@ function refreshKeyDisplay() {
   });
 
 }
-// function refreshKeyDisplay() {
-//   let rowRelevant = false;
-//   [...document.getElementById('keyboard-controls-grid').children].map((typeArea, t) => {
-//     [...typeArea.children].map((rowMember, r) => {
-//       if (rowMember.classList.contains('action-listing')) {
-//         if (rowMember.innerHTML === editingKeyForAction) {
-//           rowRelevant = true;
-//         }
-//       };
-//       if (rowMember.classList.contains('key-listing')) {
-//         if (rowRelevant) {
-//           let displayKey = gameOptions.actionKeys[editingKeyForAction];
-//           if (displayKey === ' ') {
-//             displayKey = 'SPACE';
-//           }
-//           if (displayKey.length > 1) {
-//             rowMember.classList.add('long-name');
-//           } else {
-//             rowMember.classList.remove('long-name');
-//             displayKey = displayKey.toUpperCase();       
-//           }
-//           rowMember.innerHTML = displayKey;
-//           rowMember.classList.add('just-changed');
-//           setTimeout(() => {
-//             rowMember.classList.remove('just-changed');
-//           }, 400)
-//           rowRelevant = false;
-//         }
-//       };      
-//     })
-//   })
-// }
 function ScoreDisplay() {
   this.lineHeight = tileSize / 2.5;
   this.xPadding = tileSize / 1.5;
@@ -749,6 +717,7 @@ function NESPanel() {
     document.getElementById('a-back').style.left = this.kickButton.x + newPixelSize * 3 + 'px';
     document.getElementById('nes-border').style.height = this.dPadBg.height + newPixelSize * 30 + 'px';
     document.getElementById('nes-border').style.top = this.controls.y + this.dPadBg.y - newPixelSize * 15 + 'px';
+    document.documentElement.style.setProperty('--gamepad-height', document.getElementById('nes-border').style.height)
   };
   this.hideDecor = function() {
     document.getElementById('nes-panel-bg').style.display = 'none';
@@ -1096,40 +1065,30 @@ function HighScoresScreen() {
     this.container.addChild(dragon2);
   }
   this.populateEntries = function() {
-    this.entries.removeChildren();
+    console.error('PIOPULAUSTIONG')
     let newEntries = scoreArray.length;
     if (scoreArray.length > scoresToDisplay) {
       newEntries = scoresToDisplay;
     }
+    document.getElementById('scores-grid').innerHTML = '';
     for (let e = 0; e < newEntries; e++) {
-      let rankNumber = new PIXI.Text((e + 1), highScoreStyle);
-      if (!landscape) {
-        rankNumber.style.fontSize = tileSize / 2;
+      let rank = (e + 1);
+      let name = scoreArray[e][0];
+      let score = scoreArray[e][1];
+      // let sixDigitScore = '0'.repeat(6 - score.length) + score;      
+      let highlightClass = '';
+      let tintClass = e % 2 === 0 ? '' : 'gray-bg';
+      if (name == currentRecord.player && score == currentRecord.score) {        
+        highlightClass = 'highlighted';
       }
-      rankNumber.style.fill = '#8f8';
-      rankNumber.anchor.x = 1;
-      let newPlayerText = new PIXI.Text(scoreArray[e][0], highScoreStyle);
-      if (!landscape) {
-        newPlayerText.style.fontSize = tileSize / 1.6;
-      }
-      let sixDigit = '0'.repeat(6 - scoreArray[e][1].length) + scoreArray[e][1];
-      let newScoreText = new PIXI.Text(sixDigit, highScoreStyle);
-      if (landscape) {
-        newScoreText.style.fontSize = newPlayerText.style.fontSize = tileSize / 3;
-      }
-      rankNumber.x = this.marginX + (tileSize * 0.75);
-      newPlayerText.x = rankNumber.x + (tileSize / 1.5);
-      newScoreText.x = gameWidth - newScoreText.width - this.marginX;
-      rankNumber.y = newPlayerText.y = newScoreText.y = this.startY + newPlayerText.height * 2 * e;
-      this.entries.addChild(rankNumber);
-      this.entries.addChild(newPlayerText);
-      this.entries.addChild(newScoreText);
-      if (scoreArray[e][0] == currentRecord.player && scoreArray[e][1] == currentRecord.score) {
-        newPlayerText.tint = 0x00ff00;
-        newScoreText.tint = 0x00ff00;
-      }
+      document.getElementById('scores-grid').innerHTML += `
+        <div class='score-rank ${tintClass}'>${rank}</div>
+        <div class='score-name ${tintClass} ${highlightClass}'>${name}</div>
+        <div class='score-amount ${tintClass} ${highlightClass}'>${score}</div>
+      `;
     }
   };
+  this.entries.visible = false;
   this.container.visible = false;
 }
 function EnterNameScreen() {
@@ -1166,10 +1125,10 @@ function EnterNameScreen() {
   this.legend.anchor.x = this.legendTitle.anchor.x = this.rankDisplay.anchor.x = 0.5;
   this.legend.x = this.legendTitle.x = this.rankDisplay.x = gameWidth / 2;
   this.legendTitle.y = this.startY - (this.legendTitle.height * 1.5);
-  this.rankDisplay.y = this.startY + tileSize;
+  this.rankDisplay.y = this.startY + (tileSize / 3.5);
   this.legend.y = viewHeight * 0.5;
   if (landscape) {
-    this.legend.y = gameHeight * 0.65;
+    this.legend.y = gameHeight * 0.7;
   }
   
   this.container.addChild(this.legendTitle);  
@@ -1206,32 +1165,37 @@ function toggleNameEntry(rankAchieved) {
     document.getElementById('name-submit').classList.remove('showing');
     document.body.classList.remove('scored');    
   } else {
+    console.warn('val', document.getElementById('name-entry').value)
+    if (!document.getElementById('name-entry').value && gameOptions.playerName) {
+      document.getElementById('name-entry').value = gameOptions.playerName;
+      document.getElementById('name-submit').disabled = false;
+    }
     document.getElementById('brutal-logo').classList.add('hidden');
     document.getElementById('kung-fu-logo').classList.add('hidden');
     document.getElementById('skip-name-entry-button').classList.add('showing');
     document.getElementById('name-entry').classList.add('showing');
     document.getElementById('name-submit').classList.add('showing');
-    enterNameScreen.rankDisplay.text = `${rankAchieved} PLACE`;
+    enterNameScreen.rankDisplay.text = `${suffixedNumber(rankAchieved)} PLACE`;
     enterNameScreen.container.visible = true;
     document.body.classList.add('scored')
   }
 }
 function toggleHighScores() {
+  document.getElementById('brutal-logo').classList.toggle('hidden');
+  document.getElementById('kung-fu-logo').classList.toggle('hidden');
+  document.getElementById('scores-grid').classList.toggle('hidden');
+  document.getElementById('close-high-scores-button').classList.toggle('showing');
+  document.getElementById('hard-reload').classList.add('hidden');
   if (!highScoresScreen.container.visible) {
     highScoresScreen.container.visible = true;
-    document.getElementById('brutal-logo').classList.add('hidden');
-    document.getElementById('kung-fu-logo').classList.add('hidden');
-    document.getElementById('close-high-scores-button').classList.add('showing');
-    document.getElementById('hard-reload').classList.add('hidden');
     getScoresFromDatabase(gameName, true);
-    // highScoresScreen.populateEntries()
   } else {
-    document.getElementById('brutal-logo').classList.remove('hidden');
-    document.getElementById('kung-fu-logo').classList.remove('hidden');
-    document.getElementById('close-high-scores-button').classList.remove('showing');
     highScoresScreen.container.visible = false;
     
   }
+}
+function moveGamePad() {
+  nesPanel.container.y += 200;
 }
 function getScoresFromDatabase(gameName, populate, check) {
   console.log('CALLING FOR SCORES ----------------');
@@ -1299,6 +1263,8 @@ function saveScoreToDatabase(gameName, playerName, playerScore) {
   console.log('currrec', currentRecord)
   console.log('passing', gameName, playerName, playerScore)
   currentRecord.player = playerName;
+  gameOptions.playerName = playerName;
+  setCookie(JSON.stringify(gameOptions));
   axios({
     method: 'post',
     url: 'https://www.eggborne.com/scripts/savescores.php',

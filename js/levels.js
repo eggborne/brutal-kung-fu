@@ -102,6 +102,13 @@ function levelUp(amount) {
   var nextLevel = new Level(levelReached, lvlData.direction, gameHeight, lvlData.water, topEdge, groundY);
   scoreDisplay.floorKnobs[levelReached - 1].tint = 0xea9f22;
   player.level = nextLevel;
+  player.levelData = lvlData;
+
+  enemyFrequency = player.levelData.enemyFrequency;
+  eggFrequency = player.levelData.eggFrequency;
+  gripperLimit = player.levelData.limits.grippers;
+  tomtomLimit = player.levelData.limits.tomtoms;
+
   gameContainer.setChildIndex(player.sprite, gameContainer.children.indexOf(player.level.container));
   floorDisplay.legend.text = 'LEVEL ' + levelReached;
   scoreSequenceStarted = endSequenceStarted = false;
@@ -309,11 +316,20 @@ function isFullScreen() {
   return document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
 }
 function toggleFullScreen() {
+  document.getElementById('turn-phone-shade').style.display = 'flex';
   if (!isFullScreen()) {
+    console.error('calling while window height', window.innerHeight);
     fullScreenCall().call(document.body);
-    document.documentElement.style.setProperty('--screen-height', window.innerHeight + 'px');
   } else {
     exitFullScreenCall().call(document);
-    document.documentElement.style.setProperty('--screen-height', window.innerHeight + 'px');
   }
 }
+window.addEventListener('fullscreenchange', () => {
+  setTimeout(() => {
+    document.getElementById('turn-phone-shade').style.display = 'none';
+    document.documentElement.style.setProperty('--screen-height', window.innerHeight + 'px');
+    gameWidth = window.innerWidth;
+    gameHeight = window.innerHeight;
+    console.error('new scrheight', window.innerHeight)
+  }, 1000);
+})

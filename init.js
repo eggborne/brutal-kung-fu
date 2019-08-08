@@ -25,7 +25,7 @@ window.addEventListener('load', function () {
   // setTimeout(() => {
   //   toggleNameEntry();
   //   console.log(findRank('25100'))
-  // }, 2000);
+  // }, 1000);
 });
 function findRank(score) {
   let rank;
@@ -53,7 +53,6 @@ document.body.onload = () => {
 
 let gameMode = 'story';
 
-let showInstructions = landscape;
 const defaultOptions = {
   soundOn: false,
   musicOn: false,
@@ -68,15 +67,16 @@ const defaultOptions = {
     'KICK': 'k',
     'THROW WEAPON': 'l'
   },
-  showInstructions: landscape
+  showInstructions: landscape,
+  playerName: ''
 }
 let gameOptions = {...defaultOptions};
 
 let assigningAction = undefined;
 let lastEnteredName = '';
 
-let gripperLimit = 4;
-let tomtomLimit = 3;
+let gripperLimit = 3;
+let tomtomLimit = 0;
 
 let selectedStage = 1;
 
@@ -413,7 +413,7 @@ function toggleScanLines() {
   gameOptions.scanLines = !gameOptions.scanLines;
 }
 
-const startingLives = 3;
+const startingLives = 2;
 let lives = startingLives;
 let bottomSpace = viewHeight - gameHeight;
 let topEdge = gameHeight - tileSize * (tilesPerHeight - 3.5);
@@ -423,40 +423,38 @@ let level1, level2, level3, level4, level5, level6;
 let arrow, stickMan, boomerangMan, giant, blackMagician, misterX;
 
 let bosses = [];
+
 levelData = [
   {
     direction: 'left',
-    enemyFrequency: 50,
+    enemyFrequency: 70,
     eggFrequency: 0,
     limits: {
-      grippers: 4,
-      tomtoms: 3
+      grippers: 3,
+      tomtoms: 0
     },
-    tomtoms: false,
     boss: stickMan,
     water: 'waterbg'
   },
   {
     direction: 'right',
     enemyFrequency: 50,
-    eggFrequency: 12,
+    eggFrequency: 40,
     limits: {
       grippers: 4,
-      tomtoms: 3
+      tomtoms: 2
     },
-    tomtoms: true,
     boss: boomerangMan,
     water: 'spinebg'
   },
   {
     direction: 'left',
     enemyFrequency: 30,
-    eggFrequency: 30,
+    eggFrequency: 300,
     limits: {
       grippers: 6,
       tomtoms: 4
     },
-    tomtoms: true,
     boss: giant,
     water: 'spinebg'
   },
@@ -468,7 +466,6 @@ levelData = [
       grippers: 8,
       tomtoms: 1
     },
-    tomtoms: false,
     boss: blackMagician,
     water: 'spinebg'
   },
@@ -480,20 +477,40 @@ levelData = [
       grippers: 12,
       tomtoms: 8
     },
-    tomtoms: true,
     boss: misterX,
     water: 'spinebg'
-  }
+  },
+  {
+    direction: 'left',
+    enemyFrequency: 10,
+    eggFrequency: 0,
+    limits: {
+      grippers: 3,
+      tomtoms: 3
+    },
+    boss: stickMan,
+    water: 'waterbg'
+  },
 ];
 
 // let enemyFrequency, eggFrequency;
 
 function createGame() {
   created = true;
-  level1 = new Level(1, 'left', gameHeight, 'waterbg', topEdge, groundY);
+  console.log(levelData)
+  // level1 = new Level(1, 'left', gameHeight, 'waterbg', topEdge, groundY);
+  let firstLevel = levelData[0];
+  level1 = new Level(1, firstLevel.direction, gameHeight, firstLevel.water, topEdge, groundY);
   gameContainer.setChildIndex(player.sprite, gameContainer.children.length - 1);
 
   player.level = level1;
+  player.levelData = firstLevel;
+
+  enemyFrequency = player.levelData.enemyFrequency;
+  eggFrequency = player.levelData.eggFrequency;
+  gripperLimit = player.levelData.limits.grippers;
+  tomtomLimit = player.levelData.limits.tomtoms;
+  
   player.sprite.x = player.level.playerStartX;
   lastEggX = player.level.playerStartX;
   player.sprite.y = player.level.groundY;
@@ -672,7 +689,7 @@ document.getElementById('stage-select-mode-panel').onclick = function() {
 }
 document.getElementById('hint-close-button').onclick = function() {
   this.parentElement.parentElement.classList.remove('showing');
-  if (!document.getElementById('options-screen').classList.contains('showing')) {
+  if (document.getElementById('options-screen').classList.contains('hidden')) {
     gameInitiated = true;
   }
 }
@@ -685,13 +702,13 @@ document.getElementById('confirm-mode-button').onclick = function() {
     gameContainer.x += level1.levelWidth / 2;
     floorDisplay.container.x -= level1.levelWidth / 2;
     player.sprite.x = (gameWidth / 2) - (level1.levelWidth / 2);
-    level1.tomtoms = true;
+    tomtomLimit = 2;
+
     level1.boss.sprite.alpha = 0;
     level1.container.alpha = 0;
   } else if (gameMode === 'story') {
     floorDisplay.legend.text = 'LEVEL 1';
     floorDisplay.bg.width = tileSize * 3.5;
-    level1.tomtoms = false;
     level1.boss.sprite.alpha = 1;
     level1.container.alpha = 1;
     if (selectedStage) {
@@ -699,11 +716,11 @@ document.getElementById('confirm-mode-button').onclick = function() {
       selectedStage = 0;
     }
   }
-  console.log('show?', showInstructions)
+  console.log('show?', gameOptions.showInstructions)
   document.getElementById('mode-select-screen').classList.remove('showing');
-  if (showInstructions) {
+  if (landscape && gameOptions.showInstructions) {
     document.getElementById('controls-hint').classList.add('showing');
-    showInstructions = false;
+    gameOptions.showInstructions = false;
   } else {
     gameInitiated = true;
   }
@@ -756,6 +773,8 @@ const getCookie = cookieName => {
   cookieObj = decodedCookie.filter(str => str.split('=')[0] === cookieName);
   if (cookieObj.length) {
     cookieObj = JSON.parse(cookieObj[0].split('=')[1]);
+    // document.getElementById('cookie-display').className = 'remembered'
+    // document.getElementById('cookie-display').innerText = '* REMEMBERED *'
   } else {
     cookieObj = undefined;
   }
@@ -771,22 +790,26 @@ function init() {
   setVariables();
   player = new Fighter('thomas');
   nesPanel = new NESPanel();
-  createGame();
   titleScreen = new TitleScreen();
-  stage.addChild(titleScreen.container);
-  enterNameScreen = new EnterNameScreen();
-  highScoresScreen = new HighScoresScreen();
-  stage.addChild(enterNameScreen.container);
-  stage.addChild(highScoresScreen.container);
   selector = new DragonSelector();
-  // alert("randerer x " + renderer.x + " gameC X " + gameContainer.x + " gameW " + gameWidth + " mask w " + gameContainer.mask.width + " at X " + gameContainer.mask.x)
+  stage.addChild(titleScreen.container);
+  // createGame();
+  // titleScreen = new TitleScreen();
+  // stage.addChild(titleScreen.container);
+  setTimeout(() => {
+    createGame();
+    getScoresFromDatabase(gameName, true);
+    enterNameScreen = new EnterNameScreen();
+    highScoresScreen = new HighScoresScreen();
+    stage.addChild(enterNameScreen.container);
+    stage.addChild(highScoresScreen.container);
+  }, 500);
   if (!landscape) {
-    gameContainer.mask.width = gameContainer.width;
-    gameContainer.mask.height = gameHeight;
-    gameContainer.mask.x = gameContainer.x;
-    gameContainer.mask.y = gameContainer.y;
+    // gameContainer.mask.width = gameContainer.width;
+    // gameContainer.mask.height = gameHeight;
+    // gameContainer.mask.x = gameContainer.x;
+    // gameContainer.mask.y = gameContainer.y;
   }
-  getScoresFromDatabase(gameName, true);
   PIXI.ticker.shared.add(function(time) {
     renderer.render(stage);
     update();

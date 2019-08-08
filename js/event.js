@@ -249,7 +249,7 @@ function pressPunch() {
   let titleShowing = titleScreen.container.visible
   && !highScoresScreen.container.visible
   && !document.getElementById('mode-select-screen').style.display
-  && !document.getElementById('options-screen').classList.contains('showing')
+  && document.getElementById('options-screen').classList.contains('hidden')
   && !document.getElementById('controls-hint').classList.contains('showing');
   if (titleShowing) {
     selector.chooseSelection();
@@ -283,7 +283,7 @@ function pressKick() {
   let titleShowing = titleScreen.container.visible
   && !highScoresScreen.container.visible
   && !document.getElementById('mode-select-screen').style.display
-  && !document.getElementById('options-screen').classList.contains('showing')
+  && document.getElementById('options-screen').classList.contains('hidden')
   && !document.getElementById('controls-hint').classList.contains('showing');
   if (titleShowing) {
     selector.chooseSelection();
