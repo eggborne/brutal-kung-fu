@@ -4,37 +4,37 @@
 	"icons": 
 	[
 		{
-			"src": "/assets/icons/bkf-16x16.png",
+			"src": "/assets/icons/bkf-icon-16x16.png",
 			"sizes": "16x16",
 			"type": "image/png"
 		},
 		{
-			"src": "/assets/icons/bkf-32x32.png",
+			"src": "/assets/icons/bkf-icon-32x32.png",
 			"sizes": "32x32",
 			"type": "image/png"
 		},
 		{
-			"src": "/assets/icons/bkf-120x120.png",
+			"src": "/assets/icons/bkf-icon-120x120.png",
 			"sizes": "120x120",
 			"type": "image/png"
 		},
 		{
-			"src": "/assets/icons/bkf-180x180.png",
+			"src": "/assets/icons/bkf-icon-180x180.png",
 			"sizes": "180x180",
 			"type": "image/png"
 		},
 		{
-			"src": "/assets/icons/bkf-192x192.png",
+			"src": "/assets/icons/bkf-icon-192x192.png",
 			"sizes": "192x192",
 			"type": "image/png"
 		},
 		{
-			"src": "/assets/icons/bkf-256x256.png",
+			"src": "/assets/icons/bkf-icon-256x256.png",
 			"sizes": "256x256",
 			"type": "image/png"
-		}
+		},
 		{
-			"src": "/assets/icons/bkf-512x512.png",
+			"src": "/assets/icons/bkf-icon-512x512.png",
 			"sizes": "512x512",
 			"type": "image/png"
 		}
