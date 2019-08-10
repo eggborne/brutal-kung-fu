@@ -13,12 +13,7 @@ function Level(floor, direction, startY, water, topEdge, groundY, length) {
   this.topY = startY - gameHeight;
   this.topEdge = topEdge;
   this.groundY = groundY;
-  // this.groundY = startY-(newPixelSize*20)-(tileSize*3)
-  // console.log('groundY at level ' + this.groundY);
-  // var perWidth = Math.ceil(gameWidth / (newPixelSize * 64));
-  // console.log('per width? ' + perWidth);
   var segmentsNeeded = (segsWide = 29);
-  // console.log('need ' + segmentsNeeded);
   if (direction === 'left') {
     var signIndex = 5;
   } else {
@@ -88,17 +83,13 @@ function Level(floor, direction, startY, water, topEdge, groundY, length) {
 function levelUp(amount) {
   levelReached += amount;
   bosses.map((boss, i) => {
-    console.log('check', boss)
     if ((i+1) < levelReached) {
       boss.sprite.alpha = 0;
     }
   });
   gameContainer.removeChild(player.level.container);
-  console.log('levelReached is now', levelReached);
-  console.log('levelData is', levelData);
-
   var lvlData = levelData[levelReached - 1];
-  console.log('lvlData', lvlData)
+  console.info('>>>>>>>> new lvlData', lvlData)
   var nextLevel = new Level(levelReached, lvlData.direction, gameHeight, lvlData.water, topEdge, groundY);
   scoreDisplay.floorKnobs[levelReached - 1].tint = 0xea9f22;
   player.level = nextLevel;
@@ -316,9 +307,8 @@ function isFullScreen() {
   return document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
 }
 function toggleFullScreen() {
-  document.getElementById('turn-phone-shade').style.display = 'flex';
+  document.body.style.opacity = 0.3;
   if (!isFullScreen()) {
-    console.error('calling while window height', window.innerHeight);
     fullScreenCall().call(document.body);
   } else {
     exitFullScreenCall().call(document);
@@ -326,10 +316,21 @@ function toggleFullScreen() {
 }
 window.addEventListener('fullscreenchange', () => {
   setTimeout(() => {
-    document.getElementById('turn-phone-shade').style.display = 'none';
+    document.body.style.opacity = 1;
     document.documentElement.style.setProperty('--screen-height', window.innerHeight + 'px');
-    gameWidth = window.innerWidth;
-    gameHeight = window.innerHeight;
-    console.error('new scrheight', window.innerHeight)
-  }, 1000);
-})
+    viewWidth = window.innerWidth;
+    viewHeight = window.innerHeight;
+
+    gameWidth = document.getElementById('game-canvas').offsetWidth;
+    gameHeight = document.getElementById('game-canvas').offsetHeight;
+    document.documentElement.style.setProperty('--game-x', document.getElementById('game-canvas').offsetLeft + 'px')
+    document.documentElement.style.setProperty('--game-width', gameWidth + 'px')
+    document.documentElement.style.setProperty('--game-height', gameHeight + 'px')
+    actualHeight = parseInt(gameHeight);
+    tileSize = Math.round(gameWidth / tilesPerWidth);
+    document.documentElement.style.setProperty('--tile-size', tileSize + 'px')
+    newPixelSize = tileSize / tilesPerWidth;
+    document.documentElement.style.setProperty('--pixel-size', newPixelSize + 'px');
+    
+  }, 1250);
+});

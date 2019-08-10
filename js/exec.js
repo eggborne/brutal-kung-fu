@@ -18,7 +18,17 @@ function update() {
       console.error('UP --------------> eggFrequency', eggFrequency)
     }
   }
-  if (gameInitiated && !highScoresScreen.container.visible && !enterNameScreen.container.visible && counter < introTime) {
+  if (counter === 60) {
+    console.error('gripperLimit', gripperLimit)
+
+    console.error('tomtomLimit', tomtomLimit)
+
+    console.error('enemyFrequency', enemyFrequency)
+
+    console.error('eggFrequency', eggFrequency)
+
+  }
+  if (gameInitiated && !dragonScreen.container.visible && !enterNameScreen.container.visible && counter < introTime) {
   } else if (gameInitiated && counter < introTime + walkupTime) {
     let since = counter - introTime;
     if (player.level.direction === 'left') {
@@ -59,27 +69,28 @@ function update() {
     playSound(bgMusic);
   }
   // scoreDisplay.topText.text = "G-" + grippers.length + " T-" + tomtoms.length + " K-" + knifethrowers.length + " P-" + powerups.length
-  if (gameInitiated && !wonRound && !arrow.sprite.visible && !player.fightingBoss && counter > introTime + walkupTime && counter % enemyFrequency === 0) {
+  if (gameInitiated 
+    && !wonRound 
+    && !arrow.sprite.visible 
+    && !player.fightingBoss 
+    && counter > introTime + walkupTime 
+    && counter % enemyFrequency === 0) {
     if (randomInt(0, 2)) {
       spawnRandomEnemy();
-    } else if (counter - lastKT > 120 && knifethrowers.length < 2) {
-      if (randomInt(0, 1)) {
-        var randSide = 'left';
-      } else {
-        var randSide = 'right';
-      }
-      if (wonRound) {
-        var randSide = 'right';
-      }
+    } else if (counter - lastKT > 120 && 
+      knifethrowers.length < player.levelData.limits.knifethrowers) {      
+      let randSide = (randomInt(0,1) || wonRound) ? 'right' : 'left';
+
+      // why this bit?
       if (Math.abs(player.sprite.x - player.level.playerStartX) < gameWidth * 1.5) {
         randSide = player.level.direction;
       }
 
       if (randomInt(0, 1)) {
-        let newKT = new Knifethrower(randSide);
+        new Knifethrower(randSide);
       } else if (knifethrowers.length === 0) {
-        let newKT = new Knifethrower(randSide, gameWidth / 2);
-        let newKT2 = new Knifethrower(randSide);
+        new Knifethrower(randSide, gameWidth / 2);
+        new Knifethrower(randSide);
       }
     } else {
       if (gameMode === 'horde') {
@@ -87,8 +98,12 @@ function update() {
       }
     }
   }
-  if (gameInitiated && !wonRound && !player.fightingBoss && eggFrequency > 0 && counter % eggFrequency === 0) {
-    var eggSpot = player.sprite.x + tileSize * 8;
+  if (gameInitiated 
+    && !wonRound 
+    && !player.fightingBoss 
+    && eggFrequency 
+    && counter % eggFrequency === 0) {
+    var eggSpot = player.sprite.x + tileSize * 8; // right side only
     if (Math.abs(lastEggX - eggSpot) > gameWidth / 2) {
       var newEggType = eggTypes[randomInt(0, 2)];
       new Egg(newEggType, eggSpot);
@@ -102,7 +117,6 @@ function update() {
     if (arrow.sprite.visible) {
       arrow.flash();
     }
-
     for (var g = 0; g < grippers.length; g++) {
       var gripper = grippers[g];
       if (!gripper.dead) {
@@ -221,7 +235,7 @@ function update() {
         if (!kt.sprite.visible) {
           knifethrowers.splice(knifethrowers.indexOf(kt), 1);
           k--;
-          if (knifethrowers.length === 0) {
+          if (knifethrowers.length === 1) {
             lastKT = counter;
           }
         }

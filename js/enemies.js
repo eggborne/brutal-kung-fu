@@ -38,24 +38,25 @@ function Gripper(side, scale) {
   this.headHeight = this.sprite.height;
   this.gripTime = 0;
   this.velocity = { x: 0, y: 0 };
-  this.gravityForce = newPixelSize / 3;
+  this.gravityForce = (newPixelSize / 3) * scale;
 
   this.faceY = this.sprite.y - this.sprite.height * 0.8;
   this.bodyY = this.sprite.y - this.sprite.height * 0.4;
 
   grippers.push(this);
+  let offDistance = (gameMode === 'story' ? gameWidth / 2 : gameWidth);
   if (side === 'left') {
-    this.sprite.x = player.sprite.x - gameWidth / 2;
-    this.walkSpeed = playerSpeed * 1.1;
+    this.sprite.x = player.sprite.x - offDistance;
+    this.walkSpeed = (playerSpeed * 1.1) * scale;
     if (Math.abs(lastGripperX - this.sprite.x) < tileSize * 2) {
       this.sprite.x = lastGripperX - tileSize * 2;
       // this.sprite.tint = 0xff0000
     }
     lastGripperX = this.sprite.x;
   } else {
-    this.sprite.x = player.sprite.x + gameWidth / 2;
+    this.sprite.x = player.sprite.x + offDistance;
     this.sprite.scale.x *= -1;
-    this.walkSpeed = -playerSpeed * 1.1;
+    this.walkSpeed = (-playerSpeed * 1.1) * scale;
     if (Math.abs(lastGripperX - this.sprite.x) < tileSize * 2) {
       this.sprite.x = lastGripperX + tileSize * 2;
       // this.sprite.tint = 0xff0000
@@ -340,26 +341,27 @@ function Tomtom(side, scale) {
   this.diedAt = -99;
   this.causeOfDeath = undefined;
   this.velocity = { x: 0, y: 0 };
-  this.gravityForce = newPixelSize / 3;
+  this.gravityForce = (newPixelSize / 3) * scale;
   this.beganJump = -99;
-  this.leapForce = tileSize / 3.4;
+  this.leapForce = (tileSize / 3.4) * scale;
   this.leapt = false;
   this.landed = false;
   this.dealtBlow = false;
   this.jumper = false;
-  this.headHeight = newPixelSize * 30;
+  this.headHeight = (newPixelSize * 30) * scale;
   this.gripTime = 0;
   if (!randomInt(0, 2)) {
     this.jumper = true;
   }
   tomtoms.push(this);
+  let offDistance = (gameMode === 'story' ? gameWidth / 2 : gameWidth);
   if (side === 'left') {
-    this.sprite.x = player.sprite.x - gameWidth / 2;
-    this.walkSpeed = playerSpeed * 1.4;
+    this.sprite.x = player.sprite.x - offDistance;
+    this.walkSpeed = (playerSpeed * 1.4) * scale;
   } else {
-    this.sprite.x = player.sprite.x + gameWidth / 2;
+    this.sprite.x = player.sprite.x + offDistance;
     this.sprite.scale.x *= -1;
-    this.walkSpeed = -playerSpeed * 1.4;
+    this.walkSpeed = (-playerSpeed * 1.4) * scale;
   }
   this.leap = function() {
     var sinceBegan = counter - this.beganJump;
@@ -492,10 +494,10 @@ function Tomtom(side, scale) {
         // tomtom off ground
         if (player.sprite.y < player.level.groundY) {
           // player off ground
-          if (distance < tileSize / 2) {
+          if (distance < (tileSize / 2) * scale) {
             this.dead = true;
             this.diedAt = counter;
-          } else if (player.attackHitting && player.kicking && distance < player.kickRange && player.sprite.y - this.sprite.y > 0 && player.sprite.y - this.sprite.y < tileSize) {
+          } else if (player.attackHitting && player.kicking && distance < player.kickRange && player.sprite.y - this.sprite.y > 0 && player.sprite.y - this.sprite.y < (tileSize * scale)) {
             this.dead = true;
             this.diedAt = counter;
             this.causeOfDeath = 'jumpkick';
@@ -512,7 +514,7 @@ function Tomtom(side, scale) {
           }
         } else {
           // player on ground, tomtom off ground
-          if (distance > tileSize && player.attackHitting && distance < player.kickRange && !player.ducking && player.kicking && this.sprite.y < player.level.groundY - tileSize * 1.5 && this.sprite.y > player.level.groundY - tileSize * 2) {
+          if (distance > tileSize && player.attackHitting && distance < player.kickRange && !player.ducking && player.kicking && this.sprite.y < player.level.groundY - (tileSize * 1.5 * scale) && this.sprite.y > player.level.groundY -(tileSize * 2 * scale)) {
             this.dead = true;
             this.diedAt = counter;
             this.causeOfDeath = 'kick';
@@ -717,11 +719,11 @@ function Knifethrower(side, delayDistance, scale) {
   this.throwing = false;
   this.throwType = undefined;
   this.beganThrowAt = -99;
-  this.headHeight = newPixelSize * 40;
+  this.headHeight = (newPixelSize * 40) * scale;
   this.paused = false;
   this.nextThrow = -99;
   this.velocity = { x: 0, y: 0 };
-  this.gravityForce = newPixelSize / 3;
+  this.gravityForce = (newPixelSize / 3) * scale;
   this.throwDelay = randomInt(30, 40);
   this.worth = {
     punch: 800,
@@ -733,17 +735,21 @@ function Knifethrower(side, delayDistance, scale) {
   if (!delayDistance) {
     delayDistance = 0;
   }
-  this.walkSpeed = playerSpeed * 0.7;
+  this.walkSpeed = playerSpeed * 0.7 * scale;
+  let offDistance = (gameMode === 'story' ? gameWidth / 2 : gameWidth);
   if (side === 'left') {
-    this.sprite.x = player.sprite.x - gameWidth / 2 - delayDistance;
-    // this.walkSpeed = playerSpeed*0.9
+    this.sprite.x = player.sprite.x - offDistance - delayDistance;
   } else {
-    this.sprite.x = player.sprite.x + gameWidth / 2 + delayDistance;
+    this.sprite.x = player.sprite.x + offDistance + delayDistance;
     this.sprite.scale.x *= -1;
-    // this.walkSpeed = -playerSpeed*0.9
   }
   this.playerFacing = function() {
-    return (this.sprite.x > player.sprite.x && this.sprite.scale.x < 0 && player.sprite.scale.x > 0) || (this.sprite.x < player.sprite.x && this.sprite.scale.x > 0 && player.sprite.scale.x < 0);
+    return (this.sprite.x > player.sprite.x 
+      && this.sprite.scale.x < 0 
+      && player.sprite.scale.x > 0) 
+      || (this.sprite.x < player.sprite.x 
+        && this.sprite.scale.x > 0 
+        && player.sprite.scale.x < 0);
   };
   this.flip = function() {
     this.sprite.scale.x *= -1;
@@ -782,7 +788,8 @@ function Knifethrower(side, delayDistance, scale) {
   };
   this.die = function(cause) {
     if (this.diedAt === counter - 1) {
-      if (powerups.length < 1 && player.character === 'thomas' && player.weapon !== 'knife') {
+      if (powerups.length < 100 && player.character === 'thomas') {
+      // if (powerups.length < 1 && player.character === 'thomas' && player.weapon !== 'knife') {
         new Powerup(this.sprite.x, 'knife');
       }
       if (player.weapon !== 'knife') {
@@ -805,7 +812,6 @@ function Knifethrower(side, delayDistance, scale) {
         // player.score += 100
         // new scoreBlip(100,this)
       }
-
       scoreDisplay.updateScore(player.score);
     }
     this.applyGravity();
@@ -1058,7 +1064,8 @@ function Knifethrower(side, delayDistance, scale) {
     this.sprite.texture = PIXI.utils.TextureCache['knifethrowerdrawn' + this.throwType];
     if (!randomInt(doubleChance[0], doubleChance[1])) {
       this.paused = true;
-      this.nextThrow = counter + randomInt(90, 100);
+      // this.nextThrow = counter + randomInt(90, 100);
+      this.nextThrow = counter + randomInt(60, 100);
     }
     lastKnife = counter;
   };
@@ -1086,7 +1093,8 @@ function Squib(victim, posX, posY, size, cause, hitFrom) {
   this.spread = 10;
   this.victimScale = victim.sprite.scale.x;
   this.droplets = [];
-  this.keepDroplets = 600;
+  // this.keepDroplets = 600;
+  this.keepDroplets = 6000;
   var stab = false;
   if (cause === 'knife' || (cause === 'punch' && player.weapon === 'knife')) {
     stab = true;
@@ -1295,7 +1303,7 @@ function spawnRandomEnemy() {
     var newTomtom = new Tomtom(randSide);
     // newTomtom.walkSpeed += randomInt(-2,4)*(newPixelSize/12)
   } else {
-    // var newGripper = new Gripper(randSide)
+    var newGripper = new Gripper(randSide)
   }
   // }
 }
@@ -1410,10 +1418,10 @@ function Snake(posX) {
 
   if (this.sprite.x < player.sprite.x) {
     this.direction = 'right';
-    this.walkSpeed = newPixelSize * 2;
+    this.walkSpeed = (newPixelSize * 2);
   } else {
     this.direction = 'left';
-    this.walkSpeed = -newPixelSize * 2;
+    this.walkSpeed = (-newPixelSize * 2);
     this.sprite.scale.x *= -1;
   }
 

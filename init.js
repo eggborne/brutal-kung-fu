@@ -1,6 +1,7 @@
-const viewWidth = window.screen.width;
-const viewHeight = window.innerHeight;
+let viewWidth = window.screen.width;
+let viewHeight = window.innerHeight;
 const isTouchDevice = 'ontouchstart' in document.documentElement;
+const isWebApp = (window.navigator.standalone === true) || (window.matchMedia('(display-mode: standalone)').matches);
 let landscape = viewWidth > viewHeight;
 const gameName = 'kungfu';
 let kungFuSounds;
@@ -11,12 +12,12 @@ window.addEventListener('load', function () {
   .add('assets/kfsprites.json')
   .load(function() {
     init();
-    document.body.style.opacity = 1;
-    document.body.style.transform = 'scaleY(1)';
+    document.body.className = 'loaded';
+    document.getElementById('credit').style.opacity = 0.4;
   });  
   soundsLoaded = 0;
   document.getElementById('name-entry').onkeyup = function() {
-    if (this.value !== '') {
+    if (this.value !== '' && this.value.trim().length) {
       document.getElementById('name-submit').disabled = false;
     } else {
       document.getElementById('name-submit').disabled = true;
@@ -24,22 +25,15 @@ window.addEventListener('load', function () {
   }
   // setTimeout(() => {
   //   toggleNameEntry();
-  //   console.log(findRank('25100'))
   // }, 1000);
-});
-function findRank(score) {
-  let rank;
-  scoreArray.map((entry, i) => {
-    console.log('comparing', score.toString(), 'to', entry[1].toString())
-    if (!rank && parseInt(score) === parseInt(currentRecord.score) && currentRecord.player === entry[0] && parseInt(score) === parseInt(entry[1])) {
-      rank = i + 1;
-    }
-  });
-  return suffixedNumber(rank);
-}
-document.body.onload = () => {
-  document.getElementById('kung-fu-logo').classList.add('landed');
-  document.getElementById('brutal-logo').classList.add('landed');
+
+  // document.getElementById('kung-fu-logo').classList.add('landed');
+    
+  
+  document.getElementById('options-screen').classList.add('hidden');
+  document.getElementById('top-fighters-screen').classList.add('hidden');
+  
+  
   let userCookie = getCookie('brutalkungfu');
   if (userCookie) {
     console.warn('gameOpt now', gameOptions);
@@ -49,6 +43,45 @@ document.body.onload = () => {
   } else {    
     console.warn('options left at default')
   }
+
+});
+// document.body.onload = () => {
+//   document.getElementById('kung-fu-logo').classList.add('landed');
+//   document.getElementById('brutal-logo').classList.add('landed');
+//   let userCookie = getCookie('brutalkungfu');
+//   if (userCookie) {
+//     console.warn('gameOpt now', gameOptions);
+//     applyUserOptions(userCookie);
+//     gameOptions = {...userCookie};
+//     console.warn('options set to user')
+//   } else {    
+//     console.warn('options left at default')
+//   }
+// }
+
+function findRank(score) {
+  score = parseInt(score);
+  let rank;
+  let properArray = scoreArray.filter(entry => entry.gameMode === gameMode)
+  properArray.map((entry, i) => {
+    let entryName  = entry.name;
+    let entryScore = parseInt(entry.score);
+    console.log('comparing', score, 'to', entryScore);
+
+    let scoreMatches = score === entryScore;
+    let scoreBeats = score > entryScore;
+    if (!rank && (scoreMatches || scoreBeats)) {
+      console.log(score, 'matched or beat', entryScore);
+      rank = i + 1;
+    } else {
+      console.log(score, 'did not match or beat', entryScore);
+    }
+  });
+  if (!rank && properArray.length < scoresToDisplay) {
+    rank = properArray.length;
+  }
+  console.error(score, 'is rank', rank)
+  return rank;
 }
 
 let gameMode = 'story';
@@ -68,6 +101,7 @@ const defaultOptions = {
     'THROW WEAPON': 'l'
   },
   showInstructions: landscape,
+  addedToHomeScreen: isWebApp,
   playerName: ''
 }
 let gameOptions = {...defaultOptions};
@@ -256,7 +290,7 @@ let gameHeight = document.getElementById('game-canvas').offsetHeight;
 document.documentElement.style.setProperty('--game-x', document.getElementById('game-canvas').offsetLeft + 'px')
 document.documentElement.style.setProperty('--game-width', gameWidth + 'px')
 document.documentElement.style.setProperty('--game-height', gameHeight + 'px')
-const actualHeight = parseInt(gameHeight);
+actualHeight = parseInt(gameHeight);
 let tilesPerHeight = 15;
 let tilesPerWidth = 16;
 let currentLevel = undefined;
@@ -265,17 +299,19 @@ lastEggX = undefined;
 
 // if (!landscape) {
 tileSize = Math.round(gameWidth / tilesPerWidth);
-document.documentElement.style.setProperty('--tile-size', tileSize)
+document.documentElement.style.setProperty('--tile-size', tileSize + 'px')
 // } else {
 //     tileSize = Math.round(gameHeight/tilesPerHeight)
 // }
 let newPixelSize = tileSize / tilesPerWidth;
 document.documentElement.style.setProperty('--pixel-size', newPixelSize + 'px');
 
-
 let introTime = 30;
 let walkupTime = 120;
-let topScore = 0;
+let topScores = {
+  story: 0,
+  horde: 0
+};
 let lowScore = 0;
 let currentRecord = { player: undefined, score: undefined };
 let scoreArray = [];
@@ -312,7 +348,8 @@ function setVariables() {
   scoreSequenceStarted = false;
   wonAt = -99;
   lastKT = lastKnife = -99;
-  knifeFrequency = 60;
+  // knifeFrequency = 60;
+  knifeFrequency = 30;
   startDisabled = false;
   lastGripper = -99;
   lastGripperX = 0;
@@ -361,8 +398,6 @@ let blockStyle = {
   lineHeight: blockFontSize * 2
 };
 if (landscape) {
-  // blockStyle.fontSize = Math.round(tileSize / 2.25) + 'px';
-  // blockStyle.lineHeight = tileSize * 0.9;
   blockStyle.wordWrapWidth = gameWidth - tileSize * 6;
 }
 let buttonStyle = {
@@ -383,8 +418,7 @@ function clearTitle() {
       floorDisplay.container.visible = true;
     }
     console.warn('clearTitle hiding logos');
-    document.getElementById('brutal-logo').classList.add('hidden');
-    document.getElementById('kung-fu-logo').classList.add('hidden');
+    document.getElementById('title-items').classList.add('hidden');
     document.getElementById('hard-reload').classList.add('hidden');
     playSound(gameStartMusic);
   }
@@ -413,7 +447,7 @@ function toggleScanLines() {
   gameOptions.scanLines = !gameOptions.scanLines;
 }
 
-const startingLives = 2;
+const startingLives = 0;
 let lives = startingLives;
 let bottomSpace = viewHeight - gameHeight;
 let topEdge = gameHeight - tileSize * (tilesPerHeight - 3.5);
@@ -427,22 +461,24 @@ let bosses = [];
 levelData = [
   {
     direction: 'left',
-    enemyFrequency: 70,
+    enemyFrequency: 50,
     eggFrequency: 0,
     limits: {
-      grippers: 3,
-      tomtoms: 0
+      grippers: 4,
+      tomtoms: 0,
+      knifethrowers: 2
     },
     boss: stickMan,
     water: 'waterbg'
   },
   {
     direction: 'right',
-    enemyFrequency: 50,
-    eggFrequency: 40,
+    enemyFrequency: 40,
+    eggFrequency: 60,
     limits: {
-      grippers: 4,
-      tomtoms: 2
+      grippers: 5,
+      tomtoms: 2,
+      knifethrowers: 2
     },
     boss: boomerangMan,
     water: 'spinebg'
@@ -453,7 +489,8 @@ levelData = [
     eggFrequency: 300,
     limits: {
       grippers: 6,
-      tomtoms: 4
+      tomtoms: 4,
+      knifethrowers: 2
     },
     boss: giant,
     water: 'spinebg'
@@ -464,7 +501,8 @@ levelData = [
     eggFrequency: 10,
     limits: {
       grippers: 8,
-      tomtoms: 1
+      tomtoms: 1,
+      knifethrowers: 2
     },
     boss: blackMagician,
     water: 'spinebg'
@@ -475,7 +513,8 @@ levelData = [
     eggFrequency: 0,
     limits: {
       grippers: 12,
-      tomtoms: 8
+      tomtoms: 8,
+      knifethrowers: 2
     },
     boss: misterX,
     water: 'spinebg'
@@ -485,8 +524,9 @@ levelData = [
     enemyFrequency: 10,
     eggFrequency: 0,
     limits: {
-      grippers: 3,
-      tomtoms: 3
+      grippers: 15,
+      tomtoms: 15,
+      knifeTtrowers: 2
     },
     boss: stickMan,
     water: 'waterbg'
@@ -616,7 +656,7 @@ document.getElementById('scan-lines-toggle').onpointerdown = () => {
   toggleScanLines();
   console.log('after toggleScanLines gameOptions.scanLines is', gameOptions.scanLines)
 };
-document.getElementById('full-screen-toggle').onpointerdown = () => {
+document.getElementById('full-screen-toggle').onclick = () => {
   if (isFullScreen()) {
     document.getElementById('full-screen-toggle').classList.remove('on');
   } else {
@@ -660,8 +700,8 @@ document.getElementById('close-high-scores-button').onclick = function() {
 document.getElementById('story-mode-panel').onclick = function() {
   this.classList.add('selected');
   document.getElementById('horde-mode-panel').classList.remove('selected');
-  document.getElementById('stage-select-mode-panel').classList.remove('selected');
-  document.getElementById('stage-select-mode-panel').classList.remove('expanded');
+  // document.getElementById('stage-select-mode-panel').classList.remove('selected');
+  // document.getElementById('stage-select-mode-panel').classList.remove('expanded');
   document.getElementById('game-canvas').style.backgroundColor = 'var(--original-bg-color)';
   document.getElementById('story-mode-panel').classList.remove('truncated');
   document.getElementById('horde-mode-panel').classList.remove('truncated');
@@ -671,28 +711,46 @@ document.getElementById('story-mode-panel').onclick = function() {
 document.getElementById('horde-mode-panel').onclick = function() {
   this.classList.add('selected');
   document.getElementById('story-mode-panel').classList.remove('selected');
-  document.getElementById('stage-select-mode-panel').classList.remove('selected');
-  document.getElementById('stage-select-mode-panel').classList.remove('expanded');
+  // document.getElementById('stage-select-mode-panel').classList.remove('selected');
+  // document.getElementById('stage-select-mode-panel').classList.remove('expanded');
   document.getElementById('game-canvas').style.backgroundColor = 'var(--horde-bg-color)';
   document.getElementById('story-mode-panel').classList.remove('truncated');
   document.getElementById('horde-mode-panel').classList.remove('truncated');
   gameMode = 'horde';  
 }
-document.getElementById('stage-select-mode-panel').onclick = function() {
-  this.classList.add('selected');
-  this.classList.add('expanded');
-  document.getElementById('story-mode-panel').classList.remove('selected');
-  document.getElementById('horde-mode-panel').classList.remove('selected');
-  document.getElementById('story-mode-panel').classList.add('truncated');
-  document.getElementById('horde-mode-panel').classList.add('truncated');
-  gameMode = 'story';
-}
+// document.getElementById('stage-select-mode-panel').onclick = function() {
+//   this.classList.add('selected');
+//   this.classList.add('expanded');
+//   document.getElementById('story-mode-panel').classList.remove('selected');
+//   document.getElementById('horde-mode-panel').classList.remove('selected');
+//   document.getElementById('story-mode-panel').classList.add('truncated');
+//   document.getElementById('horde-mode-panel').classList.add('truncated');
+//   gameMode = 'story';
+// }
 document.getElementById('hint-close-button').onclick = function() {
   this.parentElement.parentElement.classList.remove('showing');
   if (document.getElementById('options-screen').classList.contains('hidden')) {
     gameInitiated = true;
   }
 }
+document.getElementById('cinematic').onclick = function() {
+  this.classList.add('hidden');
+  if (landscape && gameOptions.showInstructions) {
+    document.getElementById('controls-hint').classList.add('showing');
+    gameOptions.showInstructions = false;
+  } else {
+    gameInitiated = true;
+  }
+}
+Array.from(document.querySelectorAll('#top-fighters-screen .tab-area > .tab')).map((tab, i, arr) => {
+  tab.onpointerdown = function() {
+  let selectingTab = this.innerText.split(' ')[0];
+  document.getElementById('top-fighters-screen').classList.remove(highScoreTabSelected.toLowerCase() + '-mode');
+  document.getElementById('top-fighters-screen').classList.add(selectingTab.toLowerCase() + '-mode');
+  highScoreTabSelected = selectingTab.toLowerCase();
+  console.log(highScoreTabSelected);
+  };
+});
 document.getElementById('confirm-mode-button').onclick = function() {
   if (gameMode === 'horde') {
     floorDisplay.legend.text = 'HORDE MODE';
@@ -703,9 +761,12 @@ document.getElementById('confirm-mode-button').onclick = function() {
     floorDisplay.container.x -= level1.levelWidth / 2;
     player.sprite.x = (gameWidth / 2) - (level1.levelWidth / 2);
     tomtomLimit = 2;
-
     level1.boss.sprite.alpha = 0;
     level1.container.alpha = 0;
+    gameInitiated = true;
+    gameContainer.removeChild(player.container);
+    fighterScale = 1.5;
+    player.setAttributesToScale(fighterScale);
   } else if (gameMode === 'story') {
     floorDisplay.legend.text = 'LEVEL 1';
     floorDisplay.bg.width = tileSize * 3.5;
@@ -715,15 +776,30 @@ document.getElementById('confirm-mode-button').onclick = function() {
       levelUp(selectedStage - 1);
       selectedStage = 0;
     }
+    document.getElementById('cinematic').classList.remove('hidden');
+    setTimeout(() => {
+      document.getElementById('cinema-scene').classList.add('full-opacity');
+      document.getElementById('cinema-cover').classList.add('full-opacity');
+    });
+    setTimeout(() => {
+      playStory();
+    }, 1000);
+
   }
-  console.log('show?', gameOptions.showInstructions)
   document.getElementById('mode-select-screen').classList.remove('showing');
-  if (landscape && gameOptions.showInstructions) {
-    document.getElementById('controls-hint').classList.add('showing');
-    gameOptions.showInstructions = false;
-  } else {
-    gameInitiated = true;
-  }
+}
+async function playStory() {
+  await typeCaption(storySlides[0].caption);
+  document.getElementById('cinema-scene').src = storySlides[1].imagePath;
+  await typeCaption(storySlides[1].caption);
+  document.getElementById('cinema-scene').src = storySlides[2].imagePath;
+  await typeCaption(storySlides[2].caption);
+  document.getElementById('cinema-scene').src = storySlides[3].imagePath;
+  await typeCaption(storySlides[3].caption);
+  document.getElementById('cinema-scene').src = storySlides[4].imagePath;
+  await typeCaption(storySlides[4].caption);
+  document.getElementById('cinema-scene').src = storySlides[5].imagePath;
+  await typeCaption(storySlides[5].caption);
 }
 document.getElementById('skip-name-entry-button').onclick = function() {
   toggleNameEntry();
@@ -744,8 +820,7 @@ Array.from(document.querySelectorAll('.stage-knob')).map((knob, i) => {
 document.getElementById('mode-back-button').onclick = function() {
   document.getElementById('mode-select-screen').classList.remove('showing');
   console.warn('mode-back-button click showing logos')
-  document.getElementById('kung-fu-logo').classList.remove('hidden');
-  document.getElementById('brutal-logo').classList.remove('hidden');
+  document.getElementById('title-items').classList.remove('hidden');
   titleScreen.container.visible = true;
   lives = startingLives;
   currentLevel = undefined;
@@ -771,16 +846,20 @@ const getCookie = cookieName => {
   let cookieObj;
   let decodedCookie = decodeURIComponent(document.cookie).split('; ');
   cookieObj = decodedCookie.filter(str => str.split('=')[0] === cookieName);
+  console.warn('cookieObj?', cookieObj)
   if (cookieObj.length) {
+    console.warn('cookie is good')
     cookieObj = JSON.parse(cookieObj[0].split('=')[1]);
-    // document.getElementById('cookie-display').className = 'remembered'
-    // document.getElementById('cookie-display').innerText = '* REMEMBERED *'
+    // document.getElementById('cookie-checkbox').checked = true;
+    // document.getElementById('credit').className = 'remembered'
+    // document.getElementById('credit').innerText = '* REMEMBERED *'
   } else {
     cookieObj = undefined;
   }
   return cookieObj;
 };
 const destroyCookie = () => {
+  console.error('DESTROYING COOKIE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
   var d = new Date();
   d.setTime(d.getTime() + 0 * 24 * 60 * 60 * 1000);
   var expires = 'expires=' + d.toUTCString();
@@ -796,20 +875,19 @@ function init() {
   // createGame();
   // titleScreen = new TitleScreen();
   // stage.addChild(titleScreen.container);
-  setTimeout(() => {
-    createGame();
-    getScoresFromDatabase(gameName, true);
-    enterNameScreen = new EnterNameScreen();
-    highScoresScreen = new HighScoresScreen();
-    stage.addChild(enterNameScreen.container);
-    stage.addChild(highScoresScreen.container);
-  }, 500);
+  createGame();
+  getScoresFromDatabase(gameName, true);
+  enterNameScreen = new EnterNameScreen();
+  dragonScreen = new DragonScreen();
+  stage.addChild(enterNameScreen.container);
+  stage.addChild(dragonScreen.container);
   if (!landscape) {
     // gameContainer.mask.width = gameContainer.width;
     // gameContainer.mask.height = gameHeight;
     // gameContainer.mask.x = gameContainer.x;
     // gameContainer.mask.y = gameContainer.y;
   }
+  
   PIXI.ticker.shared.add(function(time) {
     renderer.render(stage);
     update();

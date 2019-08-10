@@ -15,16 +15,6 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.6.1/pixi.min.js"></script>
 	<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 	<link rel="icon" href="assets/favicon.png" type="image/x-icon">
-	<script async type='application/ld+json'> 
-		{
-			"@context": "http://www.schema.org",
-			"@type": "WebSite",
-			"name": "Brutal Kung Fu",
-			"url": "https://brutalkungfu.com",
-			"logo": "https://brutalkungfu.com/assets/logo.png",
-			"description": "A gritty sequel to NES Kung Fu.",        
-		}
-	</script>
 	<link rel="manifest" href="manifest.json" />
 	<link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/bkf-icon-16x16.png">  
 	<link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/bkf-icon-32x32.png">
@@ -34,10 +24,19 @@
 	<link rel="apple-touch-icon" sizes="120x120" href="/assets/icons/bkf-icon-120x120.png"/>
 	<link rel="apple-touch-icon-precomposed" sizes="120x120" href="/assets/icons/bkf-icon-120x120.png"/>	
 	<link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/bkf-icon-180x180.png">
+	<script type='application/ld+json'> 
+		{
+			"@context": "http://www.schema.org",
+			"@type": "WebSite",
+			"name": "Brutal Kung Fu",
+			"url": "https://brutalkungfu.com",
+			"logo": "https://brutalkungfu.com/assets/logo.png",
+			"description": "A gritty sequel to NES Kung Fu.",        
+		}
+	</script>
 </head>
 
 <body>		
-	<address id='credit'>made just for fun by <a href='https://twitter.com/eggborne_dev'>@eggborne_dev</a></address>
 	<div id='gamepad-container'>
 		<div id="nes-border"></div>
 		<div id="nes-panel-bg"></div>
@@ -45,12 +44,67 @@
 		<div class="button-back" id="a-back"></div>
 		<div id="d-pad"></div>
 	</div>
+	<div id='title-items'>
+		<address id='credit'>made just for fun by <a href='https://twitter.com/eggborne_dev'>@eggborne_dev</a></address>
+		<div id='brutal-logo'></div>
+		<div id='kung-fu-logo' class='shrunken'></div>
+	</div>
 
-	<div id='brutal-logo'></div>
-	<div id='kung-fu-logo' class='shrunken'></div>
 	<div id="game-canvas"></div>
 
-	<input value="" id="name-entry" autofocus onkeyup="this.setAttribute('value', this.value);" type="text" maxlength="9" placeholder="ENTER NAME"></input>
+	<div id='mode-select-screen' class='screen-cover'>
+		<div class='dragon-column left'></div>
+		<div class='dragon-column right'></div>
+		<header>
+			<div class='orange-divider'></div>
+			<div class='screen-header'></div>
+			<div class='orange-divider'></div>
+		</header>
+		<div id='mode-panel-area'>
+			<div id='story-mode-panel' class='mode-panel clickable selected'>
+				<div class='mode-title'>STORY</div>
+				<div class='mode-description'>
+					Return to Devil's Tower and help Thomas finally achieve his long-awaited vengeance.
+				</div>
+			</div>
+			<div id='horde-mode-panel' class='mode-panel clickable'>
+				<div class='mode-title'>HORDE</div>
+				<div class='mode-description'>
+					See how long you last against an endless wave of increasingly bloodthirsty enemies.
+				</div>
+			</div>
+			<!-- <div id='stage-select-mode-panel' class='mode-panel'>
+				<div class='mode-title'>STAGE SELECT</div>
+				<div id='stage-grid'>
+					<div class='stage-knob selected'>1</div>
+					<div class='stage-knob'>2</div>
+					<div class='stage-knob'>3</div>
+					<div class='stage-knob'>4</div>
+					<div class='stage-knob'>5</div>
+					<div class='stage-knob unavailable'>6</div>
+					<div class='stage-knob unavailable'>7</div>
+					<div class='stage-knob unavailable'>8</div>
+				</div>
+				<div class='mode-description'>
+					Choose any level and test your skills.
+				</div>
+			</div> -->
+		</div>
+		<div class='button-area'>
+			<div>
+				<div id='mode-back-button' class='close-button go-back-button clickable'>&lt;</div>
+			</div>
+			<div>
+				<div id='confirm-mode-button' class='close-button clickable'>PLAY!</div>
+			</div>
+			<div id='filler-button-area'>
+				<div style='opacity: 0' class='close-button go-back-button clickable'>&lt;</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- <input value="" id="name-entry" autofocus onkeyup="this.setAttribute('value', this.value);" type="text" maxlength="9" placeholder="ENTER NAME"> -->
+	<input value="" spellcheck=false id="name-entry" type="text" maxlength="9" placeholder="ENTER NAME">
 	<button disabled onclick="submitHighScore()" id="name-submit">SUBMIT</button>
 	<div id='skip-name-entry-button' class='close-button'>SKIP</div>
 
@@ -104,8 +158,14 @@
 			<div id='hint-close-button' class='close-button clickable'>OK</div>
 		</div>
 	</div>
-	<div id='options-screen' class='hidden'>
-		<header>OPTIONS</header>
+	<div id='options-screen' class='screen-cover'>
+		<div class='dragon-column left'></div>
+		<div class='dragon-column right'></div>
+		<header>
+			<div class='orange-divider'></div>
+			<div class='screen-header'></div>
+			<div class='orange-divider'></div>
+		</header>
 		<div id='options-body'>
 			<div id='options-switch-list'>
 				<div class='option-row'>
@@ -147,78 +207,62 @@
 			</div>
 			<div id='options-button-list'>
 				<div id='controls-button' class='option-button clickable'>CUSTOMIZE CONTROLS</div>
-				<div id='home-screen-button' class='option-button clickable'>ADD TO HOME SCREEN</div>
+				<!-- <div id='home-screen-button' class='option-button clickable'>ADD TO HOME SCREEN</div> -->
 			</div>
 		</div>
 		<div id='lower-area'>
 			<div id='close-options-button' class='close-button clickable'>EXIT</div>
 			<div id='cookie-confirmation'>
-				<input id='cookie-checkbox' type='checkbox' class='clickable'>				
+				<input name='cookie-checkbox' id='cookie-checkbox' type='checkbox'>				
 				<label for='cookie-checkbox'>REMEMBER PREFERENCES<br />(USES COOKIE)</label>
 			</div>
 		</div>
 	</div>
 
-	<div id='scores-grid' class='hidden'></div>
-	<div id='close-high-scores-button' class='close-button clickable'>BACK</div>
+	<div id='top-fighters-screen' class='screen-cover story-mode'>				
+		<header>
+			<div class='orange-divider'></div>
+			<div class='screen-header'></div>
+			<div class='orange-divider'></div>
+		</header>
+		<div class='dragon-column left'></div>
+		<div class='tab-area'>
+			<div class='tab'>STORY MODE</div>
+			<div class='tab'>HORDE MODE</div>
+		</div>
+		<div id='story-scores' class='scores-grid'>
+			<!-- filled by populateEntries -->
+		</div>
+		<div id='horde-scores' class='scores-grid'>
+			<!-- filled by populateEntries -->
+		</div>
+		<div class='button-area'>
+			<div id='close-high-scores-button' class='close-button clickable'>BACK</div>
+		</div>
+		<div class='dragon-column right'></div>
+	</div>
 
 	<div id='key-edit-modal'>
 		Press the new key for<div id='modal-action-display'></div>
 		<div id='modal-cancel-message'>or press ESC to cancel.</div>
 	</div>
-	<div id='mode-select-screen'>
-		<header>SELECT MODE</header>
-		<div id='mode-panel-area'>
-			<div id='story-mode-panel' class='mode-panel clickable selected'>
-				<div class='mode-title'>STORY</div>
-				<div class='mode-description'>
-					Return to Devil's Tower and help Thomas finally achieve his long-awaited vengeance.
-				</div>
-			</div>
-			<div id='horde-mode-panel' class='mode-panel clickable'>
-				<div class='mode-title'>HORDE</div>
-				<div class='mode-description'>
-					See how long you last against an endless wave of increasingly bloodthirsty enemies.
-				</div>
-			</div>
-			<div id='stage-select-mode-panel' class='mode-panel'>
-				<div class='mode-title'>STAGE SELECT</div>
-				<div id='stage-grid'>
-					<div class='stage-knob selected'>1</div>
-					<div class='stage-knob'>2</div>
-					<div class='stage-knob'>3</div>
-					<div class='stage-knob'>4</div>
-					<div class='stage-knob'>5</div>
-					<div class='stage-knob unavailable'>6</div>
-					<div class='stage-knob unavailable'>7</div>
-					<div class='stage-knob unavailable'>8</div>
-				</div>
-				<div class='mode-description'>
-					Choose any level and test your skills.
-				</div>
-			</div>
-		</div>
-		<div class='button-area'>
-			<div>
-				<div id='mode-back-button' class='close-button go-back-button clickable'><</div>
-			</div>
-			<div>
-				<div id='confirm-mode-button' class='close-button clickable'>PLAY!</div>
-			</div>
-			<div id='filler-button-area'>
-				<div style='opacity: 0' class='close-button go-back-button clickable'><</div>
-			</div>
-		</div>
-	</div>
 	<div id='turn-phone-shade'></div>
 	<div id='turn-phone-instructions'>
-		<caption>Mobile landscape mode is currently unavailable :(</caption>
-		<img src='assets/turnphoneicon.png'/>
-		<caption>Please rotate your device and reload to play</caption>
+		<div>Mobile landscape mode is currently unavailable :(</div>
+		<img src='assets/turnphoneicon.png' alt=''/>
+		<div>Please rotate your device and reload to play</div>
 		<small>(Or visit on desktop)</small>
 	</div>
 	<button onclick='destroyCookie();window.location.reload(true)' id='hard-reload'>HARD RELOAD & CLEAR COOKIE</button>
-	<div id='cinematic'></div>
+	<div id='cinematic' class='hidden'>
+		<div id='cinema-screen'>
+			<img id='cinema-scene' src='assets/helpmethomas.gif'/>
+			<img id='cinema-cover' src='assets/dingy.png' class='cover' />
+		</div>
+		<div id='cinematic-caption' class='caption'></div>
+		<!-- <div id='cinematic-caption' class='caption'></div> -->
+		<div class='skip-button'>SKIP</div>
+	</div>
 	<div id='scan-lines' class='screen-cover'></div>
 	<noscript>You need to enable JavaScript to play Brutal Kung Fu :(</noscript>
 	<script src="init.js"></script>	
@@ -228,7 +272,7 @@
 	<script async src="js/levels.js"></script>
 	<script async src="js/gui.js"></script>
 	<script async src="js/exec.js"></script>
-	<script async src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.1.2/howler.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.1.2/howler.min.js"></script>
 </body>
 <script>
 	if ('serviceWorker' in navigator) {

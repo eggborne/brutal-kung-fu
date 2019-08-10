@@ -8,6 +8,11 @@ function Fighter(character, scale) {
   this.character = 'thomas';
   this.sprite = new PIXI.Sprite(PIXI.utils.TextureCache[this.character + 'walk1']);
   this.sprite.width = this.sprite.height = tileSize * 3 * scale;
+  this.walkSpeed = fighterScale * playerSpeed * (godMode ? 3 : 1.1);
+  this.leapForce = (tileSize / 3.3) * fighterScale;
+  this.gravityForce = (newPixelSize / 3) * fighterScale;
+  this.punchRange = tileSize * 1.1 * fighterScale;
+  this.kickRange = tileSize * 1.6 * fighterScale;
   this.sprite.anchor.x = 0.5;
   this.sprite.anchor.y = 1;
   gameContainer.addChild(this.sprite);
@@ -23,15 +28,12 @@ function Fighter(character, scale) {
   this.level = undefined;
   this.punchSpeed = 3;
   this.kickSpeed = 15;
-  this.walkSpeed = fighterScale * playerSpeed * (godMode ? 3 : 1.1);
   this.punching = this.kicking = this.ducking = false;
   this.currentMoveDuration = 0;
   this.dealtBlow = false;
   this.jumping = false;
   this.landedAt = -99;
   // this.leapForce = tileSize/2.8
-  this.leapForce = tileSize / 3.3;
-  this.gravityForce = newPixelSize / 3;
   this.grippers = [];
   this.hp = this.maxHP = godMode ? 300 : 100;
   this.dead = false;
@@ -40,8 +42,6 @@ function Fighter(character, scale) {
   this.weapon = '';
   this.damagedAt = -99;
   this.stunned = false;
-  this.punchRange = tileSize * 1.1 * fighterScale;
-  this.kickRange = tileSize * 1.6 * fighterScale;
   this.previousTexture = this.sprite.texture;
   this.nextTexture = this.sprite.texture;
   this.killed = 0;
@@ -49,6 +49,14 @@ function Fighter(character, scale) {
 
   this.headHeight = this.sprite.height;
   this.fightingBoss = false;
+  this.setAttributesToScale = function(newScale) {
+    this.sprite.width = this.sprite.height = tileSize * 3 * newScale;
+    this.walkSpeed = newScale * playerSpeed * (godMode ? 3 : 1.1);
+    this.leapForce = (tileSize / 3.3) * newScale;
+    this.gravityForce = (newPixelSize / 3) * newScale;
+    this.punchRange = tileSize * 1.1 * newScale;
+    this.kickRange = tileSize * 1.6 * newScale;
+  }
   this.footContact = function(victim) {
     if (this.sprite.scale.x < 0) {
       return { x: this.sprite.x - tileSize * 2, y: this.sprite.y - tileSize * 2 };
@@ -389,7 +397,7 @@ function Fighter(character, scale) {
     if (gameMode === 'horde') {
       withinScrollLimit = true;
     }
-    if ((!wonRound && atEnd) || !withinScrollLimit || walkAwayPostWin) {
+    if ((!wonRound && atEnd) || !withinScrollLimit || walkAwayPostWin || gameMode === 'horde') {
       noScroll = true;
     }
     if (!noScroll) {
@@ -432,15 +440,6 @@ function Fighter(character, scale) {
       }
       
     }
-    // if (reachedHordeBarrier) {
-    //   console.error('reached...');
-    //   arrow.sprite.visible = true;
-    //   if (arrow.sprite.scale.x > 0) {
-    //     arrow.sprite.scale.x *= -1;
-    //   }
-    //   arrow.bornAt = counter;
-    //   arrow.sprite.x = player.sprite.x + (gameWidth);
-    // }
     if (gameMode !== 'horde' && !wonRound && !this.fightingBoss && Math.abs(this.sprite.x - this.level.boss.sprite.x) < gameWidth / 2) {
       this.fightingBoss = true;
       // if (this.weapon) {
@@ -1434,9 +1433,7 @@ function resetGame() {
     tomtomLimit = player.levelData.limits.tomtoms;
 
   } else {
-    console.warn('resetGame removing logos at lives === 0');
-    document.getElementById('brutal-logo').classList.remove('hidden');
-    document.getElementById('kung-fu-logo').classList.remove('hidden');
+    document.getElementById('title-items').classList.remove('hidden');
     titleScreen.container.visible = true;
     lives = startingLives;
     currentLevel = undefined;

@@ -105,7 +105,6 @@ document.onkeydown = function(event) {
     pressKick();
   }
   if (editingKeyForAction) {
-    console.log('keter?', letter)
     if (letter.toUpperCase() === 'ESCAPE') {
       dismissKeyEditModal();
     } else {
@@ -114,9 +113,10 @@ document.onkeydown = function(event) {
       dismissKeyEditModal();
     }
   } else {
-    if (letter.toUpperCase() === 'ESCAPE') {
-      
-    }
+    // if (!gameInitiaed && !document.getElementById('cinematic').classList.contains('hidden')) {
+    //   document.getElementById('cinematic').classList.add('hidden');
+    //   gameInitiated = true;
+    // }
   }
 };
 
@@ -247,19 +247,22 @@ function pressPunch() {
   player.punching = true;
   pressingPunch = true;
   let titleShowing = titleScreen.container.visible
-  && !highScoresScreen.container.visible
+  && !dragonScreen.container.visible
   && !document.getElementById('mode-select-screen').style.display
   && document.getElementById('options-screen').classList.contains('hidden')
   && !document.getElementById('controls-hint').classList.contains('showing');
   if (titleShowing) {
     selector.chooseSelection();
-    // if (selector.selected===3) {
-    //     toggleFullScreen()
-    // }
   }
-  // if (titleScreen.container.visible) {
-  //     clearTitle()
-  // }
+  if (!gameInitiated && !document.getElementById('cinematic').classList.contains('hidden')) {
+    document.getElementById('cinematic').classList.add('hidden');
+    if (landscape && gameOptions.showInstructions) {
+      document.getElementById('controls-hint').classList.add('showing');
+      gameOptions.showInstructions = false;
+    } else {
+      gameInitiated = true;
+    }
+  }
 }
 function releasePunch() {
   if (nesPanel) {
@@ -281,16 +284,22 @@ function pressKick() {
   player.kicking = true;
   pressingKick = true;
   let titleShowing = titleScreen.container.visible
-  && !highScoresScreen.container.visible
+  && !dragonScreen.container.visible
   && !document.getElementById('mode-select-screen').style.display
   && document.getElementById('options-screen').classList.contains('hidden')
   && !document.getElementById('controls-hint').classList.contains('showing');
   if (titleShowing) {
     selector.chooseSelection();
   }
-  // if (titleScreen.container.visible) {
-  //     clearTitle()
-  // }
+  if (!gameInitiated && !document.getElementById('cinematic').classList.contains('hidden')) {
+    document.getElementById('cinematic').classList.add('hidden');
+    if (landscape && gameOptions.showInstructions) {
+      document.getElementById('controls-hint').classList.add('showing');
+      gameOptions.showInstructions = false;
+    } else {
+      gameInitiated = true;
+    }
+  }
 }
 function releaseKick() {
   if (nesPanel) {

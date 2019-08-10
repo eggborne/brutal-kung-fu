@@ -1,10 +1,36 @@
 let controlScreenOn = optionsScreenOn = false;
 let controlTabSelected = 'keyboard';
 let editingKeyForAction = false;
-let scoresToDisplay = 100;
-// if (landscape) {
-//   scoresToDisplay = 12;
-// }
+let scoresToDisplay = 25
+let textSpeed = 80;
+let slideSpeed = 1500;
+let highScoreTabSelected = 'story';
+const storySlides = [
+  {
+    imagePath: 'assets/helpmethomas.gif',
+    caption: `35 years ago, my beloved Sylvia was kidnapped by the evil Mr. X.`
+  },
+  {
+    imagePath: 'assets/kungfulogo.png',
+    caption: `I fought my way to the top of Devil's Tower to save her.`
+  },
+  {
+    imagePath: 'assets/helpmethomas.gif',
+    caption: `My testicles were as red as beets and as swollen as grapefruits.`
+  },
+  {
+    imagePath: 'assets/kungfulogo.png',
+    caption: `There was no remedy... besides New England clam chowder.`
+  },
+  {
+    imagePath: 'assets/helpmethomas.gif',
+    caption: `My quest for chowder led me into the unspeakable world of tentacle porn.`
+  },
+  {
+    imagePath: 'assets/kungfulogo.png',
+    caption: `However, I came out of it a new man and now I own four different shirts.`
+  }
+]
 function suffixedNumber(num) {
   if (num === 1) {
     return num + 'ST';
@@ -16,6 +42,52 @@ function suffixedNumber(num) {
     return num + 'RD';
   }
   return num + 'TH';
+}
+function advanceSlide() {
+
+}
+function typeCaption(textString) {
+  
+  let promise = new Promise((resolve) => {
+    let captionDiv = document.getElementById('cinematic-caption');
+    let wordList = textString.split(' ');
+    let charsOnLine = 0;
+    let letterArray = [];
+    wordList.map((word, i, arr) => {
+      splitWord = word.split('');
+      splitWord.map(letter => letterArray.push(letter));
+      charsOnLine += splitWord.length + 1;
+      console.log('added', word, 'chars now', charsOnLine)
+      if (wordList[i + 1]) {
+        letterArray.push('&nbsp;');
+        // line break if next word will go over limit
+        if (charsOnLine + wordList[i + 1].length >= 26) {
+          letterArray.push('<br />');
+          charsOnLine = 0;
+        }
+      }
+    });
+    console.log(letterArray)
+    let onLetter = 0;
+    captionDiv.innerHTML = '';
+    let typingInterval = setInterval(() => {
+      if (onLetter < letterArray.length) {
+        if (letterArray[onLetter] === '<') {
+          captionDiv.innerHTML += '<br />';
+          onLetter += 7;
+        } else {
+          captionDiv.innerHTML += letterArray[onLetter];
+          onLetter++;
+        }
+      } else {
+        clearInterval(typingInterval);
+        setTimeout(() => {
+          resolve();
+        }, slideSpeed);
+      }
+    }, textSpeed);
+  })
+  return promise;
 }
 function checkIfPressing(spr) {
   let pressing = false;
@@ -36,15 +108,11 @@ function toggleControlScreen() {
 }
 function applyUserOptions(options) {
   for (let option in defaultOptions) {
-    console.log('def', option, defaultOptions[option])
-    console.log('cook', option, options[option])
     if (options[option] !== defaultOptions[option]) {
       if (option === 'bloodOn') {
-        console.log('toggling blood!')
         toggleBlood();
       }
       if (option === 'scanLines') {
-        console.log('toggling scan lines!')
         toggleScanLines();
       }
     }
@@ -55,23 +123,33 @@ function applyUserOptions(options) {
 function nonDefaultOptions() {
   for (let option in defaultOptions) {
     if (gameOptions[option] !== defaultOptions[option]) {
-      console.warn('different', option);
       return true;
     }
   }
   return false;
 }
-function toggleOptionsScreen() {
-  optionsScreenOn = !optionsScreenOn;
-  document.getElementById('brutal-logo').classList.toggle('hidden');
-  document.getElementById('kung-fu-logo').classList.toggle('hidden');
-  document.getElementById('options-screen').classList.toggle('hidden');
-  console.info('GO', gameOptions)
+function toggleOptionsScreen(noCookie) {
+  optionsScreenOn = !optionsScreenOn;  
+  let cookieExists = getCookie('brutalkungfu') !== undefined;
   if (!optionsScreenOn) {
+    useCookie = document.getElementById('cookie-checkbox').checked;
     if (useCookie) {
       setCookie(JSON.stringify(gameOptions));
+    } else {
+      if (cookieExists) {
+        destroyCookie();
+      }
     }
+    dragonScreen.container.visible = false; 
+  } else {
+    if (cookieExists) {
+      document.getElementById('cookie-checkbox').checked = true;
+    }
+    dragonScreen.container.visible = true;
+    useCookie = cookieExists;
   }
+  document.getElementById('title-items').classList.toggle('hidden');
+  document.getElementById('options-screen').classList.toggle('hidden');
 }
 function callKeyEditModal(action) {
   document.getElementById('turn-phone-shade').style.display = 'flex';
@@ -89,26 +167,27 @@ function dismissKeyEditModal() {
 }
 
 function refreshAllKeyDisplay(newKeys) {
-  Array.from(document.querySelectorAll('.key-row')).map((row, i) => {
-    let action = row.children[0].innerHTML;
-    let key = row.children[1].innerHTML;
-    let newlyAssignedKey = newKeys[action];
-    if (newlyAssignedKey === ' ') {
-      newlyAssignedKey = 'SPACE';
-    }
-    if (newlyAssignedKey.length > 1) {
-      row.classList.add('long-name');
-    } else {
-      row.classList.remove('long-name');
-      newlyAssignedKey = newlyAssignedKey.toUpperCase();
-    }
-    console.error('about to replace', key, 'for', action)
-    row.children[1].innerHTML = newlyAssignedKey;
-    console.error('replaced with', newlyAssignedKey)
-  });
+  if ({...newKeys} === {...defaultOptions.actionKeys}) {
+
+  } else {
+      Array.from(document.querySelectorAll('.key-row')).map((row, i) => {
+        let action = row.children[0].innerHTML;
+        let key = row.children[1].innerHTML;
+        let newlyAssignedKey = newKeys[action];
+        if (newlyAssignedKey === ' ') {
+          newlyAssignedKey = 'SPACE';
+        }
+        if (newlyAssignedKey.length > 1) {
+          row.classList.add('long-name');
+        } else {
+          row.classList.remove('long-name');
+          newlyAssignedKey = newlyAssignedKey.toUpperCase();
+        }
+        row.children[1].innerHTML = newlyAssignedKey;
+      });
+  }
 }
 function refreshKeyDisplay() {
-  console.log('refrehsing keys while editingkeysforatonhkgn', editingKeyForAction)
   let newlyAssignedKey = gameOptions.actionKeys[editingKeyForAction];
   Array.from(document.querySelectorAll('.key-row')).map((row, i) => {
     let action = row.children[0].innerHTML;
@@ -124,9 +203,7 @@ function refreshKeyDisplay() {
         newlyAssignedKey = newlyAssignedKey.toUpperCase();
 
       }
-      console.error('about to replace', key, 'for', action)
       row.children[1].innerHTML = newlyAssignedKey;
-      console.error('replaced with', newlyAssignedKey)
     }
   });
 
@@ -139,7 +216,6 @@ function ScoreDisplay() {
   this.bg = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
   this.bg.width = gameWidth;
   this.bg.height = level1.topEdge;
-  // this.bg.tint = 0x111111;
   this.bg.tint = 0x000000;
   this.container.addChild(this.bg);
   this.scoreText = new PIXI.Text('SCORE-000000', scoreStyle);
@@ -230,9 +306,9 @@ function ScoreDisplay() {
     let newStr = newScore.toString();
     let scoreString = '0'.repeat(6 - newStr.length) + newStr;
     this.scoreText.text = 'SCORE-' + scoreString;
-    if (topScore < player.score) {
+    if (topScores.story < player.score) {
       this.topText.text = 'TOP-' + scoreString;
-      topScore = player.score;
+      topScores.story = player.score;
     }
     if (newScore > (livesAwarded + 1) * newLifeScore) {
       if (newScore < (livesAwarded + 2) * newLifeScore) {
@@ -255,7 +331,7 @@ function ScoreDisplay() {
       }
     }
   };
-  this.topText.text = 'TOP-' + ('0'.repeat(6 - topScore.toString().length) + topScore);
+  this.topText.text = 'TOP-' + ('0'.repeat(6 - topScores.story.toString().length) + topScores.story);
   this.container.addChild(this.scoreText);
   this.container.addChild(this.topText);
   this.container.addChild(this.playerText);
@@ -1018,40 +1094,30 @@ function DragonSelector() {
     }
   };
 }
-function HighScoresScreen() {
+function DragonScreen() {
   this.container = new PIXI.Container();
-  this.container.interactive = true;
   this.bg = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
   this.bg.width = gameWidth;
   this.bg.height = viewHeight;
   this.bg.tint = 0x000000;
-  this.header = new PIXI.Sprite(PIXI.utils.TextureCache['highscoresheader']);
-  this.header.width = gameWidth;
   this.marginX = tileSize * 2.25;
   if (landscape) {
-    this.header.width = gameWidth * 0.75;
-    this.header.anchor.x = 0.5;
-    this.header.x = gameWidth / 2;
     this.marginX = tileSize * 3.8;
   }
-  this.header.height = this.header.width / 4;
-  this.startY = tileSize + newPixelSize * 64;
+  this.startY = (tileSize / 2) + (gameHeight / 3.5);
   if (landscape) {
     this.startY *= 0.75;
   }
-  let dragonsNeeded = Math.ceil((viewHeight - (this.header.height + tileSize)) / (tileSize + newPixelSize * 32));
+  let dragonsNeeded = Math.ceil((viewHeight - tileSize) / (tileSize + newPixelSize * 40));
   this.container.addChild(this.bg);
-  this.container.addChild(this.header);
-  this.entries = new PIXI.Container();
-  this.container.addChild(this.entries);
   for (let d = 0; d < dragonsNeeded; d++) {
     let dragon1 = new PIXI.Sprite(PIXI.utils.TextureCache['fulldragon']);
     let dragon2 = new PIXI.Sprite(PIXI.utils.TextureCache['fulldragon']);
     dragon1.anchor.x = dragon2.anchor.x = 0.5;
-    dragon1.width = dragon2.width = newPixelSize * 24;
-    dragon1.height = dragon2.height = newPixelSize * 32;
-    dragon1.x = tileSize;
-    dragon2.x = gameWidth - tileSize;
+    dragon1.width = dragon2.width = newPixelSize * 30;
+    dragon1.height = dragon2.height = newPixelSize * 40;
+    dragon1.x = (tileSize * 1.25);
+    dragon2.x = gameWidth - (tileSize * 1.25);
     dragon1.y = dragon2.y = this.startY + (tileSize + dragon1.height) * d;
     if (landscape) {
       dragon1.width = dragon2.width = newPixelSize * 18;
@@ -1061,34 +1127,73 @@ function HighScoresScreen() {
       dragon1.y = dragon2.y = this.startY + (tileSize + dragon1.height) * d;
     }
     dragon2.scale.x *= -1;
-    this.container.addChild(dragon1);
-    this.container.addChild(dragon2);
+    // this.container.addChild(dragon1);
+    // this.container.addChild(dragon2);
   }
-  this.populateEntries = function() {
-    console.error('PIOPULAUSTIONG')
-    let newEntries = scoreArray.length;
-    if (scoreArray.length > scoresToDisplay) {
-      newEntries = scoresToDisplay;
-    }
-    document.getElementById('scores-grid').innerHTML = '';
-    for (let e = 0; e < newEntries; e++) {
-      let rank = (e + 1);
-      let name = scoreArray[e][0];
-      let score = scoreArray[e][1];
-      // let sixDigitScore = '0'.repeat(6 - score.length) + score;      
-      let highlightClass = '';
-      let tintClass = e % 2 === 0 ? '' : 'gray-bg';
-      if (name == currentRecord.player && score == currentRecord.score) {        
-        highlightClass = 'highlighted';
-      }
-      document.getElementById('scores-grid').innerHTML += `
-        <div class='score-rank ${tintClass}'>${rank}</div>
-        <div class='score-name ${tintClass} ${highlightClass}'>${name}</div>
-        <div class='score-amount ${tintClass} ${highlightClass}'>${score}</div>
-      `;
+  this.populateEntries = function(scrollToNewRecord) {
+    console.warn('populating high score entries');
+    let storyGrid = document.getElementById('story-scores');
+    let hordeGrid = document.getElementById('horde-scores');
+    storyGrid.innerHTML = '';
+    hordeGrid.innerHTML = '';
+
+
+    // let newEntries = scoreArray.length;
+    // if (scoreArray.length > scoresToDisplay) {
+    //   newEntries = scoresToDisplay;
+    // }
+    
+    let storyScores = scoreArray.filter(entry => entry.gameMode === 'story');
+    let hordeScores = scoreArray.filter(entry => entry.gameMode === 'horde');
+    if (storyScores.length > scoresToDisplay) { storyScores.length = scoresToDisplay }
+    if (hordeScores.length > scoresToDisplay) { hordeScores.length = scoresToDisplay }
+    [storyScores, hordeScores].map((scoreList, i) => {
+      scoreList.map((scoreEntry, s) => {
+        let rank = s + 1;
+        let name = scoreEntry.name;
+        let score = scoreEntry.score;
+        let tintClass = s % 2 === 0 ? '' : 'gray-bg';
+        let highlightClass = '';
+        if (name == currentRecord.player && score.toString() == currentRecord.score.toString()) {        
+          highlightClass = 'highlighted';
+        }
+        [storyGrid, hordeGrid][i].innerHTML += `
+          <div class='score-rank ${tintClass}'>${rank}</div>
+          <div class='score-name ${tintClass} ${highlightClass}'>${name}</div>
+          <div class='score-amount ${tintClass} ${highlightClass}'>${score}</div>
+        `;
+      });
+    })
+    // for (let e = 0; e < newEntries; e++) {
+    //   console.log('entry?', scoreArray[e])
+    //   let rank = (e + 1);
+    //   let name = scoreArray.name;
+    //   let score = scoreArray.score;
+    //   let mode = scoreArray.gameMode;
+    //   let highlightClass = '';
+    //   let tintClass = e % 2 === 0 ? '' : 'gray-bg';
+      // if (name == currentRecord.player && score == currentRecord.score) {        
+      //   highlightClass = 'highlighted';
+      // }
+    //   let properGrid = mode === 'story' ? storyGrid : hordeGrid;
+    //   properGrid.innerHTML += `
+    //     <div class='score-rank ${tintClass}'>${rank}</div>
+    //     <div class='score-name ${tintClass} ${highlightClass}'>${name}</div>
+    //     <div class='score-amount ${tintClass} ${highlightClass}'>${score}</div>
+    //   `;
+    // }
+    if (scrollToNewRecord) {
+      // // scroll to player's new high score
+      // let playerEntry = document.querySelector('.score-amount.highlighted');
+      // if (playerEntry) {
+      //   // vertically center the entry on screen
+      //   // compensate for any amount already scrolled
+      //   let halfGrid = (properGrid.offsetHeight / 2) - (playerEntry.offsetHeight / 2);
+      //   let alreadyScrolled = playerEntry.parentElement.scrollTop;
+      //   playerEntry.parentElement.scrollBy(0, playerEntry.offsetTop - halfGrid - alreadyScrolled);
+      // }
     }
   };
-  this.entries.visible = false;
   this.container.visible = false;
 }
 function EnterNameScreen() {
@@ -1109,24 +1214,20 @@ function EnterNameScreen() {
   this.container.addChild(this.header);
   this.entries = new PIXI.Container();
   this.legendTitle = new PIXI.Text('HIGH SCORE!', blockStyle);
-  this.rankDisplay = new PIXI.Text('5TH PLACE', blockStyle);
+  this.rankDisplay = new PIXI.Text('689659', blockStyle);
   this.legendTitle.style.fill = 0x44ff44;
   this.rankDisplay.style.fill = 0xffff00;
   largeFontSize = gameWidth / 12;
   this.legendTitle.style.fontSize = largeFontSize;
-  this.rankDisplay.style.fontSize = largeFontSize;
+  this.rankDisplay.style.fontSize = largeFontSize / 1.5;
   this.rankDisplay.style.lineHeight = '5';
-  if (landscape) {
-    this.rankDisplay.style.fontSize = largeFontSize / 1.5;
-    this.rankDisplay.style.lineHeight = '8';
-  }
   this.legendTitle.style.wordWrapWidth = gameWidth;
   this.legend = new PIXI.Text('ENTER YOUR NAME TO CLAIM YOUR PLACE AMONG THE WORLD\'S TOP FIGHTERS.', blockStyle);
   this.legend.anchor.x = this.legendTitle.anchor.x = this.rankDisplay.anchor.x = 0.5;
   this.legend.x = this.legendTitle.x = this.rankDisplay.x = gameWidth / 2;
   this.legendTitle.y = this.startY - (this.legendTitle.height * 1.5);
-  this.rankDisplay.y = this.startY + (tileSize / 3.5);
-  this.legend.y = viewHeight * 0.5;
+  this.rankDisplay.y = this.startY + (tileSize * 1.5);
+  this.legend.y = tileSize * 12;
   if (landscape) {
     this.legend.y = gameHeight * 0.7;
   }
@@ -1152,56 +1253,46 @@ function EnterNameScreen() {
 }
 function submitHighScore() {
   lastEnteredName = document.getElementById('name-entry').value.toUpperCase();
-  console.info('player', player)
+  console.info('player submitting score', player)
   saveScoreToDatabase(gameName, lastEnteredName, currentRecord.score);
 }
 function toggleNameEntry(rankAchieved) {
+  document.getElementById('skip-name-entry-button').classList.toggle('showing');
+  document.getElementById('name-entry').classList.toggle('showing');
+  document.getElementById('name-submit').classList.toggle('showing');
+      
   if (enterNameScreen.container.visible) {
+    document.body.classList.remove('scored');
+    document.getElementById('title-items').classList.remove('hidden');
     enterNameScreen.container.visible = false;
-    document.getElementById('brutal-logo').classList.remove('hidden');
-    document.getElementById('kung-fu-logo').classList.remove('hidden');
-    document.getElementById('skip-name-entry-button').classList.remove('showing');
-    document.getElementById('name-entry').classList.remove('showing');
-    document.getElementById('name-submit').classList.remove('showing');
-    document.body.classList.remove('scored');    
   } else {
-    console.warn('val', document.getElementById('name-entry').value)
+    document.body.classList.add('scored');
+    // pre-fill field with cookie name
     if (!document.getElementById('name-entry').value && gameOptions.playerName) {
       document.getElementById('name-entry').value = gameOptions.playerName;
       document.getElementById('name-submit').disabled = false;
     }
-    document.getElementById('brutal-logo').classList.add('hidden');
-    document.getElementById('kung-fu-logo').classList.add('hidden');
-    document.getElementById('skip-name-entry-button').classList.add('showing');
-    document.getElementById('name-entry').classList.add('showing');
-    document.getElementById('name-submit').classList.add('showing');
     enterNameScreen.rankDisplay.text = `${suffixedNumber(rankAchieved)} PLACE`;
     enterNameScreen.container.visible = true;
-    document.body.classList.add('scored')
   }
 }
 function toggleHighScores() {
-  document.getElementById('brutal-logo').classList.toggle('hidden');
-  document.getElementById('kung-fu-logo').classList.toggle('hidden');
-  document.getElementById('scores-grid').classList.toggle('hidden');
+  document.getElementById('top-fighters-screen').classList.toggle('hidden');
+  document.getElementById('title-items').classList.toggle('hidden');
   document.getElementById('close-high-scores-button').classList.toggle('showing');
   document.getElementById('hard-reload').classList.add('hidden');
-  if (!highScoresScreen.container.visible) {
-    highScoresScreen.container.visible = true;
+  if (!document.getElementById('top-fighters-screen').classList.contains('hidden')) {
     getScoresFromDatabase(gameName, true);
-  } else {
-    highScoresScreen.container.visible = false;
-    
   }
 }
 function moveGamePad() {
   nesPanel.container.y += 200;
 }
-function getScoresFromDatabase(gameName, populate, check) {
-  console.log('CALLING FOR SCORES ----------------');
+function getScoresFromDatabase(gameName, populate, check, scrollToNew) {
+  console.warn('calling for scores ----------------');
   axios({
     method: 'get',
-    url: 'https://www.eggborne.com/scripts/getscores.php',
+    url: 'https://www.eggborne.com/scripts/getbkfscores.php',
     headers: {
       'Content-type': 'application/x-www-form-urlencoded'
     },
@@ -1210,79 +1301,73 @@ function getScoresFromDatabase(gameName, populate, check) {
     }
   }).then((response) => {
     if (response.data) {
-      let text = response.data;
       scoreArray.length = 0;
-      pairArray = response.data.split(' - ');
-      for (item in pairArray) {
-        let scoreEntry = pairArray[item].split(' ');
-        if (scoreEntry.length > 2) {
-          let fixedEntry = [];
-          fixedEntry[1] = scoreEntry.pop();
-          fixedEntry[0] = scoreEntry.join(' ');
-          scoreArray.push(fixedEntry);
-        } else if (scoreEntry.length === 2) {
-          scoreArray.push(scoreEntry);
-        }
+      console.warn('got', response.data);
+      console.warn('split', response.data.split(' || '));
+      response.data.split(' || ').filter(entry => entry).map(dbArr => {
+        console.log(JSON.parse(dbArr));
+        let scoreEntry = JSON.parse(dbArr);
+        scoreArray.push({name: scoreEntry.name, score:scoreEntry.score, gameMode:scoreEntry.gameMode});
+      });
+      if (populate) {
+        dragonScreen.populateEntries(scrollToNew);
       }
-      if (!populate) {
-      } else {
-        highScoresScreen.populateEntries();
-      }
-      let lowestIndex = scoresToDisplay - 1;
-      if (scoreArray.length < scoresToDisplay) {
-        lowestIndex = scoreArray.length - 1;
-        lowScore = 0;
-      } else {
-        lowScore = scoreArray[lowestIndex][1];
-      }
-      topScore = scoreArray[0][1];
+      
+      topScores.story = scoreArray[0].score;
       if (scoreDisplay) {
-        scoreDisplay.topText.text = 'TOP-' + ('0'.repeat(6 - topScore.toString().length) + topScore);
+        scoreDisplay.topText.text = 'TOP-' + ('0'.repeat(6 - topScores.story.toString().length) + topScores.story);
       }
       if (check) {
-        if (gameMode !== 'horde') {
-          console.warn('checking! player.score', player.score, 'against lowest of top', scoresToDisplay, '-', lowScore);
-          if (player.score > lowScore) {
-            currentRecord.score = player.score;
-            let playerRank = findRank(player.score);
-            console.error('-------------------')
-            console.error('playerRank ------------------', playerRank)
-            console.error('-------------------')
-            toggleNameEntry(playerRank);
-          }
+        let lowestIndex = scoresToDisplay - 1;
+        if (scoreArray.length < scoresToDisplay) {
+          lowestIndex = scoreArray.length - 1;
+          lowScore = 0;
+        } else {
+          lowScore = scoreArray[lowestIndex][1];
         }
+        console.warn('checking player.score', player.score, 'against lowest of top', scoresToDisplay, '-', lowScore);
+        if (player.score > lowScore) {
+          currentRecord.score = player.score;
+          let playerRank = findRank(player.score);
+          console.error('playerRank ------------------', playerRank)
+          console.error('full rank?', `${suffixedNumber(playerRank)} PLACE`);
+          toggleNameEntry(playerRank);
+        }        
         resetGame();
-      }
+      }      
+
     } else {
-      console.log('getScoresFromDatabase could not connect :(');
+      console.error('getScoresFromDatabase could not connect :(');
       scoreArray = [['void', 1212]];
     }
   });
 }
 function saveScoreToDatabase(gameName, playerName, playerScore) {
-  console.log('currrec', currentRecord)
-  console.log('passing', gameName, playerName, playerScore)
   currentRecord.player = playerName;
   gameOptions.playerName = playerName;
-  setCookie(JSON.stringify(gameOptions));
+  let cookieExists = getCookie('brutalkungfu') !== undefined;
+  if (cookieExists) {
+    setCookie(JSON.stringify(gameOptions));
+  }
   axios({
     method: 'post',
-    url: 'https://www.eggborne.com/scripts/savescores.php',
+    url: 'https://www.eggborne.com/scripts/savebkfscores.php',
     headers: {
       'Content-type': 'application/x-www-form-urlencoded'
     },
     data: {
       game: gameName,
       name: playerName,
-      score: playerScore
+      score: playerScore,
+      gameMode: gameMode
     }
   }).then(response => {
     if (response.data) {
-      toggleNameEntry();
-      toggleHighScores();
-      getScoresFromDatabase(gameName, true);
+      toggleNameEntry(); // off
+      toggleHighScores(); // on
+      getScoresFromDatabase(gameName, true, false, true);      
     } else {
-      console.log('Could not connect to post score!');
+      console.error('Could not connect to post score!');
     }
   });
 }
