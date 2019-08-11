@@ -6,7 +6,6 @@ let landscape = viewWidth > viewHeight;
 const gameName = 'kungfu';
 let kungFuSounds;
 window.addEventListener('load', function () {
-  document.documentElement.style.setProperty('--screen-height', window.innerHeight + 'px');
   PIXI.loader
   .add('assets/nessprites.json')
   .add('assets/kfsprites.json')
@@ -23,6 +22,7 @@ window.addEventListener('load', function () {
       document.getElementById('name-submit').disabled = true;
     }
   }
+  document.documentElement.style.setProperty('--screen-height', window.innerHeight + 'px');
   // setTimeout(() => {
   //   toggleNameEntry();
   // }, 1000);
@@ -783,22 +783,28 @@ document.getElementById('confirm-mode-button').onclick = function() {
     });
     setTimeout(() => {
       playStory();
-    }, 1000);
+    }, 750);
 
   }
-  document.getElementById('mode-select-screen').classList.remove('showing');
+  document.getElementById('mode-select-screen').classList.add('hidden');
 }
 async function playStory() {
+  document.getElementById('cinema-scene').src = storySlides[0].imagePath;
   await typeCaption(storySlides[0].caption);
   document.getElementById('cinema-scene').src = storySlides[1].imagePath;
+  if (gameInitiated) { return };
   await typeCaption(storySlides[1].caption);
   document.getElementById('cinema-scene').src = storySlides[2].imagePath;
+  if (gameInitiated) { return };
   await typeCaption(storySlides[2].caption);
   document.getElementById('cinema-scene').src = storySlides[3].imagePath;
+  if (gameInitiated) { return };
   await typeCaption(storySlides[3].caption);
   document.getElementById('cinema-scene').src = storySlides[4].imagePath;
+  if (gameInitiated) { return };
   await typeCaption(storySlides[4].caption);
   document.getElementById('cinema-scene').src = storySlides[5].imagePath;
+  if (gameInitiated) { return };
   await typeCaption(storySlides[5].caption);
 }
 document.getElementById('skip-name-entry-button').onclick = function() {
@@ -818,8 +824,7 @@ Array.from(document.querySelectorAll('.stage-knob')).map((knob, i) => {
   }
 });
 document.getElementById('mode-back-button').onclick = function() {
-  document.getElementById('mode-select-screen').classList.remove('showing');
-  console.warn('mode-back-button click showing logos')
+  document.getElementById('mode-select-screen').classList.add('hidden');
   document.getElementById('title-items').classList.remove('hidden');
   titleScreen.container.visible = true;
   lives = startingLives;

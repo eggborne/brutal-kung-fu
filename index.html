@@ -11,8 +11,8 @@
 	<meta name="description" content="A gritty sequel to NES Kung Fu.">
 	<title>Brutal Kung Fu</title>
 	<link rel="stylesheet" type="text/css" href="css/style.css">
-	<link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet">
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.6.1/pixi.min.js"></script>
+	<link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet">
 	<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 	<link rel="icon" href="assets/favicon.png" type="image/x-icon">
 	<link rel="manifest" href="manifest.json" />
@@ -52,7 +52,7 @@
 
 	<div id="game-canvas"></div>
 
-	<div id='mode-select-screen' class='screen-cover'>
+	<div id='mode-select-screen' class='screen-cover hidden'>
 		<div class='dragon-column left'></div>
 		<div class='dragon-column right'></div>
 		<header>
@@ -64,7 +64,7 @@
 			<div id='story-mode-panel' class='mode-panel clickable selected'>
 				<div class='mode-title'>STORY</div>
 				<div class='mode-description'>
-					Return to Devil's Tower and help Thomas finally achieve his long-awaited vengeance.
+					Return to Devil's Tower and help Thomas achieve his long-awaited vengeance.
 				</div>
 			</div>
 			<div id='horde-mode-panel' class='mode-panel clickable'>
@@ -205,10 +205,10 @@
 					<div id='gamepad-low-button' class='option-range-value ranged'>LOW</div>
 				</div> -->
 			</div>
-			<div id='options-button-list'>
-				<div id='controls-button' class='option-button clickable'>CUSTOMIZE CONTROLS</div>
-				<!-- <div id='home-screen-button' class='option-button clickable'>ADD TO HOME SCREEN</div> -->
-			</div>
+		</div>
+		<div id='options-button-list'>
+			<div id='controls-button' class='option-button clickable'>CUSTOMIZE CONTROLS</div>
+			<!-- <div id='home-screen-button' class='option-button clickable'>ADD TO HOME SCREEN</div> -->
 		</div>
 		<div id='lower-area'>
 			<div id='close-options-button' class='close-button clickable'>EXIT</div>
@@ -230,11 +230,13 @@
 			<div class='tab'>STORY MODE</div>
 			<div class='tab'>HORDE MODE</div>
 		</div>
-		<div id='story-scores' class='scores-grid'>
-			<!-- filled by populateEntries -->
-		</div>
-		<div id='horde-scores' class='scores-grid'>
-			<!-- filled by populateEntries -->
+		<div id='scores-grid-area'>
+			<div id='story-scores' class='scores-grid'>
+				<!-- filled by populateEntries -->
+			</div>
+			<div id='horde-scores' class='scores-grid'>
+				<!-- filled by populateEntries -->
+			</div>
 		</div>
 		<div class='button-area'>
 			<div id='close-high-scores-button' class='close-button clickable'>BACK</div>

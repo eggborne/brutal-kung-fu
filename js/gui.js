@@ -47,7 +47,7 @@ function advanceSlide() {
 
 }
 function typeCaption(textString) {
-  
+  console.warn('TYPING CAPTION', textString);
   let promise = new Promise((resolve) => {
     let captionDiv = document.getElementById('cinematic-caption');
     let wordList = textString.split(' ');
@@ -57,7 +57,6 @@ function typeCaption(textString) {
       splitWord = word.split('');
       splitWord.map(letter => letterArray.push(letter));
       charsOnLine += splitWord.length + 1;
-      console.log('added', word, 'chars now', charsOnLine)
       if (wordList[i + 1]) {
         letterArray.push('&nbsp;');
         // line break if next word will go over limit
@@ -908,7 +907,7 @@ function scoreBlip(amount, victim) {
   };
 }
 function callModeSelectScreen() {
-  document.getElementById('mode-select-screen').classList.add('showing');
+  document.getElementById('mode-select-screen').classList.remove('hidden');
 }
 function TitleScreen() {
   this.container = new PIXI.Container();
