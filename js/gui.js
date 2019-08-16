@@ -1,52 +1,128 @@
 let controlScreenOn = optionsScreenOn = false;
 let controlTabSelected = 'keyboard';
 let editingKeyForAction = false;
-let scoresToDisplay = 25
-let textSpeed = 80;
+let scoresToDisplay = 50;
+let textSpeed = 60;
 let slideSpeed = 1500;
 let highScoreTabSelected = 'story';
+let yearsAgo = new Date().getFullYear() - 1984;
+let skippingSlide = false;
 const storySlides = [
   {
-    imagePath: 'assets/helpmethomas.gif',
-    caption: `35 years ago, my beloved Sylvia was kidnapped by the evil Mr. X.`
+    imagePath: '',
+    caption: `${yearsAgo} years ago...`
   },
   {
-    imagePath: 'assets/kungfulogo.png',
-    caption: `I fought my way to the top of Devil's Tower to save her.`
+    caption: `My beloved Sylvia was kidnapped by the evil crime lord known as Mr. X.`
   },
   {
-    imagePath: 'assets/helpmethomas.gif',
-    caption: `My testicles were as red as beets and as swollen as grapefruits.`
+    caption: `I mounted a one-man assault on his hideout, Devil's Tower, fighting my way relentlessly through each floor.`
   },
   {
-    imagePath: 'assets/kungfulogo.png',
-    caption: `There was no remedy... besides New England clam chowder.`
+    caption: `Hearing her cries far above, I could only imagine the unspeakable horrors Mr. X and his army of thugs were inflicting upon her...`
   },
   {
-    imagePath: 'assets/helpmethomas.gif',
-    caption: `My quest for chowder led me into the unspeakable world of tentacle porn.`
+    caption: `...but even so, I fought with honor. My foes wielded all manner of deadly weapons, but I drew no blood and used no blade.`
   },
   {
-    imagePath: 'assets/kungfulogo.png',
-    caption: `However, I came out of it a new man and now I own four different shirts.`
-  }
+    caption: `It was Sylvia herself - her boundless love - who taught my heart to know and to practice peace.`
+  },
+  {
+    caption: ``
+  },
+  {
+    caption: `Indeed, when I finally had Mr. X at my mercy, she begged me to spare his life.`
+  },
+  {
+    caption: `This was the immensity of her compassion.`
+  },
+  {
+    caption: `But when we returned home, she was never the same...`
+  },
+  {
+    caption: `The endless light inside her seemed to be growing dimmer by the day. She was constantly ill and her sleep was ravaged by terrors.`
+  },
+  {
+    caption: `Then, some months later, the unthinkable...`
+  },
+  {
+    caption: ``
+  },
+  {
+    caption: ``
+  },
+  {
+    caption: ``
+  },
+  {
+    caption: ``,
+  },
+  {
+    caption: ``,
+    
+  },
+  {
+    caption: ``,
+    
+  },
+  {
+    caption: `She walked into the sea before the child could be born.`
+  },
+  {
+    caption: `She didn't even say goodbye.`,
+    additive: true
+  },
+  {
+    caption: ``,
+  },
+  {
+    caption: `That was ${yearsAgo} years ago...`
+  },
+  {
+    caption: ``
+  },
+  {
+    caption: ``
+  },
+  {
+    caption: ``
+  },
 ]
 function suffixedNumber(num) {
-  if (num === 1) {
-    return num + 'ST';
+  let numString = num.toString();
+  let lastDigit = numString[numString.length - 1];
+
+  if (lastDigit === '1') {
+    return (num === 11) ? num + 'TH' : num + 'ST';
   }
-  if (num === 2) {
-    return num + 'ND';
+  if (lastDigit === '2') {
+    return (num === 12) ? num + 'TH' : num + 'ND';
   }
-  if (num === 3) {
-    return num + 'RD';
+  if (lastDigit === '3') {
+    return  (num === 13) ? num + 'TH' : num + 'RD';
   }
   return num + 'TH';
 }
-function advanceSlide() {
-
+function skipTextOrNextSlide() {
+  if (document.getElementById('cinematic-caret').classList.contains('ready')) {
+    skippingSlide = false;
+    advanceSlide();
+  } else {
+    skippingSlide = true;
+  }
 }
-function typeCaption(textString) {
+function skipCinematic() {
+  document.getElementById('cinematic').classList.add('hidden');
+  if (landscape && gameOptions.showInstructions) {
+    document.getElementById('controls-hint').classList.add('showing');
+    gameOptions.showInstructions = false;
+  } else {
+    gameInitiated = true;
+  }
+}
+function typeCaption(slideObj) {
+  document.getElementById('cinematic-caret').classList.remove('ready');
+  let textString = slideObj.caption;
   console.warn('TYPING CAPTION', textString);
   let promise = new Promise((resolve) => {
     let captionDiv = document.getElementById('cinematic-caption');
@@ -60,7 +136,7 @@ function typeCaption(textString) {
       if (wordList[i + 1]) {
         letterArray.push('&nbsp;');
         // line break if next word will go over limit
-        if (charsOnLine + wordList[i + 1].length >= 26) {
+        if (charsOnLine + wordList[i + 1].length >= 30) {
           letterArray.push('<br />');
           charsOnLine = 0;
         }
@@ -68,23 +144,49 @@ function typeCaption(textString) {
     });
     console.log(letterArray)
     let onLetter = 0;
-    captionDiv.innerHTML = '';
+    let actualTextSpeed = textSpeed;
+    if (slideObj.additive) {
+      captionDiv.innerHTML += '<br />';
+    } else {
+      captionDiv.innerHTML = '';
+    }
     let typingInterval = setInterval(() => {
       if (onLetter < letterArray.length) {
-        if (letterArray[onLetter] === '<') {
-          captionDiv.innerHTML += '<br />';
-          onLetter += 7;
+        if (skippingSlide) {
+          captionDiv.innerHTML = letterArray.join('');
+          onLetter = letterArray.length;
         } else {
-          captionDiv.innerHTML += letterArray[onLetter];
-          onLetter++;
+          if (letterArray[onLetter] === '<') {
+            captionDiv.innerHTML += '<br />';
+            onLetter += 7;
+          } else {
+            captionDiv.innerHTML += letterArray[onLetter];
+            onLetter++;
+          }
         }
-      } else {
-        clearInterval(typingInterval);
+      } else {        
+        if (skippingSlide) {
+          if (onStorySlide === 0) {
+            document.querySelector('#cinematic > .caption').style.transitionDuration = '0ms';
+            document.querySelector('#cinematic > .caption').style.transitionDelay = '0ms';
+            document.querySelector('#cinematic > .caption').classList.add('moved-down');
+            setTimeout(() => {
+              document.querySelector('#cinematic > .caption').style.transition = '1500ms';
+              document.querySelector('#cinematic > .caption').style.transitionDelay = '1000ms';
+            }, 100);
+          }          
+        }
+        if (onLetter >= letterArray.length) {
+          clearInterval(typingInterval);
+        }
+        let actualSlideSpeed = 50;        
         setTimeout(() => {
+          console.warn('skipping FALSE')
+          skippingSlide = false;
           resolve();
-        }, slideSpeed);
+        }, actualSlideSpeed);
       }
-    }, textSpeed);
+    }, actualTextSpeed);
   })
   return promise;
 }
@@ -139,16 +241,14 @@ function toggleOptionsScreen(noCookie) {
         destroyCookie();
       }
     }
-    dragonScreen.container.visible = false; 
   } else {
     if (cookieExists) {
       document.getElementById('cookie-checkbox').checked = true;
     }
-    dragonScreen.container.visible = true;
     useCookie = cookieExists;
   }
-  document.getElementById('title-items').classList.toggle('hidden');
   document.getElementById('options-screen').classList.toggle('hidden');
+  document.getElementById('title-screen').classList.toggle('hidden');
 }
 function callKeyEditModal(action) {
   document.getElementById('turn-phone-shade').style.display = 'flex';
@@ -345,7 +445,8 @@ function ScoreDisplay() {
   this.container.addChild(this.dragonText);
   this.container.addChild(this.timeLabel);
   this.container.addChild(this.timeText);
-  nesContainer.addChild(this.container);
+  // nesContainer.addChild(this.container);
+  UIContainer.addChild(this.container);
 }
 const nesGreen = 0x788368;
 function NESPanel() {
@@ -571,8 +672,6 @@ function NESPanel() {
   this.controls.addChild(this.punchLabel);
   this.controls.addChild(this.kickLabel);
 
-  // this.container.alpha = 0
-
   this.throwButton.on('pointerdown', function() {
     player.throw('knife');
     nesPanel.throwKnob.tint = 0x009900;
@@ -595,20 +694,16 @@ function NESPanel() {
     if (counter > 0) {
       pressUp();
     }
-    // player.walkSpeed = newPixelSize*10
     nesPanel.blockKnob.tint = 0x009900;
   });
   this.blockButton.on('pointerup', function() {
     if (counter > 0) {
       releaseUp();
     }
-    // player.walkSpeed = playerSpeed
     nesPanel.blockKnob.tint = 0xaaffaa;
   });
   this.blockButton.on('pointerupoutside', function() {
     releaseUp();
-    // player.walkSpeed = newPixelSize*1.5
-    // nesPanel.blockBG.tint = 0x77aa77
   });
 
   this.depressButton = function(button) {
@@ -909,386 +1004,69 @@ function scoreBlip(amount, victim) {
 function callModeSelectScreen() {
   document.getElementById('mode-select-screen').classList.remove('hidden');
 }
-function TitleScreen() {
-  this.container = new PIXI.Container();
-  this.titleCard = new PIXI.Sprite(PIXI.utils.TextureCache['titlescreen']);
-  this.startButton = new PIXI.Container();
-  this.startButton.buttonMode = true;
-  this.highScoresButton = new PIXI.Container();
-  this.highScoresButton.buttonMode = true;
-  this.optionsButton = new PIXI.Container();
-  this.optionsButton.buttonMode = true;
-  this.fullScreenButton = new PIXI.Container();
-  this.kungFuLogo = new PIXI.Sprite()
-  this.highScoresBg = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
-  this.optionsBg = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
-  this.startBg = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
-  this.soundButton = new PIXI.Container();
-  this.soundBg = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
-  this.soundText = new PIXI.Text('SOUND: OFF', buttonStyle);
-  this.fullScreenBg = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
-  this.fullScreenText = new PIXI.Text('FULL SCREEN: OFF', buttonStyle);
-  this.controlsButton = new PIXI.Container();
-  this.controlsBg = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
-  this.controlsText = new PIXI.Text('CUSTOMIZE CONTROLS', buttonStyle);
-  this.startText = new PIXI.Text('START!', titleStyle);
-  this.highScoresText = new PIXI.Text('HIGH SCORES', titleStyle2);
-  this.optionsText = new PIXI.Text('OPTIONS', titleStyle);
-  this.startBg.anchor.x = this.startText.anchor.x = this.controlsBg.anchor.x = this.controlsText.anchor.x = this.soundBg.anchor.x = this.soundText.anchor.x = this.fullScreenBg.anchor.x = this.fullScreenText.anchor.x = this.optionsBg.anchor.x = this.optionsText.anchor.x = this.highScoresBg.anchor.x = this.highScoresText.anchor.x = 0.5;
-  this.startText.anchor.y = this.highScoresText.anchor.y = this.fullScreenText.anchor.y = this.optionsText.anchor.y = 0.5;
-  this.soundText.anchor.y = 0.5;
-  this.controlsText.anchor.y = 0.5;
-  this.startButton.x = this.highScoresButton.x = this.soundButton.x = this.fullScreenButton.x = this.controlsButton.x = gameWidth / 2;
-  this.optionsButton.x = gameWidth / 2;
-  this.startBg.tint = 0x333333;
-  this.highScoresBg.tint = 0x333333;
-  this.optionsBg.tint = 0x333333;
-  this.soundBg.tint = this.fullScreenBg.tint = 0x444444;
-  this.controlsBg.tint = 0x446666;
-  this.startBg.width = tileSize * 7;
-  this.startBg.height = tileSize * 1.65;  
-  this.highScoresBg.width = this.optionsBg.width = this.startBg.width;
-  this.highScoresBg.height = this.optionsBg.height = this.startBg.height;
-  this.soundBg.width = tileSize * 5;
-  this.soundBg.height = this.startBg.height * 0.8;
-  this.fullScreenBg.width = this.startBg.width;
-  this.fullScreenBg.height = this.soundBg.height;
-  this.controlsBg.width = this.startBg.width * 1.15;
-  this.controlsBg.height = this.soundBg.height;
-  this.fullScreenText.y = this.controlsText.y = this.fullScreenBg.y + this.fullScreenBg.height / 2;
-  this.startBg.y = newPixelSize * 90 + tileSize;
-  this.highScoresBg.y = this.startBg.y + this.startBg.height + newPixelSize * 12;
-  this.startText.y = this.startBg.y + this.startBg.height / 2;
-  this.highScoresText.y = this.highScoresBg.y + this.highScoresBg.height / 2;
-  this.optionsButton.y = this.highScoresBg.y + this.highScoresBg.height + this.highScoresBg.height / 2;
-  this.soundButton.y = this.highScoresBg.y + this.highScoresBg.height + this.highScoresBg.height / 2;
-  this.soundText.y = this.soundBg.y + this.soundBg.height / 2;
-  this.optionsText.y = this.optionsBg.y + this.optionsBg.height / 2;
-  this.fullScreenButton.y = this.controlsButton.y = this.soundButton.y + this.soundBg.height + newPixelSize * 12;
-  this.controlsButton.y = this.soundButton.y + this.soundBg.height + newPixelSize * 12;
-  this.soundText.tint = this.fullScreenText.tint = 0x777777;
-  this.startButton.addChild(this.startBg);
-  this.startButton.addChild(this.startText);
-  this.highScoresButton.addChild(this.highScoresBg);
-  this.highScoresButton.addChild(this.highScoresText);
-  this.optionsButton.addChild(this.optionsBg);
-  this.optionsButton.addChild(this.optionsText);
-  this.titleCard.anchor.x = 0.5;
-  this.titleCard.x = gameWidth / 2;
-  this.titleCard.width = gameWidth;
-  this.titleCard.height = gameHeight;
-  console.warn('sized title at', gameWidth, gameHeight)
-  this.startButton.interactive = this.highScoresButton.interactive = this.optionsButton.interactive = true;
-  this.startButton.on('pointerdown', function() {
-    selector.move(0, 0);
-  });
-  this.startButton.on('pointerup', function() {
-    callModeSelectScreen()
-    clearTitle();
-  });
-  this.highScoresButton.on('pointerdown', function() {
-    selector.move(0, 1);
-  });
-  this.highScoresButton.on('pointerup', function() {
-    toggleHighScores();
-  });
-  this.optionsButton.on('pointerdown', function() {
-    selector.move(0, 2);
-  });
-  this.optionsButton.on('pointerup', function() {
-    toggleOptionsScreen();
-  });
-  this.container.addChild(this.titleCard);
-  this.container.addChild(this.startButton);
-  this.container.addChild(this.highScoresButton);
-  this.container.addChild(this.optionsButton);
-}
-function DragonSelector() {
-  this.container = new PIXI.Container();
-  this.leftDragon = new PIXI.Sprite(PIXI.utils.TextureCache['fulldragon']);
-  this.rightDragon = new PIXI.Sprite(PIXI.utils.TextureCache['fulldragon']);
-  this.leftDragon.width = this.rightDragon.width = newPixelSize * 21;
-  this.leftDragon.height = this.rightDragon.height = newPixelSize * 28;
-  this.leftDragon.anchor.x = this.rightDragon.anchor.x = 0.5;
-  this.leftDragon.anchor.y = this.rightDragon.anchor.y = 0.5;
-  this.leftDragon.x = gameWidth / 2 - titleScreen.startBg.width / 2 - tileSize;
-  this.rightDragon.x = gameWidth / 2 + titleScreen.startBg.width / 2 + tileSize;
-  this.rightDragon.scale.x *= -1;
-  this.container.y = titleScreen.startText.y;
-  this.container.addChild(this.leftDragon);
-  this.container.addChild(this.rightDragon);
-  this.selections = ['start', 'highscores', 'options'];
-  this.selected = 0;
-  this.highlight = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
-  this.highlight.tint = 0xe05000;
-  this.highlight.anchor.set(0.5);
-  this.highlight.borderSize = newPixelSize * 4;
-  this.highlight.width = titleScreen.startBg.width + this.highlight.borderSize;
-  this.highlight.height = titleScreen.startBg.height + this.highlight.borderSize;
-  this.highlight.x = gameWidth / 2;
-  this.container.addChild(this.highlight);
-  titleScreen.container.addChildAt(this.container, 1);
-  titleScreen.startBg.alpha = 1;
-  titleScreen.highScoresBg.alpha = 0.5;
-  titleScreen.optionsBg.alpha = 0.5;
-  this.move = function(direction, moveTo) {
-    if (!direction) {
-      this.selected = moveTo;
-    } else {
-      if (this.selected + direction >= 0 && this.selected + direction < this.selections.length) {
-        this.selected += direction;
+function populateEntries(scrollToNewRecord) {
+  let storyGrid = document.getElementById('story-scores');
+  let hordeGrid = document.getElementById('horde-scores');
+  storyGrid.innerHTML = '';
+  hordeGrid.innerHTML = '';
+
+  let storyScores = scoreArray.filter(entry => entry.gameMode === 'story');
+  let hordeScores = scoreArray.filter(entry => entry.gameMode === 'horde');
+  if (storyScores.length > scoresToDisplay) { storyScores.length = scoresToDisplay }
+  if (hordeScores.length > scoresToDisplay) { hordeScores.length = scoresToDisplay }
+  [storyScores, hordeScores].map((scoreList, i) => {
+    scoreList.map((scoreEntry, s) => {
+      let rank = s + 1;
+      let name = scoreEntry.name;
+      let score = scoreEntry.score;
+      let tintClass = s % 2 === 0 ? '' : 'gray-bg';
+      let highlightClass = '';
+      if (name == currentRecord.player && score.toString() == currentRecord.score.toString()) {        
+        highlightClass = 'highlighted';
       }
+      [storyGrid, hordeGrid][i].innerHTML += `
+        <div class='score-rank ${tintClass}'>${rank}</div>
+        <div class='score-name ${tintClass} ${highlightClass}'>${name}</div>
+        <div class='score-amount ${tintClass} ${highlightClass}'>${score}</div>
+      `;
+    });
+  })
+  if (scrollToNewRecord) {
+    // scroll to player's new high score
+    let playerEntry = document.querySelector('.score-amount.highlighted');
+    if (playerEntry) {
+      // vertically center the entry on screen
+      // compensate for any amount already scrolled
+      let halfGrid = (properGrid.offsetHeight / 2) - (playerEntry.offsetHeight / 2);
+      let alreadyScrolled = playerEntry.parentElement.scrollTop;
+      playerEntry.parentElement.scrollBy(0, playerEntry.offsetTop - halfGrid - alreadyScrolled);
     }
-
-    let selected = this.selections[this.selected];
-    if (selected === 'start') {
-      this.container.y = titleScreen.startText.y;
-      this.leftDragon.x = gameWidth / 2 - titleScreen.startBg.width / 2 - tileSize;
-      this.rightDragon.x = gameWidth / 2 + titleScreen.startBg.width / 2 + tileSize;
-      titleScreen.startBg.alpha = 1;
-      titleScreen.highScoresBg.alpha = 0.5;
-      titleScreen.optionsBg.alpha = 0.5;
-      this.highlight.width = titleScreen.startBg.width + this.highlight.borderSize;
-      this.highlight.height = titleScreen.startBg.height + this.highlight.borderSize;
-    }
-    if (selected === 'highscores') {
-      this.container.y = titleScreen.highScoresText.y;
-      this.leftDragon.x = gameWidth / 2 - titleScreen.highScoresBg.width / 2 - tileSize;
-      this.rightDragon.x = gameWidth / 2 + titleScreen.highScoresBg.width / 2 + tileSize;
-      titleScreen.highScoresBg.alpha = 1;
-      titleScreen.startBg.alpha = 0.5;
-      titleScreen.optionsBg.alpha = 0.5;
-      this.highlight.width = titleScreen.highScoresBg.width + this.highlight.borderSize;
-      this.highlight.height = titleScreen.highScoresBg.height + this.highlight.borderSize;
-    }
-    if (selected === 'options') {
-      this.container.y = titleScreen.optionsButton.y + titleScreen.optionsText.y;
-      this.leftDragon.x = gameWidth / 2 - titleScreen.optionsBg.width / 2 - tileSize;
-      this.rightDragon.x = gameWidth / 2 + titleScreen.optionsBg.width / 2 + tileSize;
-      titleScreen.optionsBg.alpha = 1;
-      titleScreen.startBg.alpha = 0.5;
-      titleScreen.highScoresBg.alpha = 0.5;
-      this.highlight.width = titleScreen.optionsBg.width + this.highlight.borderSize;
-      this.highlight.height = titleScreen.optionsBg.height + this.highlight.borderSize;
-    }
-  };
-  this.chooseSelection = function() {
-    let selected = this.selections[this.selected];
-    if (selected === 'start') {
-      callModeSelectScreen();
-      clearTitle();
-    }
-    if (selected === 'highscores') {
-      toggleHighScores();
-    }
-    if (selected === 'options') {
-      toggleOptionsScreen();
-    }
-  };
-  this.highlightSelection = function() {
-    if (precounter % 4 < 2) {
-      this.highlight.tint = 0xffa000;
-    } else {
-      this.highlight.tint = 0xe05000;
-    }
-  };
-}
-function DragonScreen() {
-  this.container = new PIXI.Container();
-  this.bg = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
-  this.bg.width = gameWidth;
-  this.bg.height = viewHeight;
-  this.bg.tint = 0x000000;
-  this.marginX = tileSize * 2.25;
-  if (landscape) {
-    this.marginX = tileSize * 3.8;
   }
-  this.startY = (tileSize / 2) + (gameHeight / 3.5);
-  if (landscape) {
-    this.startY *= 0.75;
-  }
-  let dragonsNeeded = Math.ceil((viewHeight - tileSize) / (tileSize + newPixelSize * 40));
-  this.container.addChild(this.bg);
-  for (let d = 0; d < dragonsNeeded; d++) {
-    let dragon1 = new PIXI.Sprite(PIXI.utils.TextureCache['fulldragon']);
-    let dragon2 = new PIXI.Sprite(PIXI.utils.TextureCache['fulldragon']);
-    dragon1.anchor.x = dragon2.anchor.x = 0.5;
-    dragon1.width = dragon2.width = newPixelSize * 30;
-    dragon1.height = dragon2.height = newPixelSize * 40;
-    dragon1.x = (tileSize * 1.25);
-    dragon2.x = gameWidth - (tileSize * 1.25);
-    dragon1.y = dragon2.y = this.startY + (tileSize + dragon1.height) * d;
-    if (landscape) {
-      dragon1.width = dragon2.width = newPixelSize * 18;
-      dragon1.height = dragon2.height = newPixelSize * 24;
-      dragon1.x = tileSize * 3;
-      dragon2.x = gameWidth - (tileSize * 3);
-      dragon1.y = dragon2.y = this.startY + (tileSize + dragon1.height) * d;
-    }
-    dragon2.scale.x *= -1;
-    // this.container.addChild(dragon1);
-    // this.container.addChild(dragon2);
-  }
-  this.populateEntries = function(scrollToNewRecord) {
-    console.warn('populating high score entries');
-    let storyGrid = document.getElementById('story-scores');
-    let hordeGrid = document.getElementById('horde-scores');
-    storyGrid.innerHTML = '';
-    hordeGrid.innerHTML = '';
-
-
-    // let newEntries = scoreArray.length;
-    // if (scoreArray.length > scoresToDisplay) {
-    //   newEntries = scoresToDisplay;
-    // }
-    
-    let storyScores = scoreArray.filter(entry => entry.gameMode === 'story');
-    let hordeScores = scoreArray.filter(entry => entry.gameMode === 'horde');
-    if (storyScores.length > scoresToDisplay) { storyScores.length = scoresToDisplay }
-    if (hordeScores.length > scoresToDisplay) { hordeScores.length = scoresToDisplay }
-    [storyScores, hordeScores].map((scoreList, i) => {
-      scoreList.map((scoreEntry, s) => {
-        let rank = s + 1;
-        let name = scoreEntry.name;
-        let score = scoreEntry.score;
-        let tintClass = s % 2 === 0 ? '' : 'gray-bg';
-        let highlightClass = '';
-        if (name == currentRecord.player && score.toString() == currentRecord.score.toString()) {        
-          highlightClass = 'highlighted';
-        }
-        [storyGrid, hordeGrid][i].innerHTML += `
-          <div class='score-rank ${tintClass}'>${rank}</div>
-          <div class='score-name ${tintClass} ${highlightClass}'>${name}</div>
-          <div class='score-amount ${tintClass} ${highlightClass}'>${score}</div>
-        `;
-      });
-    })
-    // for (let e = 0; e < newEntries; e++) {
-    //   console.log('entry?', scoreArray[e])
-    //   let rank = (e + 1);
-    //   let name = scoreArray.name;
-    //   let score = scoreArray.score;
-    //   let mode = scoreArray.gameMode;
-    //   let highlightClass = '';
-    //   let tintClass = e % 2 === 0 ? '' : 'gray-bg';
-      // if (name == currentRecord.player && score == currentRecord.score) {        
-      //   highlightClass = 'highlighted';
-      // }
-    //   let properGrid = mode === 'story' ? storyGrid : hordeGrid;
-    //   properGrid.innerHTML += `
-    //     <div class='score-rank ${tintClass}'>${rank}</div>
-    //     <div class='score-name ${tintClass} ${highlightClass}'>${name}</div>
-    //     <div class='score-amount ${tintClass} ${highlightClass}'>${score}</div>
-    //   `;
-    // }
-    if (scrollToNewRecord) {
-      // // scroll to player's new high score
-      // let playerEntry = document.querySelector('.score-amount.highlighted');
-      // if (playerEntry) {
-      //   // vertically center the entry on screen
-      //   // compensate for any amount already scrolled
-      //   let halfGrid = (properGrid.offsetHeight / 2) - (playerEntry.offsetHeight / 2);
-      //   let alreadyScrolled = playerEntry.parentElement.scrollTop;
-      //   playerEntry.parentElement.scrollBy(0, playerEntry.offsetTop - halfGrid - alreadyScrolled);
-      // }
-    }
-  };
-  this.container.visible = false;
-}
-function EnterNameScreen() {
-  this.container = new PIXI.Container();
-  this.container.interactive = true;
-  this.container.zIndex = 30;
-  this.bg = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
-  this.bg.width = gameWidth;
-  this.bg.height = viewHeight;
-  this.bg.tint = 0x000000;
-  this.header = new PIXI.Sprite(PIXI.utils.TextureCache['emptyheader']);
-  this.header.width = gameWidth;
-  this.header.height = this.header.width / 4;
-  this.marginX = newPixelSize * 30 + tileSize;
-  this.startY = gameHeight / 2.25;
-  let dragonsNeeded = Math.ceil((viewHeight - (this.header.height + tileSize)) / (tileSize + newPixelSize * 32));
-  this.container.addChild(this.bg);
-  this.container.addChild(this.header);
-  this.entries = new PIXI.Container();
-  this.legendTitle = new PIXI.Text('HIGH SCORE!', blockStyle);
-  this.rankDisplay = new PIXI.Text('689659', blockStyle);
-  this.legendTitle.style.fill = 0x44ff44;
-  this.rankDisplay.style.fill = 0xffff00;
-  largeFontSize = gameWidth / 12;
-  this.legendTitle.style.fontSize = largeFontSize;
-  this.rankDisplay.style.fontSize = largeFontSize / 1.5;
-  this.rankDisplay.style.lineHeight = '5';
-  this.legendTitle.style.wordWrapWidth = gameWidth;
-  this.legend = new PIXI.Text('ENTER YOUR NAME TO CLAIM YOUR PLACE AMONG THE WORLD\'S TOP FIGHTERS.', blockStyle);
-  this.legend.anchor.x = this.legendTitle.anchor.x = this.rankDisplay.anchor.x = 0.5;
-  this.legend.x = this.legendTitle.x = this.rankDisplay.x = gameWidth / 2;
-  this.legendTitle.y = this.startY - (this.legendTitle.height * 1.5);
-  this.rankDisplay.y = this.startY + (tileSize * 1.5);
-  this.legend.y = tileSize * 12;
-  if (landscape) {
-    this.legend.y = gameHeight * 0.7;
-  }
-  
-  this.container.addChild(this.legendTitle);  
-  this.container.addChild(this.rankDisplay);  
-  this.container.addChild(this.legend);  
-  
-  for (let d = 0; d < dragonsNeeded; d++) {
-    let dragon1 = new PIXI.Sprite(PIXI.utils.TextureCache['fulldragon']);
-    let dragon2 = new PIXI.Sprite(PIXI.utils.TextureCache['fulldragon']);
-    dragon1.width = dragon2.width = newPixelSize * 24;
-    dragon1.height = dragon2.height = newPixelSize * 32;
-    dragon1.anchor.x = dragon2.anchor.x = 0.5;
-    dragon1.x = tileSize;
-    dragon2.x = gameWidth - tileSize;
-    dragon1.y = dragon2.y = this.startY + (tileSize + dragon1.height) * d;
-    dragon2.scale.x *= -1;
-    this.container.addChild(dragon1);
-    this.container.addChild(dragon2);
-  }
-  this.container.visible = false;
-}
+};
 function submitHighScore() {
   lastEnteredName = document.getElementById('name-entry').value.toUpperCase();
   console.info('player submitting score', player)
   saveScoreToDatabase(gameName, lastEnteredName, currentRecord.score);
 }
 function toggleNameEntry(rankAchieved) {
-  document.getElementById('skip-name-entry-button').classList.toggle('showing');
-  document.getElementById('name-entry').classList.toggle('showing');
-  document.getElementById('name-submit').classList.toggle('showing');
-      
-  if (enterNameScreen.container.visible) {
-    document.body.classList.remove('scored');
-    document.getElementById('title-items').classList.remove('hidden');
-    enterNameScreen.container.visible = false;
-  } else {
+  if (document.getElementById('name-entry-screen').classList.contains('hidden')) {
     document.body.classList.add('scored');
-    // pre-fill field with cookie name
-    if (!document.getElementById('name-entry').value && gameOptions.playerName) {
-      document.getElementById('name-entry').value = gameOptions.playerName;
-      document.getElementById('name-submit').disabled = false;
-    }
-    enterNameScreen.rankDisplay.text = `${suffixedNumber(rankAchieved)} PLACE`;
-    enterNameScreen.container.visible = true;
+    document.getElementById('player-high-score').innerText = player.score;
+    document.getElementById('player-rank').innerText = `${suffixedNumber(rankAchieved)} PLACE`;
+  } else {
+    document.body.classList.remove('scored');
   }
+  document.getElementById('name-entry-screen').classList.toggle('hidden'); 
 }
 function toggleHighScores() {
-  document.getElementById('top-fighters-screen').classList.toggle('hidden');
-  document.getElementById('title-items').classList.toggle('hidden');
-  document.getElementById('close-high-scores-button').classList.toggle('showing');
-  document.getElementById('hard-reload').classList.add('hidden');
-  if (!document.getElementById('top-fighters-screen').classList.contains('hidden')) {
+  if (document.getElementById('top-fighters-screen').classList.contains('hidden')) {
     getScoresFromDatabase(gameName, true);
   }
-}
-function moveGamePad() {
-  nesPanel.container.y += 200;
+  document.getElementById('top-fighters-screen').classList.toggle('hidden');
 }
 function getScoresFromDatabase(gameName, populate, check, scrollToNew) {
   console.warn('calling for scores ----------------');
+  console.warn('gameName, populate, check, scrollToNew', gameName, populate, check, scrollToNew)
   axios({
     method: 'get',
     url: 'https://www.eggborne.com/scripts/getbkfscores.php',
@@ -1301,17 +1079,13 @@ function getScoresFromDatabase(gameName, populate, check, scrollToNew) {
   }).then((response) => {
     if (response.data) {
       scoreArray.length = 0;
-      console.warn('got', response.data);
-      console.warn('split', response.data.split(' || '));
       response.data.split(' || ').filter(entry => entry).map(dbArr => {
-        console.log(JSON.parse(dbArr));
         let scoreEntry = JSON.parse(dbArr);
         scoreArray.push({name: scoreEntry.name, score:scoreEntry.score, gameMode:scoreEntry.gameMode});
       });
       if (populate) {
-        dragonScreen.populateEntries(scrollToNew);
+        populateEntries(scrollToNew);
       }
-      
       topScores.story = scoreArray[0].score;
       if (scoreDisplay) {
         scoreDisplay.topText.text = 'TOP-' + ('0'.repeat(6 - topScores.story.toString().length) + topScores.story);
@@ -1324,7 +1098,7 @@ function getScoresFromDatabase(gameName, populate, check, scrollToNew) {
         } else {
           lowScore = scoreArray[lowestIndex][1];
         }
-        console.warn('checking player.score', player.score, 'against lowest of top', scoresToDisplay, '-', lowScore);
+        console.warn('checking', player.score, 'against', lowScore);
         if (player.score > lowScore) {
           currentRecord.score = player.score;
           let playerRank = findRank(player.score);

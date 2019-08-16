@@ -1094,7 +1094,7 @@ function Squib(victim, posX, posY, size, cause, hitFrom) {
   this.victimScale = victim.sprite.scale.x;
   this.droplets = [];
   // this.keepDroplets = 600;
-  this.keepDroplets = 6000;
+  this.keepDroplets = 1440;
   var stab = false;
   if (cause === 'knife' || (cause === 'punch' && player.weapon === 'knife')) {
     stab = true;
@@ -1157,15 +1157,12 @@ function Squib(victim, posX, posY, size, cause, hitFrom) {
     for (var d = 0; d < density; d++) {
       var drop = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
       drop.droplet = true;
-      drop.longevity = this.keepDroplets + randomInt(-60, 60);
-      // drop.cacheAsBitmap = true
-      // drop.width = drop.height = (newPixelSize+(randomInt(-1,1)*(newPixelSize*0.25)))*fighterScale
-      // drop.width = (newPixelSize)+(randomInt(0,2)*newPixelSize*0.5)
-      drop.width = drop.height = newPixelSize;
+      drop.longevity = this.keepDroplets + randomInt(-120, 120);  
+      drop.width = drop.height = ((newPixelSize)+(randomInt(-1,1)*newPixelSize*0.25)) * fighterScale;
       if (randomInt(0, 1)) {
-        drop.tint = 0xaa0000;
+        drop.tint = 0x990000;
       } else {
-        drop.tint = 0xdd0000;
+        drop.tint = 0xcc0000;
       }
       drop.x = this.terminus.x + randomInt(-this.spread, this.spread) * newPixelSize;
       if (randomInt(0, 2)) {
@@ -1259,7 +1256,7 @@ function Powerup(posX, type, dropped) {
       this.sprite.rotation += degToRad(10);
     };
     this.checkForPlayer = function() {
-      if (player.ducking && Math.abs(player.sprite.x - this.sprite.x) < tileSize) {
+      if (player.ducking && !player.weapon && Math.abs(player.sprite.x - this.sprite.x) < tileSize) {
         this.sprite.visible = false;
         powerups.splice(powerups.indexOf(this), 1);
         player.weapon = 'knife';

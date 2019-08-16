@@ -2,6 +2,42 @@ var pressingUp, pressingDown, pressingLeft, pressingRight, pressingPunch, pressi
 var touches = [];
 var touchingDPad = false;
 
+
+const moveSelector = (direction) => {
+  let currentSelectedIndex = 0;
+  let newIndex = 0;
+  let buttonArray = Array.from(document.getElementsByClassName('title-button'));
+  buttonArray.map((but, i, arr) => {
+    if (but.classList.contains('selected')) {
+      currentSelectedIndex = i;
+    }
+  });
+  if (direction > 0) {
+    newIndex = currentSelectedIndex + 1 < buttonArray.length ? currentSelectedIndex + 1 : 0
+  } else {
+    newIndex = currentSelectedIndex - 1 >= 0 ? currentSelectedIndex - 1 : buttonArray.length - 1
+  }
+  buttonArray.map((but, i, arr) => {
+    if (i === newIndex) {
+      but.classList.add('selected')
+    } else {
+      but.classList.remove('selected');
+    }
+  });
+}
+const chooseTitleSelection = () => {
+  let selected = document.querySelector('.title-button.selected').innerText.toLowerCase();
+  if (selected === 'start!') {
+    callModeSelectScreen();
+    clearTitle();
+  }
+  if (selected === 'top fighters') {
+    toggleHighScores();
+  }
+  if (selected === 'options') {
+    toggleOptionsScreen();
+  }
+}
 touchStart = function(event) {
   // event.preventDefault();
   touchingDPad = true;
@@ -147,7 +183,7 @@ function pressRight() {
     nesPanel.rightButton.tint = 0xaaffaa;
   }
   pressingRight = true;
-  if (!titleScreen.container.visible && !(player.level.direction === 'left' && player.fightingBoss && Math.abs(player.sprite.x - player.level.boss.sprite.x) < tileSize * 4) && counter > introTime + walkupTime && player.sprite.scale.x < 0) {
+  if (document.getElementById('title-screen').classList.contains('hidden') && !(player.level.direction === 'left' && player.fightingBoss && Math.abs(player.sprite.x - player.level.boss.sprite.x) < tileSize * 4) && counter > introTime + walkupTime && player.sprite.scale.x < 0) {
     player.sprite.scale.x *= -1;
   }
   if (!player.ducking && !player.grippers.length) {
@@ -167,7 +203,7 @@ function pressLeft() {
   }
   pressingLeft = true;
 
-  if (!titleScreen.container.visible && !(player.level.direction === 'right' && player.fightingBoss && Math.abs(player.sprite.x - player.level.boss.sprite.x) < tileSize * 4) && counter > introTime + walkupTime && player.sprite.scale.x > 0) {
+  if (document.getElementById('title-screen').classList.contains('hidden') && !(player.level.direction === 'right' && player.fightingBoss && Math.abs(player.sprite.x - player.level.boss.sprite.x) < tileSize * 4) && counter > introTime + walkupTime && player.sprite.scale.x > 0) {
     player.sprite.scale.x *= -1;
   }
   if (!player.ducking) {
@@ -186,12 +222,13 @@ function pressUp() {
     nesPanel.upButton.tint = 0xaaffaa;
     // nesPanel.depressButton(nesPanel.upButton)
   }
-  if (!titleScreen.container.visible && !player.grippers.length && !player.punching && !player.kicking && player.sprite.y === player.level.groundY) {
+  if (document.getElementById('title-screen').classList.contains('hidden') && !player.grippers.length && !player.punching && !player.kicking && player.sprite.y === player.level.groundY) {
     player.beganJump = counter;
   }
   pressingUp = true;
-  if (titleScreen.container.visible) {
-    selector.move(-1);
+  if (!document.getElementById('title-screen').classList.contains('hidden')) {
+    // selector.move(-1);
+    moveSelector(-1);
   }
 }
 function releaseUp() {
@@ -204,12 +241,13 @@ function pressDown() {
   if (nesPanel) {
     nesPanel.downButton.tint = 0xaaffaa;
   }
-  if (!titleScreen.container.visible && player.sprite.y === player.level.groundY) {
+  if (document.getElementById('title-screen').classList.contains('hidden') && player.sprite.y === player.level.groundY) {
     player.beganDuck = counter;
     player.ducking = true;
   }
-  if (titleScreen.container.visible) {
-    selector.move(1);
+  if (!document.getElementById('title-screen').classList.contains('hidden')) {
+    // selector.move(1);
+    moveSelector(1);
   }
   pressingDown = true;
 }
@@ -246,22 +284,16 @@ function pressPunch() {
   player.beganPunch = counter;
   player.punching = true;
   pressingPunch = true;
-  let titleShowing = titleScreen.container.visible
-  && !dragonScreen.container.visible
+  let titleShowing = !document.getElementById('title-screen').classList.contains('hidden')
   && !document.getElementById('mode-select-screen').style.display
   && document.getElementById('options-screen').classList.contains('hidden')
   && !document.getElementById('controls-hint').classList.contains('showing');
   if (titleShowing) {
-    selector.chooseSelection();
+    // selector.chooseSelection();
+    chooseTitleSelection();
   }
   if (!gameInitiated && !document.getElementById('cinematic').classList.contains('hidden')) {
-    document.getElementById('cinematic').classList.add('hidden');
-    if (landscape && gameOptions.showInstructions) {
-      document.getElementById('controls-hint').classList.add('showing');
-      gameOptions.showInstructions = false;
-    } else {
-      gameInitiated = true;
-    }
+    skipTextOrNextSlide();
   }
 }
 function releasePunch() {
@@ -283,22 +315,16 @@ function pressKick() {
   player.beganKick = counter;
   player.kicking = true;
   pressingKick = true;
-  let titleShowing = titleScreen.container.visible
-  && !dragonScreen.container.visible
+  let titleShowing = !document.getElementById('title-screen').classList.contains('hidden')
   && !document.getElementById('mode-select-screen').style.display
   && document.getElementById('options-screen').classList.contains('hidden')
   && !document.getElementById('controls-hint').classList.contains('showing');
   if (titleShowing) {
-    selector.chooseSelection();
+    // selector.chooseSelection();
+    chooseTitleSelection();
   }
   if (!gameInitiated && !document.getElementById('cinematic').classList.contains('hidden')) {
-    document.getElementById('cinematic').classList.add('hidden');
-    if (landscape && gameOptions.showInstructions) {
-      document.getElementById('controls-hint').classList.add('showing');
-      gameOptions.showInstructions = false;
-    } else {
-      gameInitiated = true;
-    }
+    skipTextOrNextSlide()
   }
 }
 function releaseKick() {

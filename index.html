@@ -11,9 +11,10 @@
 	<meta name="description" content="A gritty sequel to NES Kung Fu.">
 	<title>Brutal Kung Fu</title>
 	<link rel="stylesheet" type="text/css" href="css/style.css">
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.6.1/pixi.min.js"></script>
+	<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.6.1/pixi.min.js"></script> -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/5.1.1/pixi.min.js"></script>
 	<link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet">
-	<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+	<script src="https://unpkg.com/axios/dist/axios.min.js" defer></script>
 	<link rel="icon" href="assets/favicon.png" type="image/x-icon">
 	<link rel="manifest" href="manifest.json" />
 	<link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/bkf-icon-16x16.png">  
@@ -36,7 +37,8 @@
 	</script>
 </head>
 
-<body>		
+<body>
+
 	<div id='gamepad-container'>
 		<div id="nes-border"></div>
 		<div id="nes-panel-bg"></div>
@@ -44,11 +46,20 @@
 		<div class="button-back" id="a-back"></div>
 		<div id="d-pad"></div>
 	</div>
-	<div id='title-items'>
-		<address id='credit'>made just for fun by <a href='https://twitter.com/eggborne_dev'>@eggborne_dev</a></address>
-		<div id='brutal-logo'></div>
-		<div id='kung-fu-logo' class='shrunken'></div>
+	<div id='title-screen' class='game-cover'>
+		<div id='title-header'>
+			<div class='orange-divider'></div>
+			<div id='brutal-logo'></div>
+			<div id='kung-fu-logo'></div>
+			<div class='orange-divider'></div>
+		</div>
+		<div id='title-body'>
+			<button id='start-button' class='title-button clickable selected'>START!</button>
+			<button id='top-fighters-button' class='title-button clickable'>TOP FIGHTERS</button>
+			<button id='options-button' class='title-button clickable'>OPTIONS</button>
+		</div>
 	</div>
+	<address id='credit'>made just for fun by <a href='https://twitter.com/eggborne_dev'>@eggborne_dev</a></address>
 
 	<div id="game-canvas"></div>
 
@@ -101,13 +112,7 @@
 				<div style='opacity: 0' class='close-button go-back-button clickable'>&lt;</div>
 			</div>
 		</div>
-	</div>
-
-	<!-- <input value="" id="name-entry" autofocus onkeyup="this.setAttribute('value', this.value);" type="text" maxlength="9" placeholder="ENTER NAME"> -->
-	<input value="" spellcheck=false id="name-entry" type="text" maxlength="9" placeholder="ENTER NAME">
-	<button disabled onclick="submitHighScore()" id="name-submit">SUBMIT</button>
-	<div id='skip-name-entry-button' class='close-button'>SKIP</div>
-
+	</div>	
 	<div id='controls-hint'>
 		<div id='hint-title'>KEYBOARD CONTROLS</div>
 		<div id='hint-instructions'>CLICK TO CHANGE</div>
@@ -188,7 +193,7 @@
 				</div>
 				<div class='option-row'>
 					<div class='option-label'>SCAN LINES</div>
-					<div id='scan-lines-toggle' class='option-switch clickable'>
+					<div id='scan-lines-toggle' class='option-switch clickable on'>
 						<div class='switch-knob'></div>
 					</div>
 				</div>
@@ -198,11 +203,13 @@
 						<div class='switch-knob'></div>
 					</div>
 				</div>
-				<!-- <div class='option-label ranged'>G-PAD POSITION</div>
-				<div class='option-range'>
-					<div id='gamepad-high-button' class='option-range-value ranged on'>HIGH</div>
-					<div id='gamepad-mid-button' class='option-range-value ranged'>MID</div>
-					<div id='gamepad-low-button' class='option-range-value ranged'>LOW</div>
+				<!-- <div id='gamepad-y-control' class='option-row'>
+					<div class='option-label'>GAMEPAD POSITION</div>
+					<div class='option-range'>				
+						<div id='gamepad-high-button' class='option-range-value ranged on'>HIGH</div>
+						<div id='gamepad-mid-button' class='option-range-value ranged'>MID</div>
+						<div id='gamepad-low-button' class='option-range-value ranged'>LOW</div>
+					</div>
 				</div> -->
 			</div>
 		</div>
@@ -211,14 +218,13 @@
 			<!-- <div id='home-screen-button' class='option-button clickable'>ADD TO HOME SCREEN</div> -->
 		</div>
 		<div id='lower-area'>
-			<div id='close-options-button' class='close-button clickable'>EXIT</div>
+			<div id='close-options-button' class='close-button clickable'>BACK</div>
 			<div id='cookie-confirmation'>
 				<input name='cookie-checkbox' id='cookie-checkbox' type='checkbox'>				
 				<label for='cookie-checkbox'>REMEMBER PREFERENCES<br />(USES COOKIE)</label>
 			</div>
 		</div>
 	</div>
-
 	<div id='top-fighters-screen' class='screen-cover story-mode'>				
 		<header>
 			<div class='orange-divider'></div>
@@ -243,7 +249,6 @@
 		</div>
 		<div class='dragon-column right'></div>
 	</div>
-
 	<div id='key-edit-modal'>
 		Press the new key for<div id='modal-action-display'></div>
 		<div id='modal-cancel-message'>or press ESC to cancel.</div>
@@ -255,17 +260,58 @@
 		<div>Please rotate your device and reload to play</div>
 		<small>(Or visit on desktop)</small>
 	</div>
-	<button onclick='destroyCookie();window.location.reload(true)' id='hard-reload'>HARD RELOAD & CLEAR COOKIE</button>
+	<div id='name-entry-screen' class='screen-cover hidden'>
+		<header>
+			HIGH SCORE!
+			<div id='player-high-score'>000000</div>
+		</header>
+		<div id='player-rank'>NTH PLACE</div>
+		<div id='submission-area'>
+			<input value="" spellcheck=false id="name-entry" type="text" maxlength="9" placeholder="ENTER NAME">
+			<button disabled onclick="submitHighScore()" id="name-submit">SUBMIT</button>
+		</div>
+		<div id='congrats'>
+			ENTER YOUR NAME TO CLAIM YOUR PLACE AMONG THE WORLD'S TOP FIGHTERS.
+		</div>
+		<button id='skip-name-entry-button' class='close-button'>SKIP</button>
+	</div>
+	<!-- <button onclick='destroyCookie();window.location.reload(true)' id='hard-reload'>HARD RELOAD & CLEAR COOKIE</button> -->
 	<div id='cinematic' class='hidden'>
-		<div id='cinema-screen'>
-			<img id='cinema-scene' src='assets/helpmethomas.gif'/>
+		<div id='cinema-screen'>			
+			<img src='assets/helpmethomas.gif' class='cinema-scene' defer/>
+			<img src='assets/castlevaniabg.png' class='cinema-scene' defer/>
+			<img src='assets/kungfugif.gif' class='cinema-scene' defer/>
+			<img style="transform: scaleX(-1)" src='assets/kungfugif.gif' class='cinema-scene' defer/>
+			<img src='assets/sylvialove.gif' class='cinema-scene' defer/>
+			<img src='assets/sparemrx.gif' class='cinema-scene' defer/>
+			<img src='assets/sparemrx.gif' class='cinema-scene' defer/>
+			<img class='cinema-scene sylvia-thomas' defer/>
+			<img style="transform: scale(1.5)" class='cinema-scene sylvia-thomas' defer/>
+			<img style="transform: scale(2)" class='cinema-scene sylvia-thomas' defer/>
+			<div class='cinema-scene pregnant-sylvia frame-0'></div>
+			<div class='cinema-scene pregnant-sylvia frame-1'></div>
+			<div class='cinema-scene pregnant-sylvia frame-2'></div>
+			<div class='cinema-scene pregnant-sylvia frame-2'></div>
+			<div class='cinema-scene pregnant-sylvia frame-2'></div>
+			<img src='assets/ngbackground.png' class='cinema-scene' defer/>
+			<img src='assets/ngbackground.png' class='cinema-scene' defer/>
+			<img src='assets/ngbackground.png' class='cinema-scene' defer/>
+			<div class='cinema-scene thomas-grief frame-0'></div>
+			<div class='cinema-scene thomas-grief frame-1'></div>
+			<div class='cinema-scene thomas-grief frame-2'></div>
+			<div class='cinema-scene thomas-final-grief'></div>
+			<div class='cinema-scene thomas-final-grief-2'></div>
+			<div class='cinema-scene black-screen'></div>
 			<img id='cinema-cover' src='assets/dingy.png' class='cover' />
 		</div>
 		<div id='cinematic-caption' class='caption'></div>
-		<!-- <div id='cinematic-caption' class='caption'></div> -->
-		<div class='skip-button'>SKIP</div>
+		<div class='button-area'>
+			<button class='skip-button'>SKIP</button>
+			<div id='cinematic-caret' class='down-caret'></div>
+			<button id='skip-cinematic-button' class='skip-button'>SKIP</button>
+		</div>
 	</div>
-	<div id='scan-lines' class='screen-cover'></div>
+	<div id='scan-lines' class='screen-cover showing'></div>
 	<noscript>You need to enable JavaScript to play Brutal Kung Fu :(</noscript>
 	<script src="init.js"></script>	
 	<script async src="js/event.js"></script>
@@ -274,9 +320,9 @@
 	<script async src="js/levels.js"></script>
 	<script async src="js/gui.js"></script>
 	<script async src="js/exec.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.1.2/howler.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.1.2/howler.min.js" defer></script>
 </body>
-<script>
+<!-- <script>
 	if ('serviceWorker' in navigator) {
 		navigator.serviceWorker.register('service-worker.js')
 			.then(function(reg){
@@ -285,5 +331,5 @@
 				console.log('Service worker failed :(', err)
 			});
 	}
-</script>
+</script> -->
 </html>

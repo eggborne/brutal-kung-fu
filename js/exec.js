@@ -19,18 +19,17 @@ function update() {
     }
   }
   if (counter === 60) {
-    console.error('gripperLimit', gripperLimit)
-
-    console.error('tomtomLimit', tomtomLimit)
-
-    console.error('enemyFrequency', enemyFrequency)
-
-    console.error('eggFrequency', eggFrequency)
-
+    console.log('gripperLimit', gripperLimit)
+    console.log('tomtomLimit', tomtomLimit)
+    console.log('enemyFrequency', enemyFrequency)
+    console.log('eggFrequency', eggFrequency)
   }
-  if (gameInitiated && !dragonScreen.container.visible && !enterNameScreen.container.visible && counter < introTime) {
+  if (counter === 1) {
+    playSound(gameStartMusic);
+  }
+  if (gameInitiated && document.getElementById('name-entry-screen').classList.contains('hidden') && counter < introTime) {
   } else if (gameInitiated && counter < introTime + walkupTime) {
-    let since = counter - introTime;
+    let since = counter - introTime;    
     if (player.level.direction === 'left') {
       var walkDir = -player.walkSpeed;
       var offCenter = player.sprite.x > gameWidth / 2;
@@ -66,8 +65,12 @@ function update() {
     }
   }
   if (gameInitiated && counter === introTime + walkupTime) {
+    if (gameOptions.soundOn) {
+      bgMusic.stop();
+    }
     playSound(bgMusic);
   }
+
   // scoreDisplay.topText.text = "G-" + grippers.length + " T-" + tomtoms.length + " K-" + knifethrowers.length + " P-" + powerups.length
   if (gameInitiated 
     && !wonRound 
@@ -180,7 +183,7 @@ function update() {
         if (powerup.dropped) {
           // powerup.sprite.y += newPixelSize*4
         } else {
-          powerup.sprite.y += newPixelSize * 3;
+          powerup.sprite.y += (newPixelSize * 3 * fighterScale);
         }
 
         if (powerup.dropped) {
@@ -198,6 +201,7 @@ function update() {
         powerup.checkForPlayer();
       }
       if (powerup.sprite.alpha < 0 || Math.abs(powerup.sprite.x - player.sprite.x) > gameWidth) {
+        console.log('destroying knife', p)
         powerups.splice(powerups.indexOf(powerup), 1);
         gameContainer.removeChild(powerup.sprite);
         p--;
@@ -511,7 +515,7 @@ function update() {
     }
     if (counter - player.diedAt === 110 && player.sprite.y > gameHeight + player.sprite.height) {
       if (lives === 0) {
-        getScoresFromDatabase(gameName, true, true);
+        getScoresFromDatabase(gameName, true, true, true);
       } else {
         setTimeout(function() {
           resetGame();
@@ -526,7 +530,7 @@ function update() {
     if (!endSequenceStarted) {
       player.applyGravity();
       player.applyVelocity();
-      if (!floorDisplay.container.visible && counter % 60 === 0) {
+      if (gameMode !== 'horde' && !floorDisplay.container.visible && counter % 60 === 0) {
         if (levelTime - 1 > 0) {
           levelTime--;
           scoreDisplay.timeText.text = '0'.repeat(4 - levelTime.toString().length) + levelTime;
@@ -548,6 +552,6 @@ function update() {
     // player.sprite.y = player.level.groundY
   } else {
     precounter++;
-    selector.highlightSelection();
+    // selector.highlightSelection();
   }
 }

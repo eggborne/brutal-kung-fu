@@ -5,15 +5,17 @@ const isWebApp = (window.navigator.standalone === true) || (window.matchMedia('(
 let landscape = viewWidth > viewHeight;
 const gameName = 'kungfu';
 let kungFuSounds;
+let onStorySlide = 0;
 window.addEventListener('load', function () {
-  PIXI.loader
+  PIXI.Loader.shared
   .add('assets/nessprites.json')
-  .add('assets/kfsprites.json')
+  .add('assets/bkfsprites.json')
   .load(function() {
     init();
     document.body.className = 'loaded';
     document.getElementById('credit').style.opacity = 0.4;
   });  
+  document.documentElement.style.setProperty('--screen-height', window.innerHeight + 'px');
   soundsLoaded = 0;
   document.getElementById('name-entry').onkeyup = function() {
     if (this.value !== '' && this.value.trim().length) {
@@ -22,7 +24,6 @@ window.addEventListener('load', function () {
       document.getElementById('name-submit').disabled = true;
     }
   }
-  document.documentElement.style.setProperty('--screen-height', window.innerHeight + 'px');
   // setTimeout(() => {
   //   toggleNameEntry();
   // }, 1000);
@@ -90,7 +91,7 @@ const defaultOptions = {
   soundOn: false,
   musicOn: false,
   bloodOn: true,
-  scanLines: false,
+  scanLines: true,
   actionKeys: {
     'WALK LEFT': 'a',
     'WALK RIGHT': 'd',
@@ -279,8 +280,10 @@ renderer.plugins.interaction.interactionFrequency = 1;
 const stage = new PIXI.Container();
 const gameContainer = new PIXI.Container();
 const nesContainer = new PIXI.Container();
+const UIContainer = new PIXI.Container();
 stage.addChild(gameContainer);
 stage.addChild(nesContainer);
+stage.addChild(UIContainer);
 
 document.getElementById('game-canvas').appendChild(renderer.view);
 
@@ -413,14 +416,11 @@ let blipStyle = {
 let created = false;
 function clearTitle() {
   if (!startDisabled) {
-    titleScreen.container.visible = false;
+    document.getElementById('title-screen').classList.add('hidden');
     if (!floorDisplay.container.visible) {
       floorDisplay.container.visible = true;
     }
-    console.warn('clearTitle hiding logos');
-    document.getElementById('title-items').classList.add('hidden');
-    document.getElementById('hard-reload').classList.add('hidden');
-    playSound(gameStartMusic);
+    console.warn('clearTitle');    
   }
 }
 
@@ -431,9 +431,9 @@ function toggleSound() {
 }
 function toggleMusic() {
   !soundsLoaded ? loadSounds() : null;
-  introTime = gameOptions.musicOn ? 300 : 30;
   document.getElementById('music-toggle').classList.toggle('on');
   gameOptions.musicOn = !gameOptions.musicOn;
+  introTime = gameOptions.musicOn ? 300 : 30;
 }
 function toggleBlood() {
   
@@ -447,7 +447,7 @@ function toggleScanLines() {
   gameOptions.scanLines = !gameOptions.scanLines;
 }
 
-const startingLives = 0;
+const startingLives = 3;
 let lives = startingLives;
 let bottomSpace = viewHeight - gameHeight;
 let topEdge = gameHeight - tileSize * (tilesPerHeight - 3.5);
@@ -697,36 +697,17 @@ document.getElementById('close-options-button').onclick = function() {
 document.getElementById('close-high-scores-button').onclick = function() {
   toggleHighScores();
 }
-document.getElementById('story-mode-panel').onclick = function() {
+document.getElementById('story-mode-panel').onpointerdown = function() {
   this.classList.add('selected');
   document.getElementById('horde-mode-panel').classList.remove('selected');
-  // document.getElementById('stage-select-mode-panel').classList.remove('selected');
-  // document.getElementById('stage-select-mode-panel').classList.remove('expanded');
-  document.getElementById('game-canvas').style.backgroundColor = 'var(--original-bg-color)';
-  document.getElementById('story-mode-panel').classList.remove('truncated');
-  document.getElementById('horde-mode-panel').classList.remove('truncated');
   gameMode = 'story';
   
 }
-document.getElementById('horde-mode-panel').onclick = function() {
+document.getElementById('horde-mode-panel').onpointerdown = function() {
   this.classList.add('selected');
   document.getElementById('story-mode-panel').classList.remove('selected');
-  // document.getElementById('stage-select-mode-panel').classList.remove('selected');
-  // document.getElementById('stage-select-mode-panel').classList.remove('expanded');
-  document.getElementById('game-canvas').style.backgroundColor = 'var(--horde-bg-color)';
-  document.getElementById('story-mode-panel').classList.remove('truncated');
-  document.getElementById('horde-mode-panel').classList.remove('truncated');
   gameMode = 'horde';  
 }
-// document.getElementById('stage-select-mode-panel').onclick = function() {
-//   this.classList.add('selected');
-//   this.classList.add('expanded');
-//   document.getElementById('story-mode-panel').classList.remove('selected');
-//   document.getElementById('horde-mode-panel').classList.remove('selected');
-//   document.getElementById('story-mode-panel').classList.add('truncated');
-//   document.getElementById('horde-mode-panel').classList.add('truncated');
-//   gameMode = 'story';
-// }
 document.getElementById('hint-close-button').onclick = function() {
   this.parentElement.parentElement.classList.remove('showing');
   if (document.getElementById('options-screen').classList.contains('hidden')) {
@@ -734,13 +715,10 @@ document.getElementById('hint-close-button').onclick = function() {
   }
 }
 document.getElementById('cinematic').onclick = function() {
-  this.classList.add('hidden');
-  if (landscape && gameOptions.showInstructions) {
-    document.getElementById('controls-hint').classList.add('showing');
-    gameOptions.showInstructions = false;
-  } else {
-    gameInitiated = true;
-  }
+  skipTextOrNextSlide();
+}
+document.getElementById('skip-cinematic-button').onclick = function() {
+  skipCinematic();
 }
 Array.from(document.querySelectorAll('#top-fighters-screen .tab-area > .tab')).map((tab, i, arr) => {
   tab.onpointerdown = function() {
@@ -751,62 +729,136 @@ Array.from(document.querySelectorAll('#top-fighters-screen .tab-area > .tab')).m
   console.log(highScoreTabSelected);
   };
 });
+async function advanceSlide() {
+  console.log('onStorySlide', onStorySlide);
+  let currentSlide = storySlides[onStorySlide];
+  if (!currentSlide || (onStorySlide && !document.querySelector(`.cinema-scene:nth-child(${onStorySlide})`))) {
+    console.error('END of slides.');
+    gameInitiated = true;
+    return document.getElementById('cinematic').classList.add('hidden')
+  }
+  document.getElementById('cinematic-caret').classList.remove('ready');
+  if (onStorySlide && !currentSlide.keepImage) {
+    document.querySelector(`.cinema-scene:nth-child(${onStorySlide - 1})`).classList.remove('full-opacity');
+    document.querySelector(`.cinema-scene:nth-child(${onStorySlide})`).classList.add('full-opacity');
+  }
+  await typeCaption(currentSlide);
+  if (gameInitiated) { return document.getElementById('cinematic').classList.add('hidden') };
+  if (onStorySlide === 0) {
+    document.querySelector('#cinematic > .caption').classList.add('moved-down');    
+    // wait for 'years ago' to shrink
+    setTimeout(async function() {
+      document.getElementById('cinema-screen').classList.add('full-opacity');
+      document.querySelector('.cinema-scene:first-child').classList.add('full-opacity');
+      await typeCaption(storySlides[1]);
+      if (gameInitiated) { return document.getElementById('cinematic').classList.add('hidden') };
+      document.getElementById('cinematic-caret').classList.add('ready');
+    }, 1750);
+    onStorySlide++;
+  } else {
+    if (currentSlide.caption) {
+      document.getElementById('cinematic-caret').classList.add('ready');
+    } else {
+      setTimeout(async function() {
+        console.error('auto-advancing.')
+        await advanceSlide()
+      }, 1000);
+    }
+
+  }
+  onStorySlide++;
+}
+async function playStory() {
+  // console.log('called playStory')
+
+  // await advanceSlide();
+  // await typeCaption(storySlides[0]);
+  // document.getElementById('cinematic-caret').classList.add('ready');
+  // document.querySelector('#cinema-screen').classList.add('full-opacity');
+  // document.querySelector('.cinema-scene:first-child').classList.add('full-opacity');
+  // if (gameInitiated) { return document.getElementById('cinematic').classList.add('hidden') };
+  // if (skippingSlide) { 
+  //   await typeCaption(storySlides[1]);
+  //   skippingSlide = false 
+  // } else {
+  //   await typeCaption(storySlides[1]);
+  // }
+
+  // document.querySelector('.cinema-scene:first-child').classList.remove('full-opacity');
+  // document.querySelector('.cinema-scene:nth-child(1)').classList.add('full-opacity');
+  // if (gameInitiated) { return document.getElementById('cinematic').classList.add('hidden') };
+  // if (skippingSlide) { skippingSlide = false };
+
+  // for (let i=2; i < storySlides.length; i++) {
+  //   if (i > 1) {
+  //     if (!storySlides[i].keepLastImage) {
+  //       document.querySelector(`.cinema-scene:nth-child(${i - 1})`).classList.remove('full-opacity');
+  //       document.querySelector(`.cinema-scene:nth-child(${i})`).classList.add('full-opacity');
+  //     }
+  //     await typeCaption(storySlides[i]);
+  //     if (gameInitiated) { return document.getElementById('cinematic').classList.add('hidden') };
+  //     if (skippingSlide) { skippingSlide = false };
+  //   }
+  // };
+}
 document.getElementById('confirm-mode-button').onclick = function() {
+  console.log('gamemode', gameMode)
   if (gameMode === 'horde') {
     floorDisplay.legend.text = 'HORDE MODE';
     floorDisplay.bg.width = tileSize * 5;
     lives = 0;
-    scoreDisplay.updateLives(0);
-    gameContainer.x += level1.levelWidth / 2;
-    floorDisplay.container.x -= level1.levelWidth / 2;
-    player.sprite.x = (gameWidth / 2) - (level1.levelWidth / 2);
+    scoreDisplay.updateLives(lives);
+    player.sprite.x = (gameWidth / 2);
     tomtomLimit = 2;
-    level1.boss.sprite.alpha = 0;
-    level1.container.alpha = 0;
+    gameContainer.removeChild(player.level.container);
+    // fighterScale = 1.4;
+    // player.setAttributesToScale(fighterScale);
+    document.getElementById('game-canvas').classList.add('horde-mode')
+    
     gameInitiated = true;
-    gameContainer.removeChild(player.container);
-    fighterScale = 1.5;
-    player.setAttributesToScale(fighterScale);
   } else if (gameMode === 'story') {
     floorDisplay.legend.text = 'LEVEL 1';
     floorDisplay.bg.width = tileSize * 3.5;
-    level1.boss.sprite.alpha = 1;
-    level1.container.alpha = 1;
+    lives = startingLives;
+    scoreDisplay.updateLives(lives);
+    // gameContainer.removeChild(player.container);
     if (selectedStage) {
       levelUp(selectedStage - 1);
       selectedStage = 0;
     }
+    if (fighterScale !== 1) {
+      fighterScale = 1;
+      player.setAttributesToScale(fighterScale);
+    }
     document.getElementById('cinematic').classList.remove('hidden');
-    setTimeout(() => {
-      document.getElementById('cinema-scene').classList.add('full-opacity');
-      document.getElementById('cinema-cover').classList.add('full-opacity');
+    document.getElementById('game-canvas').classList.remove('horde-mode');
+
+    requestAnimationFrame(() => {
+      console.log('advanceSlide?', advanceSlide)
+      advanceSlide();
     });
-    setTimeout(() => {
-      playStory();
-    }, 750);
 
   }
   document.getElementById('mode-select-screen').classList.add('hidden');
 }
-async function playStory() {
-  document.getElementById('cinema-scene').src = storySlides[0].imagePath;
-  await typeCaption(storySlides[0].caption);
-  document.getElementById('cinema-scene').src = storySlides[1].imagePath;
-  if (gameInitiated) { return };
-  await typeCaption(storySlides[1].caption);
-  document.getElementById('cinema-scene').src = storySlides[2].imagePath;
-  if (gameInitiated) { return };
-  await typeCaption(storySlides[2].caption);
-  document.getElementById('cinema-scene').src = storySlides[3].imagePath;
-  if (gameInitiated) { return };
-  await typeCaption(storySlides[3].caption);
-  document.getElementById('cinema-scene').src = storySlides[4].imagePath;
-  if (gameInitiated) { return };
-  await typeCaption(storySlides[4].caption);
-  document.getElementById('cinema-scene').src = storySlides[5].imagePath;
-  if (gameInitiated) { return };
-  await typeCaption(storySlides[5].caption);
-}
+Array.from(document.querySelectorAll('.title-button')).map((but, i, arr) => {
+  but.onpointerdown = function() {
+    this.classList.add('selected')
+    arr
+    .filter(but => but !== this)
+    .map(but => but.classList.remove('selected'));
+  }
+});
+document.getElementById('start-button').onpointerup = function() {
+  callModeSelectScreen()
+  clearTitle();
+};
+document.getElementById('top-fighters-button').onpointerup = function() {
+  toggleHighScores();
+};
+document.getElementById('options-button').onpointerup = function() {
+  toggleOptionsScreen();
+};
 document.getElementById('skip-name-entry-button').onclick = function() {
   toggleNameEntry();
   startDisabled = true;
@@ -824,9 +876,8 @@ Array.from(document.querySelectorAll('.stage-knob')).map((knob, i) => {
   }
 });
 document.getElementById('mode-back-button').onclick = function() {
+  document.getElementById('title-screen').classList.remove('hidden');
   document.getElementById('mode-select-screen').classList.add('hidden');
-  document.getElementById('title-items').classList.remove('hidden');
-  titleScreen.container.visible = true;
   lives = startingLives;
   currentLevel = undefined;
   levelReached = 1;
@@ -836,6 +887,21 @@ document.getElementById('mode-back-button').onclick = function() {
   player.score = 0;
   floorDisplay.legend.text = 'LEVEL ' + levelReached;
   floorDisplay.container.x = gameWidth / 2;
+}
+function moveGamepad(newPosition) {
+  let extraY = window.innerHeight - gameHeight;
+  let padHeight = document.getElementById('nes-border').offsetHeight;
+  console.log('padheight', padHeight);
+  if (newPosition === 'HIGH') {
+    nesContainer.y = 0;
+  }
+  if (newPosition === 'MID') {
+    nesContainer.y = (extraY / 2) - (padHeight / 2);
+  }
+  if (newPosition === 'LOW') {
+    nesContainer.y = (extraY) - padHeight;
+    document.getElementById('gamepad-container').classList.add('low');
+  }
 }
 scoreDisplay = undefined;
 useCookie = true;
@@ -855,9 +921,6 @@ const getCookie = cookieName => {
   if (cookieObj.length) {
     console.warn('cookie is good')
     cookieObj = JSON.parse(cookieObj[0].split('=')[1]);
-    // document.getElementById('cookie-checkbox').checked = true;
-    // document.getElementById('credit').className = 'remembered'
-    // document.getElementById('credit').innerText = '* REMEMBERED *'
   } else {
     cookieObj = undefined;
   }
@@ -874,18 +937,10 @@ function init() {
   setVariables();
   player = new Fighter('thomas');
   nesPanel = new NESPanel();
-  titleScreen = new TitleScreen();
-  selector = new DragonSelector();
-  stage.addChild(titleScreen.container);
-  // createGame();
-  // titleScreen = new TitleScreen();
-  // stage.addChild(titleScreen.container);
   createGame();
-  getScoresFromDatabase(gameName, true);
-  enterNameScreen = new EnterNameScreen();
-  dragonScreen = new DragonScreen();
-  stage.addChild(enterNameScreen.container);
-  stage.addChild(dragonScreen.container);
+  setTimeout(() => {
+    getScoresFromDatabase(gameName, true);
+  }, 1000);
   if (!landscape) {
     // gameContainer.mask.width = gameContainer.width;
     // gameContainer.mask.height = gameHeight;
@@ -893,7 +948,7 @@ function init() {
     // gameContainer.mask.y = gameContainer.y;
   }
   
-  PIXI.ticker.shared.add(function(time) {
+  PIXI.Ticker.shared.add(function(time) {
     renderer.render(stage);
     update();
   });

@@ -1426,15 +1426,13 @@ function resetGame() {
     lives--;
     gameInitiated = true;
     clearTitle();
-
     enemyFrequency = player.levelData.enemyFrequency;
     eggFrequency = player.levelData.eggFrequency;
     gripperLimit = player.levelData.limits.grippers;
     tomtomLimit = player.levelData.limits.tomtoms;
 
   } else {
-    document.getElementById('title-items').classList.remove('hidden');
-    titleScreen.container.visible = true;
+    document.getElementById('title-screen').classList.remove('hidden');
     lives = startingLives;
     currentLevel = undefined;
     levelReached = 1;
