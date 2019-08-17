@@ -7,14 +7,16 @@ const gameName = 'kungfu';
 let kungFuSounds;
 let onStorySlide = 0;
 window.addEventListener('load', function () {
-  PIXI.Loader.shared
-  .add('assets/nessprites.json')
-  .add('assets/bkfsprites.json')
-  .load(function() {
-    init();
-    document.body.className = 'loaded';
-    document.getElementById('credit').style.opacity = 0.4;
-  });  
+  // PIXI.Loader.shared
+  // .add('assets/nessprites.json')
+  // .add('assets/bkfsprites.json')
+  // .load(function() {
+  //   init();
+  //   document.body.className = 'loaded';
+  //   document.getElementById('credit').style.opacity = 0.4;
+  // });  
+  document.body.className = 'loaded';
+  document.getElementById('credit').style.opacity = 0.4;
   document.documentElement.style.setProperty('--screen-height', window.innerHeight + 'px');
   soundsLoaded = 0;
   document.getElementById('name-entry').onkeyup = function() {
@@ -260,24 +262,24 @@ function playSound(sound) {
   }
 }
 PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
-PIXI.settings.RESOLUTION = window.devicePixelRatio;
-const renderer = PIXI.autoDetectRenderer({
+const app = new PIXI.Application({
   // width: viewWidth,
   width: viewHeight / (15 / 16),
   height: viewHeight,
   autoResize: true,
   powerPreference: 'high-performance',
+  resolution: window.devicePixelRatio,
   // roundPixels: true,
   // backgroundColor:bgColor,
   transparent: true
 });
 if (!isTouchDevice && landscape) {
-  renderer.roundPixels = true;
+  app.roundPixels = true;
 }
 
-renderer.plugins.interaction.interactionFrequency = 1;
-// renderer.x = 0
-const stage = new PIXI.Container();
+// app.plugins.interaction.interactionFrequency = 1;
+// app.x = 0
+const stage = app.stage;
 const gameContainer = new PIXI.Container();
 const nesContainer = new PIXI.Container();
 const UIContainer = new PIXI.Container();
@@ -285,7 +287,15 @@ stage.addChild(gameContainer);
 stage.addChild(nesContainer);
 stage.addChild(UIContainer);
 
-document.getElementById('game-canvas').appendChild(renderer.view);
+app.loader.add('assets/nessprites.json')
+.add('assets/bkfsprites.json')
+.load(function() {
+  init();
+  document.body.className = 'loaded';
+  document.getElementById('credit').style.opacity = 0.4;
+});  
+
+document.getElementById('game-canvas').appendChild(app.view);
 
 // let gameWidth = document.getElementById("game-canvas").offsetWidth
 let gameWidth = document.getElementById('game-canvas').offsetWidth;
@@ -302,6 +312,7 @@ lastEggX = undefined;
 
 // if (!landscape) {
 tileSize = Math.round(gameWidth / tilesPerWidth);
+// tileSize = gameWidth / tilesPerWidth;
 document.documentElement.style.setProperty('--tile-size', tileSize + 'px')
 // } else {
 //     tileSize = Math.round(gameHeight/tilesPerHeight)
@@ -949,7 +960,7 @@ function init() {
   }
   
   PIXI.Ticker.shared.add(function(time) {
-    renderer.render(stage);
+    app.render(gameContainer);
     update();
   });
 }
