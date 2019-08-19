@@ -6,19 +6,19 @@ let landscape = viewWidth > viewHeight;
 const gameName = 'kungfu';
 let kungFuSounds;
 let onStorySlide = 0;
+let soundsLoaded = 0;
 window.addEventListener('load', function () {
-  // PIXI.Loader.shared
-  // .add('assets/nessprites.json')
-  // .add('assets/bkfsprites.json')
-  // .load(function() {
-  //   init();
-  //   document.body.className = 'loaded';
-  //   document.getElementById('credit').style.opacity = 0.4;
-  // });  
-  document.body.className = 'loaded';
-  document.getElementById('credit').style.opacity = 0.4;
+  app.loader.add('assets/nessprites.json')
+    .add('assets/bkfsprites.json')
+    .load(function() {
+      init();      
+      document.getElementById('game-canvas').classList.remove('hidden');
+      document.getElementById('options-screen').classList.add('hidden');
+      document.getElementById('top-fighters-screen').classList.add('hidden');
+      document.body.className = 'loaded';
+      document.getElementById('credit').style.opacity = 0.1;
+    }); 
   document.documentElement.style.setProperty('--screen-height', window.innerHeight + 'px');
-  soundsLoaded = 0;
   document.getElementById('name-entry').onkeyup = function() {
     if (this.value !== '' && this.value.trim().length) {
       document.getElementById('name-submit').disabled = false;
@@ -31,12 +31,7 @@ window.addEventListener('load', function () {
   // }, 1000);
 
   // document.getElementById('kung-fu-logo').classList.add('landed');
-    
-  
-  document.getElementById('options-screen').classList.add('hidden');
-  document.getElementById('top-fighters-screen').classList.add('hidden');
-  
-  
+
   let userCookie = getCookie('brutalkungfu');
   if (userCookie) {
     console.warn('gameOpt now', gameOptions);
@@ -103,6 +98,7 @@ const defaultOptions = {
     'KICK': 'k',
     'THROW WEAPON': 'l'
   },
+  gamepadPosition: 'HIGH',
   showInstructions: landscape,
   addedToHomeScreen: isWebApp,
   playerName: ''
@@ -261,21 +257,32 @@ function playSound(sound) {
     }
   }
 }
+
+let gameWidth = viewWidth;
+let gameHeight = viewWidth * (15 / 16);
+let gameX = 0;
+if (landscape) {
+  gameHeight = window.innerHeight;
+  gameWidth = gameHeight * (16 / 15);
+  gameX = (viewWidth - gameWidth) / 2;
+}
+
 PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
+// PIXI.settings.PRECISION_FRAGMENT = PIXI.PRECISION.LOW;
+// PIXI.settings.PRECISION_VERTEX = PIXI.PRECISION.LOW;
+console.log('PIXI.set.prec', PIXI.settings)
 const app = new PIXI.Application({
   // width: viewWidth,
-  width: viewHeight / (15 / 16),
+  width: gameWidth,
   height: viewHeight,
-  autoResize: true,
   powerPreference: 'high-performance',
   resolution: window.devicePixelRatio,
+  autoResize: true,
   // roundPixels: true,
-  // backgroundColor:bgColor,
+  // backgroundColor: 0x9290ff,
   transparent: true
 });
-if (!isTouchDevice && landscape) {
-  app.roundPixels = true;
-}
+
 
 // app.plugins.interaction.interactionFrequency = 1;
 // app.x = 0
@@ -284,23 +291,18 @@ const gameContainer = new PIXI.Container();
 const nesContainer = new PIXI.Container();
 const UIContainer = new PIXI.Container();
 stage.addChild(gameContainer);
-stage.addChild(nesContainer);
 stage.addChild(UIContainer);
-
-app.loader.add('assets/nessprites.json')
-.add('assets/bkfsprites.json')
-.load(function() {
-  init();
-  document.body.className = 'loaded';
-  document.getElementById('credit').style.opacity = 0.4;
-});  
-
+if (landscape) {
+  // stage.addChild(nesContainer);
+} else {
+  stage.addChild(nesContainer);
+}
 document.getElementById('game-canvas').appendChild(app.view);
 
-// let gameWidth = document.getElementById("game-canvas").offsetWidth
-let gameWidth = document.getElementById('game-canvas').offsetWidth;
-let gameHeight = document.getElementById('game-canvas').offsetHeight;
-document.documentElement.style.setProperty('--game-x', document.getElementById('game-canvas').offsetLeft + 'px')
+// let gameWidth = document.getElementById('game-canvas').offsetWidth;
+// let gameHeight = document.getElementById('game-canvas').offsetHeight;
+
+document.documentElement.style.setProperty('--game-x', gameX + 'px')
 document.documentElement.style.setProperty('--game-width', gameWidth + 'px')
 document.documentElement.style.setProperty('--game-height', gameHeight + 'px')
 actualHeight = parseInt(gameHeight);
@@ -311,7 +313,8 @@ let currentScore = 0;
 lastEggX = undefined;
 
 // if (!landscape) {
-tileSize = Math.round(gameWidth / tilesPerWidth);
+const tileSize = Math.round(gameWidth / tilesPerWidth);
+// const tileSize = Math.round(gameHeight/tilesPerHeight)
 // tileSize = gameWidth / tilesPerWidth;
 document.documentElement.style.setProperty('--tile-size', tileSize + 'px')
 // } else {
@@ -458,7 +461,7 @@ function toggleScanLines() {
   gameOptions.scanLines = !gameOptions.scanLines;
 }
 
-const startingLives = 3;
+const startingLives = 0;
 let lives = startingLives;
 let bottomSpace = viewHeight - gameHeight;
 let topEdge = gameHeight - tileSize * (tilesPerHeight - 3.5);
@@ -472,10 +475,10 @@ let bosses = [];
 levelData = [
   {
     direction: 'left',
-    enemyFrequency: 50,
+    enemyFrequency: 80,
     eggFrequency: 0,
     limits: {
-      grippers: 4,
+      grippers: 3,
       tomtoms: 0,
       knifethrowers: 2
     },
@@ -487,7 +490,7 @@ levelData = [
     enemyFrequency: 40,
     eggFrequency: 60,
     limits: {
-      grippers: 5,
+      grippers: 4,
       tomtoms: 2,
       knifethrowers: 2
     },
@@ -499,7 +502,7 @@ levelData = [
     enemyFrequency: 30,
     eggFrequency: 300,
     limits: {
-      grippers: 6,
+      grippers: 5,
       tomtoms: 4,
       knifethrowers: 2
     },
@@ -546,12 +549,15 @@ levelData = [
 
 // let enemyFrequency, eggFrequency;
 
+let hordeLevel;
+
 function createGame() {
   created = true;
   console.log(levelData)
   // level1 = new Level(1, 'left', gameHeight, 'waterbg', topEdge, groundY);
   let firstLevel = levelData[0];
   level1 = new Level(1, firstLevel.direction, gameHeight, firstLevel.water, topEdge, groundY);
+  hordeLevel = new Level(0, 'left', gameHeight, 'waterbg', topEdge, groundY, 6, true);
   gameContainer.setChildIndex(player.sprite, gameContainer.children.length - 1);
 
   player.level = level1;
@@ -600,7 +606,8 @@ function createGame() {
     nesPanel.container.visible = false;
   } else if (!landscape) {
     let bottomSpace = viewHeight - gameHeight;
-    let nesPanelHeight = document.getElementById('nes-panel-bg').offsetHeight;
+    // let nesPanelHeight = document.getElementById('nes-panel-bg').offsetHeight;
+    let nesPanelHeight = nesContainer.height;
     if (bottomSpace < nesPanel.controls.height) {
       nesPanel.controls.height = bottomSpace - newPixelSize * 6;
       nesPanel.hideDecor();
@@ -612,12 +619,12 @@ function createGame() {
     }
   }
   if (!landscape) {
-    gameContainer.mask = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
-    gameContainer.mask.width = gameWidth;
-    gameContainer.mask.height = gameHeight;
-    gameContainer.mask.x = 0;
-    gameContainer.mask.y = 0;
-    stage.addChild(gameContainer.mask);
+    // gameContainer.mask = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
+    // gameContainer.mask.width = gameWidth;
+    // gameContainer.mask.height = gameHeight;
+    // gameContainer.mask.x = 0;
+    // gameContainer.mask.y = 0;
+    // stage.addChild(gameContainer.mask);
   }
 }
 document.getElementById('controls-button').onclick = () => {
@@ -645,7 +652,7 @@ if (landscape && !isTouchDevice) {
 //   }
 }
 [...document.querySelectorAll('.key-row')].map((but, i) => {
-  but.onpointerdown = function(e) {
+  but.onclick = function(e) {
     let action = Object.keys(gameOptions.actionKeys)[i];
     this.classList.add('depressed');
     callKeyEditModal(action);
@@ -657,12 +664,12 @@ document.getElementById('sound-toggle').onpointerdown = () => {
 document.getElementById('music-toggle').onpointerdown = () => {
   toggleMusic();
 };
-document.getElementById('blood-toggle').onpointerdown = () => {    
+document.getElementById('blood-toggle').onclick = () => {    
   console.log('clicked while gameOptions.bloodOn', gameOptions.bloodOn)
   toggleBlood();
   console.log('after toggleScanLines gameOptions.bloodOn is', gameOptions.bloodOn)
 };
-document.getElementById('scan-lines-toggle').onpointerdown = () => {
+document.getElementById('scan-lines-toggle').onclick = () => {
   console.log('clicked while gameOptions.scanLines', gameOptions.scanLines)
   toggleScanLines();
   console.log('after toggleScanLines gameOptions.scanLines is', gameOptions.scanLines)
@@ -675,45 +682,17 @@ document.getElementById('full-screen-toggle').onclick = () => {
   }
   toggleFullScreen();
 };
-// document.getElementById('gamepad-high-button').onclick = function() {
-//   if (!this.classList.contains('on')) {
-//     this.classList.add('on')
-//   }
-//   document.documentElement.style.setProperty('--gamepad-y', actualHeight + 'px');
-//   document.getElementById('gamepad-mid-button').classList.remove('on');
-//   document.getElementById('gamepad-low-button').classList.remove('on');
-// }
-// document.getElementById('gamepad-mid-button').onclick = function() {
-//   if (!this.classList.contains('on')) {
-//     this.classList.add('on')
-//   }
-//   document.getElementById('gamepad-low-button').classList.remove('on');
-//   document.getElementById('gamepad-high-button').classList.remove('on');
-//   document.documentElement.style.setProperty('--gamepad-y', (actualHeight + ((window.innerHeight - actualHeight) / 2)) + 'px');
-//   nesPanel.controls.y = (actualHeight + ((window.innerHeight - actualHeight) / 2));
-//   nesPanel.panelBg.y = (actualHeight + ((window.innerHeight - actualHeight) / 2));
-// }
-// document.getElementById('gamepad-low-button').onclick = function() {
-//   if (!this.classList.contains('on')) {
-//     this.classList.add('on')
-//   }
-//   document.getElementById('gamepad-mid-button').classList.remove('on');
-//   document.getElementById('gamepad-high-button').classList.remove('on');
-//   document.documentElement.style.setProperty('--gamepad-y', (window.innerHeight - (window.innerHeight - actualHeight)) + 'px');
-//   nesPanel.bg.y = (window.innerHeight - (window.innerHeight - actualHeight));
-// }
 document.getElementById('close-options-button').onclick = function() {
   toggleOptionsScreen();
-}
+};
 document.getElementById('close-high-scores-button').onclick = function() {
   toggleHighScores();
-}
+};
 document.getElementById('story-mode-panel').onpointerdown = function() {
   this.classList.add('selected');
   document.getElementById('horde-mode-panel').classList.remove('selected');
   gameMode = 'story';
-  
-}
+};
 document.getElementById('horde-mode-panel').onpointerdown = function() {
   this.classList.add('selected');
   document.getElementById('story-mode-panel').classList.remove('selected');
@@ -743,10 +722,11 @@ Array.from(document.querySelectorAll('#top-fighters-screen .tab-area > .tab')).m
 async function advanceSlide() {
   console.log('onStorySlide', onStorySlide);
   let currentSlide = storySlides[onStorySlide];
+  // start game if at end
   if (!currentSlide || (onStorySlide && !document.querySelector(`.cinema-scene:nth-child(${onStorySlide})`))) {
-    console.error('END of slides.');
+    console.error('END of slides. Hiding cinematic and starting game');
     gameInitiated = true;
-    return document.getElementById('cinematic').classList.add('hidden')
+    return document.getElementById('cinematic').classList.add('hidden');
   }
   document.getElementById('cinematic-caret').classList.remove('ready');
   if (onStorySlide && !currentSlide.keepImage) {
@@ -773,7 +753,7 @@ async function advanceSlide() {
       setTimeout(async function() {
         console.error('auto-advancing.')
         await advanceSlide()
-      }, 1000);
+      }, 1500);
     }
 
   }
@@ -822,17 +802,20 @@ document.getElementById('confirm-mode-button').onclick = function() {
     player.sprite.x = (gameWidth / 2);
     tomtomLimit = 2;
     gameContainer.removeChild(player.level.container);
+    levelTime = 0;
+    scoreDisplay.timeText.text = '0000';
+    player.level = hordeLevel;
     // fighterScale = 1.4;
     // player.setAttributesToScale(fighterScale);
-    document.getElementById('game-canvas').classList.add('horde-mode')
-    
+    document.getElementById('game-canvas').classList.add('horde-mode');
     gameInitiated = true;
   } else if (gameMode === 'story') {
     floorDisplay.legend.text = 'LEVEL 1';
     floorDisplay.bg.width = tileSize * 3.5;
     lives = startingLives;
     scoreDisplay.updateLives(lives);
-    // gameContainer.removeChild(player.container);
+    player.level = level1;
+    gameContainer.addChildAt(player.level.container, 0);
     if (selectedStage) {
       levelUp(selectedStage - 1);
       selectedStage = 0;
@@ -841,9 +824,8 @@ document.getElementById('confirm-mode-button').onclick = function() {
       fighterScale = 1;
       player.setAttributesToScale(fighterScale);
     }
-    document.getElementById('cinematic').classList.remove('hidden');
     document.getElementById('game-canvas').classList.remove('horde-mode');
-
+    document.getElementById('cinematic').classList.remove('hidden');
     requestAnimationFrame(() => {
       console.log('advanceSlide?', advanceSlide)
       advanceSlide();
@@ -886,6 +868,18 @@ Array.from(document.querySelectorAll('.stage-knob')).map((knob, i) => {
     selectedStage = this.innerHTML;
   }
 });
+Array.from(document.querySelectorAll('.option-range-value')).map((knob, i) => {
+  knob.onpointerdown = function() {
+    Array.from(this.parentElement.children).map(sibling => {
+      sibling.classList.remove('on');
+    });
+    this.classList.add('on');
+    newPosition = this.innerHTML;
+    console.log('new!', newPosition)
+    gameOptions.gamepadPosition = newPosition;
+    nesPanel.moveToYPosition(newPosition);
+  }
+});
 document.getElementById('mode-back-button').onclick = function() {
   document.getElementById('title-screen').classList.remove('hidden');
   document.getElementById('mode-select-screen').classList.add('hidden');
@@ -898,21 +892,6 @@ document.getElementById('mode-back-button').onclick = function() {
   player.score = 0;
   floorDisplay.legend.text = 'LEVEL ' + levelReached;
   floorDisplay.container.x = gameWidth / 2;
-}
-function moveGamepad(newPosition) {
-  let extraY = window.innerHeight - gameHeight;
-  let padHeight = document.getElementById('nes-border').offsetHeight;
-  console.log('padheight', padHeight);
-  if (newPosition === 'HIGH') {
-    nesContainer.y = 0;
-  }
-  if (newPosition === 'MID') {
-    nesContainer.y = (extraY / 2) - (padHeight / 2);
-  }
-  if (newPosition === 'LOW') {
-    nesContainer.y = (extraY) - padHeight;
-    document.getElementById('gamepad-container').classList.add('low');
-  }
 }
 scoreDisplay = undefined;
 useCookie = true;
@@ -930,8 +909,8 @@ const getCookie = cookieName => {
   cookieObj = decodedCookie.filter(str => str.split('=')[0] === cookieName);
   console.warn('cookieObj?', cookieObj)
   if (cookieObj.length) {
-    console.warn('cookie is good')
     cookieObj = JSON.parse(cookieObj[0].split('=')[1]);
+    console.warn('cookie is good', cookieObj)
   } else {
     cookieObj = undefined;
   }
@@ -946,12 +925,13 @@ const destroyCookie = () => {
 }
 function init() {
   setVariables();
-  player = new Fighter('thomas');
+  
   nesPanel = new NESPanel();
+  player = new Fighter('thomas');
   createGame();
   setTimeout(() => {
     getScoresFromDatabase(gameName, true);
-  }, 1000);
+  }, 750);
   if (!landscape) {
     // gameContainer.mask.width = gameContainer.width;
     // gameContainer.mask.height = gameHeight;

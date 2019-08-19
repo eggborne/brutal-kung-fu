@@ -396,13 +396,16 @@ function Fighter(character, scale) {
     }
     if (gameMode === 'horde') {
       withinScrollLimit = true;
+      withinLimit = true;
     }
     if ((!wonRound && atEnd) || !withinScrollLimit || walkAwayPostWin || gameMode === 'horde') {
       noScroll = true;
     }
-    if (!noScroll) {
+    if (!noScroll || gameMode === 'horde') {
       if (withinLimit) {
-        gameContainer.x -= amount;
+        if (gameMode !== 'horde') {
+          gameContainer.x -= amount;
+        }
         this.sprite.x += amount;
         if (this.sprite.y === this.level.groundY) {
           this.cycleLegs();
@@ -1395,7 +1398,7 @@ function clearBoard(enemiesOnly) {
 }
 function resetGame() {
   gameInitiated = false;
-  if (player.level.boss.hp < player.level.boss.maxHP) {
+  if (player.level.boss && player.level.boss.hp < player.level.boss.maxHP) {
     player.level.boss.hp = player.level.boss.maxHP;
     scoreDisplay.enemyBar.width = scoreDisplay.enemyBarMax;
   }

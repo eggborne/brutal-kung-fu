@@ -1,5 +1,7 @@
 segsWide = 0;
-function Level(floor, direction, startY, water, topEdge, groundY, length) {
+function Level(floor, direction, startY, water, topEdge, groundY, segsWide=29, single) {
+  console.error('CREATING A LEVEL', floor)
+  let startedTiles = window.performance.now();
   this.floor = floor;
   this.direction = direction;
   if (direction === 'left') {
@@ -13,19 +15,46 @@ function Level(floor, direction, startY, water, topEdge, groundY, length) {
   this.topY = startY - gameHeight;
   this.topEdge = topEdge;
   this.groundY = groundY;
-  var segmentsNeeded = (segsWide = 29);
+  if (!single) {
+
+  var segmentsNeeded = segsWide;
   if (direction === 'left') {
     var signIndex = 5;
   } else {
     var signIndex = 0;
   }
   this.signSpots = [6, 10, 14, 18, 22, 26, 28, 32, 36, 40, 46, 50];
+
+  let totalSegmentWidth = tileSize * 4 * segmentsNeeded;
+
+
+  // let groundPiece = new PIXI.TilingSprite(PIXI.utils.TextureCache['dojofloor'], totalSegmentWidth, tileSize * 2);
+  // let ceilingPiece = new PIXI.TilingSprite(PIXI.utils.TextureCache['dojoceiling'], totalSegmentWidth, tileSize * 2);
+  // let upper = new PIXI.TilingSprite(PIXI.utils.TextureCache['spinebg'], totalSegmentWidth, newPixelSize * 28);
+  // let waterPiece = new PIXI.TilingSprite(PIXI.utils.TextureCache[water], totalSegmentWidth, newPixelSize * 28);
+
+  // groundPiece.x = ceilingPiece.x = waterPiece.x = upper.x = 0;
+  // groundPiece.y = this.groundY - newPixelSize * 8;
+  // waterPiece.y = groundPiece.y + groundPiece.height;
+  // ceilingPiece.y = this.topEdge + upper.height / 3;
+
+  // groundPiece.tileScale.x = ceilingPiece.tileScale.x = upper.tileScale.x = waterPiece.tileScale.x = newPixelSize;
+  // groundPiece.tileScale.y = ceilingPiece.tileScale.y = upper.tileScale.y = waterPiece.tileScale.y = newPixelSize;
+  // groundPiece.tilePosition.x = ceilingPiece.tilePosition.x = upper.tilePosition.x = waterPiece.tilePosition.x = 0;
+  // groundPiece.tilePosition.y = ceilingPiece.tilePosition.y = upper.tilePosition.y = waterPiece.tilePosition.y = 0;
+  // this.ceilingY = ceilingPiece.y + (ceilingPiece.height - 2 * newPixelSize);
+  // upper.y = ceilingPiece.y - upper.height;
+  // this.container.addChild(groundPiece);
+  // this.container.addChild(ceilingPiece);
+  // this.container.addChild(waterPiece);
+  // this.container.addChild(upper);
+
   for (var s = 0; s < segmentsNeeded; s++) {
     var groundPiece = new PIXI.Sprite(PIXI.utils.TextureCache['dojofloor']);
     var ceilingPiece = new PIXI.Sprite(PIXI.utils.TextureCache['dojoceiling']);
     var upper = new PIXI.Sprite(PIXI.utils.TextureCache['spinebg']);
     var waterPiece = new PIXI.Sprite(PIXI.utils.TextureCache[water]);
-    groundPiece.cacheAsBitmap = ceilingPiece.cacheAsBitmap = upper.cacheAsBitmap = waterPiece.cacheAsBitmap = true;
+    // groundPiece.cacheAsBitmap = ceilingPiece.cacheAsBitmap = upper.cacheAsBitmap = waterPiece.cacheAsBitmap = true;
     groundPiece.width = ceilingPiece.width = waterPiece.width = upper.width = tileSize * 4;
     groundPiece.height = ceilingPiece.height = upper.height = tileSize * 2;
     groundPiece.y = this.groundY - newPixelSize * 8;
@@ -50,11 +79,12 @@ function Level(floor, direction, startY, water, topEdge, groundY, length) {
       }
       sign.width = tileSize * 2;
       sign.height = tileSize - newPixelSize * 2;
-      sign.x = ceilingPiece.x - sign.width * 0.15;
+      sign.x = (tileSize * 4 * s) - sign.width * 0.15;
       sign.y = ceilingPiece.y + newPixelSize * 7;
+      console.log('adding sign')
       this.container.addChild(sign);
     }
-  }
+  }  
   this.stairs = new PIXI.Sprite(PIXI.utils.TextureCache['stairs']);
   this.stairs.width = 92 * newPixelSize;
   this.stairs.height = 92 * newPixelSize;
@@ -76,31 +106,41 @@ function Level(floor, direction, startY, water, topEdge, groundY, length) {
     this.scrollLimitX = gameWidth + this.stairs.width;
   }
 
-  this.container.addChild(this.stairs);
+    this.container.addChild(this.stairs);
+    gameContainer.addChild(this.container);
+  }
   this.levelWidth = this.container.width;
-  gameContainer.addChild(this.container);
+  console.error('MADE LEVEL IN', window.performance.now() - startedTiles);
 }
 function levelUp(amount) {
+  console.error('levelUp called, while levelReached is', levelReached)
   levelReached += amount;
   bosses.map((boss, i) => {
     if ((i+1) < levelReached) {
       boss.sprite.alpha = 0;
     }
   });
-  gameContainer.removeChild(player.level.container);
-  var lvlData = levelData[levelReached - 1];
-  console.info('>>>>>>>> new lvlData', lvlData)
-  var nextLevel = new Level(levelReached, lvlData.direction, gameHeight, lvlData.water, topEdge, groundY);
-  scoreDisplay.floorKnobs[levelReached - 1].tint = 0xea9f22;
-  player.level = nextLevel;
-  player.levelData = lvlData;
-
-  enemyFrequency = player.levelData.enemyFrequency;
-  eggFrequency = player.levelData.eggFrequency;
-  gripperLimit = player.levelData.limits.grippers;
-  tomtomLimit = player.levelData.limits.tomtoms;
-
-  gameContainer.setChildIndex(player.sprite, gameContainer.children.indexOf(player.level.container));
+  let nextLevel;
+  let lvlData;
+  if (levelReached > 1) {
+    gameContainer.removeChild(player.level.container);
+    lvlData = levelData[levelReached - 1];
+    console.info('>>>>>>>> new lvlData', lvlData);
+    nextLevel = new Level(levelReached, lvlData.direction, gameHeight, lvlData.water, topEdge, groundY);
+    scoreDisplay.floorKnobs[levelReached - 1].tint = 0xea9f22;
+    player.level = nextLevel;
+    player.levelData = lvlData;
+  
+    enemyFrequency = player.levelData.enemyFrequency;
+    eggFrequency = player.levelData.eggFrequency;
+    gripperLimit = player.levelData.limits.grippers;
+    tomtomLimit = player.levelData.limits.tomtoms;
+  
+    gameContainer.setChildIndex(player.sprite, gameContainer.children.indexOf(player.level.container));
+  } else {
+    nextLevel = level1;
+    lvlData = player.levelData;
+  }
   floorDisplay.legend.text = 'LEVEL ' + levelReached;
   scoreSequenceStarted = endSequenceStarted = false;
   if (player.level.direction === 'left') {

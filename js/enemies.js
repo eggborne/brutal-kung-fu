@@ -11,6 +11,14 @@ function Gripper(side, scale) {
     jumpkick: 300,
     knife: 300
   };
+  if (gameMode === 'horde') {
+    this.worth = {
+      punch: 0,
+      kick: 0,
+      jumpkick: 0,
+      knife: 0
+    }
+  }
   this.drainRate = 15;
   if (!randomInt(0,500)) {
     this.drainRate = 2;
@@ -282,7 +290,7 @@ function Gripper(side, scale) {
     } else {
       this.currentFrames = this.walkFrames;
     }
-    if (Math.abs(player.level.boss.sprite.x - player.sprite.x) < gameWidth / 2) {
+    if (player.level.boss && Math.abs(player.level.boss.sprite.x - player.sprite.x) < gameWidth / 2) {
       if (this.sprite.scale.x < 0) {
         this.flip();
       }
@@ -314,6 +322,14 @@ function Tomtom(side, scale) {
     jumpkick: 1000,
     knife: 600
   };
+  if (gameMode === 'horde') {
+    this.worth = {
+      punch: 0,
+      kick: 0,
+      jumpkick: 0,
+      knife: 0
+    }
+  }
   this.type = 'tomtom';
   this.drainRate = 10;
   this.sprite = new PIXI.Sprite(PIXI.utils.TextureCache['tomtomwalk1']);
@@ -669,7 +685,7 @@ function Tomtom(side, scale) {
     // } else {
     this.currentFrames = this.walkFrames;
     // }
-    if (Math.abs(player.level.boss.sprite.x - player.sprite.x) < gameWidth / 2) {
+    if (player.level.boss && Math.abs(player.level.boss.sprite.x - player.sprite.x) < gameWidth / 2) {
       if (this.sprite.scale.x < 0) {
         this.flip();
       }
@@ -731,6 +747,14 @@ function Knifethrower(side, delayDistance, scale) {
     jumpkick: 1000,
     knife: 500
   };
+  if (gameMode === 'horde') {
+    this.worth = {
+      punch: 0,
+      kick: 0,
+      jumpkick: 0,
+      knife: 0
+    }
+  }
   knifethrowers.push(this);
   if (!delayDistance) {
     delayDistance = 0;

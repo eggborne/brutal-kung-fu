@@ -1,7 +1,7 @@
 let controlScreenOn = optionsScreenOn = false;
 let controlTabSelected = 'keyboard';
 let editingKeyForAction = false;
-let scoresToDisplay = 50;
+let scoresToDisplay = 30;
 let textSpeed = 60;
 let slideSpeed = 1500;
 let highScoreTabSelected = 'story';
@@ -13,7 +13,8 @@ const storySlides = [
     caption: `${yearsAgo} years ago...`
   },
   {
-    caption: `My beloved Sylvia was kidnapped by the evil crime lord known as Mr. X.`
+    caption: `My beloved Sylvia was kidnapped by the evil crime lord known as Mr. X.`,
+    additive: true
   },
   {
     caption: `I mounted a one-man assault on his hideout, Devil's Tower, fighting my way relentlessly through each floor.`
@@ -58,14 +59,6 @@ const storySlides = [
     caption: ``,
   },
   {
-    caption: ``,
-    
-  },
-  {
-    caption: ``,
-    
-  },
-  {
     caption: `She walked into the sea before the child could be born.`
   },
   {
@@ -87,7 +80,38 @@ const storySlides = [
   {
     caption: ``
   },
+  {
+    caption: ``
+  },
+  {
+    caption: ``
+  },
+  {
+    caption: ``
+  },
+  {
+    caption: ``
+  },
 ]
+function secondsToMinutes(seconds) {
+  let wholeMinutes = Math.floor(seconds/60);
+  let result = '';
+  if (wholeMinutes) {
+    let remainder = seconds - (wholeMinutes * 60);
+    if (remainder < 10) {
+      remainder = `0${remainder}`;
+    }
+    result = `${wholeMinutes}:${remainder}`;
+  } else {
+    if (seconds < 10) {
+      result = `0:0${seconds}`
+    } else {
+
+      result = `0:${seconds}`
+    }
+  }
+  return result;
+}
 function suffixedNumber(num) {
   let numString = num.toString();
   let lastDigit = numString[numString.length - 1];
@@ -119,11 +143,13 @@ function skipCinematic() {
   } else {
     gameInitiated = true;
   }
+  onStorySlide = 0;
 }
 function typeCaption(slideObj) {
   document.getElementById('cinematic-caret').classList.remove('ready');
   let textString = slideObj.caption;
   console.warn('TYPING CAPTION', textString);
+  let maxCharsPerLine = 30;
   let promise = new Promise((resolve) => {
     let captionDiv = document.getElementById('cinematic-caption');
     let wordList = textString.split(' ');
@@ -135,8 +161,8 @@ function typeCaption(slideObj) {
       charsOnLine += splitWord.length + 1;
       if (wordList[i + 1]) {
         letterArray.push('&nbsp;');
-        // line break if next word will go over limit
-        if (charsOnLine + wordList[i + 1].length >= 30) {
+        // line break if next word will go over maxCharsPerLine
+        if (charsOnLine + wordList[i + 1].length >= maxCharsPerLine) {
           letterArray.push('<br />');
           charsOnLine = 0;
         }
@@ -404,6 +430,9 @@ function ScoreDisplay() {
   this.updateScore = function(newScore) {
     let newStr = newScore.toString();
     let scoreString = '0'.repeat(6 - newStr.length) + newStr;
+    if (gameMode === 'horde') {
+      scoreString = secondsToMinutes(newScore)
+    }
     this.scoreText.text = 'SCORE-' + scoreString;
     if (topScores.story < player.score) {
       this.topText.text = 'TOP-' + scoreString;
@@ -456,12 +485,9 @@ function NESPanel() {
   this.backing = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
   this.bg.width = gameWidth;
   this.bg.height = window.innerHeight - gameHeight;
-  this.bg.y = gameHeight;
-  if (landscape) {
-    this.bg.alpha = 0;
-  } else {
-    this.controls.addChild(this.backing);
-  }
+  this.bg.tint = 0x111111;
+  // this.bg.y = gameHeight;
+  // this.container.addChild(this.bg)
   this.dPad = new PIXI.Container();
   let pieceSize;
   if (!landscape) {
@@ -471,6 +497,8 @@ function NESPanel() {
     pieceSize = tileSize * 2;
     this.pieceSize = tileSize * 2;
   }
+
+  
   this.dPadBg = new PIXI.Sprite(PIXI.utils.TextureCache['nespadbacking']);
   this.upButton = new PIXI.Sprite(PIXI.utils.TextureCache['nesup']);
   this.leftButton = new PIXI.Sprite(PIXI.utils.TextureCache['nesleft']);
@@ -499,10 +527,19 @@ function NESPanel() {
   this.punchButton.width = this.punchButton.height = this.kickButton.width = this.kickButton.height = pieceSize * 1.75;
   this.punchButton.interactive = this.kickButton.interactive = true;
 
+  this.punchBg = new PIXI.Sprite(PIXI.utils.TextureCache['buttonback']);
+  this.kickBg = new PIXI.Sprite(PIXI.utils.TextureCache['buttonback']);
+
+  this.punchBg.anchor.set(0.5);
+  this.kickBg.anchor.set(0.5);
+
   this.bottomSpace = viewHeight - gameHeight;
   if (!landscape) {
     this.controls.y = gameHeight + this.bottomSpace - pieceSize * 3 - pieceSize / 2;
     this.controls.y = gameHeight + pieceSize / 2;
+  } else {
+    // this.controls.x = 0;
+    this.controls.y = viewHeight / 2;
   }
   this.bottomMargin = pieceSize / 2;
 
@@ -532,11 +569,20 @@ function NESPanel() {
   this.backing.width = this.kickButton.width * 2 + newPixelSize * 6;
   this.backing.height = this.dPad.height;
   this.backing.x = gameWidth - this.backing.width - newPixelSize * 6;
+  if (landscape) {
+    this.backing.x = viewWidth - this.backing.width;
+  }
   this.backing.y = this.dPad.y;
   this.backing.tint = 0x999999;
   this.kickButton.x = this.backing.x + newPixelSize * 2;
   this.punchButton.x = this.kickButton.x + this.kickButton.width;
   this.punchButton.y = this.kickButton.y = this.backing.height - this.kickButton.height - newPixelSize;
+  
+  this.punchBg.width = this.kickBg.width = this.punchBg.height = this.kickBg.height = (pieceSize * 1.75) - (newPixelSize * 6);
+  this.punchBg.x = this.punchButton.x + (this.punchButton.width/2);
+  this.kickBg.x = this.kickButton.x + (this.kickButton.width/2);
+  this.punchBg.y = this.kickBg.y = this.punchButton.y + (this.punchButton.height/2);
+  
   this.throwButton = new PIXI.Container();
   this.throwButton.interactive = true;
 
@@ -560,6 +606,7 @@ function NESPanel() {
   this.blockBG.height = pieceSize * 1.25;
 
   this.blockBG.x = this.kickButton.x + this.kickButton.width / 2;
+  
   this.blockBG.y = this.backing.y - newPixelSize * 3;
 
   this.blockKnob = new PIXI.Sprite(PIXI.utils.TextureCache['whitebutton']);
@@ -617,6 +664,8 @@ function NESPanel() {
   this.punchButton.type = 'punch';
   this.kickButton.type = 'kick';
   // this.dPad.setChildIndex(this.centerPiece,8)
+  this.controls.addChild(this.punchBg);
+  this.controls.addChild(this.kickBg);
   this.controls.addChild(this.punchButton);
   this.controls.addChild(this.kickButton);
   this.throwButton.addChild(this.throwBG);
@@ -634,8 +683,11 @@ function NESPanel() {
   this.container.addChild(this.controls);
 
   if (!landscape) {
+    // UIContainer.addChildAt(this.bg, 0);
+    console.warn('add nes cont')
     nesContainer.addChild(this.container);
   } else {
+    nesContainer.addChild(this.container);
     // controlsContainer.addChild(this.container)
   }
 
@@ -652,9 +704,13 @@ function NESPanel() {
 
   let dPadXSpace = gameWidth / 2 + newPixelSize * 3;
   this.dPad.x = (dPadXSpace - this.dPad.width) / 2;
-
-  this.punchLabel = new PIXI.Sprite(PIXI.utils.TextureCache[player.character + 'punch']);
-  this.kickLabel = new PIXI.Sprite(PIXI.utils.TextureCache[player.character + 'kick1']);
+  if (landscape) {
+    this.dPad.x = newPixelSize * 8;
+    // this.dPad.y = (window.innerHeight/4);
+  }
+  let character = 'thomas';
+  this.punchLabel = new PIXI.Sprite(PIXI.utils.TextureCache[character + 'punch']);
+  this.kickLabel = new PIXI.Sprite(PIXI.utils.TextureCache[character + 'kick1']);
   this.punchLabel.anchor.set(0.5);
   this.kickLabel.anchor.set(0.5);
   this.punchLabel.width = this.punchLabel.height = this.kickLabel.width = this.kickLabel.height = this.punchButton.width / 2;
@@ -671,6 +727,29 @@ function NESPanel() {
 
   this.controls.addChild(this.punchLabel);
   this.controls.addChild(this.kickLabel);
+
+  this.panelBg = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
+  this.darkPanelBg = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
+  this.darkPanelBg.width = (gameWidth)
+  this.panelBg.width = (gameWidth-(newPixelSize*8))
+  this.panelBg.height = this.dPadBg.height + newPixelSize * 16;
+  this.darkPanelBg.height = this.panelBg.height + (newPixelSize * 8);
+  this.panelBg.x = (newPixelSize*4)
+  this.panelBg.y = gameHeight + newPixelSize * 4;
+  this.darkPanelBg.x = 0;
+  this.darkPanelBg.y = gameHeight;
+  this.darkPanelBg.tint = 0xaaaaaa;
+  this.panelBg.tint = 0x151515;
+  this.backing.alpha = 0;
+  this.dPadBg.tint = 0xaaaaaa;
+  this.dPad.addChildAt(this.dPadBg, 0);
+
+  this.dPad.scale.x *= 0.95;
+  this.dPad.scale.y *= 0.95;
+  if (!landscape) {
+    this.container.addChildAt(this.darkPanelBg,0);
+    this.container.addChildAt(this.panelBg,1);
+  }
 
   this.throwButton.on('pointerdown', function() {
     player.throw('knife');
@@ -845,55 +924,28 @@ function NESPanel() {
       }
     }
   };
-  // this.dPad.width -= newPixelSize*5
-  // this.dPad.height -= newPixelSize*8
-  // this.dPad.x += (newPixelSize*2.5)
-  // this.dPad.y += (newPixelSize*4)
 
-  this.panelBg = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
-  // this.panelBg.width = (gameWidth-(newPixelSize*8))
-  this.panelBg.width = gameWidth;
-  this.panelBg.height = this.bottomSpace - newPixelSize * 8;
-  // this.panelBg.x = (newPixelSize*4)
-  this.panelBg.y = gameHeight + newPixelSize * 4;
-  this.panelBg.tint = 0xaaaaaa;
-  this.backing.alpha = 0;
-  this.dPadBg.tint = 0xaaaaaa;
-  this.dPad.addChildAt(this.dPadBg, 0);
-
-  this.dPad.scale.x *= 0.95;
-  this.dPad.scale.y *= 0.95;
-  // this.container.addChildAt(this.panelBg,1)
-
-  this.upButton.texture.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR;
-  // this.controls.y = gameHeight+(newPixelSize*16)
-
-  this.sizeElements = function() {
-      document.getElementById('d-pad').style.width = this.dPad.width + 'px',
-      document.getElementById('d-pad').style.height = this.dPad.height + 'px',
-      document.getElementById('d-pad').style.top = this.controls.y + this.dPad.y + 'px',
-      document.getElementById('d-pad').style.left = this.controls.x + this.dPad.x + 'px'
-      document.getElementById('nes-panel-bg').style.width = gameWidth - newPixelSize * 4 + 'px',
-      document.getElementById('nes-panel-bg').style.height = this.dPadBg.height + newPixelSize * 20 + 'px',
-      document.getElementById('nes-panel-bg').style.top = this.controls.y + this.dPadBg.y - newPixelSize * 10 + 'px',
-      document.getElementById('nes-panel-bg').style.left = newPixelSize * 2 + 'px';
-    
-    Array.from(document.querySelectorAll('.button-back')).map(bback => {
-      bback.style.width = pieceSize * 1.75 - newPixelSize * 6 + 'px';
-      bback.style.height = pieceSize * 1.75 - newPixelSize * 6 + 'px';
-      bback.style.top = this.controls.y + this.punchButton.y + newPixelSize * 3 + 'px';
-    });
-    document.getElementById('b-back').style.left = this.punchButton.x + newPixelSize * 3 + 'px';
-    document.getElementById('a-back').style.left = this.kickButton.x + newPixelSize * 3 + 'px';
-    document.getElementById('nes-border').style.height = this.dPadBg.height + newPixelSize * 30 + 'px';
-    document.getElementById('nes-border').style.top = this.controls.y + this.dPadBg.y - newPixelSize * 15 + 'px';
-    document.documentElement.style.setProperty('--gamepad-height', document.getElementById('nes-border').style.height)
-  };
   this.hideDecor = function() {
-    document.getElementById('nes-panel-bg').style.display = 'none';
-    Array.from(document.getElementsByClassName('button-back')).map(bback => {bback.style.display = 'none' });
+    this.panelBg.visible = this.darkPanelBg.visible = false;
   };
-  this.sizeElements();
+  this.moveToYPosition = function(newPosition) {
+    if (newPosition === 'HIGH') {
+      nesContainer.y = 0;
+    }
+    if (newPosition === 'MID') {
+      nesContainer.y = (bottomSpace / 2) - (nesContainer.height/2);
+    }
+    if (newPosition === 'LOW') {
+      nesContainer.y = (bottomSpace) - (nesContainer.height);
+    }
+    document.getElementById(`gamepad-${newPosition.toLowerCase()}-button`).classList.add('on');
+    document.getElementById(`d-pad-touch-area`).className = newPosition.toLowerCase();
+  }
+
+  document.documentElement.style.setProperty('--gamepad-height', (pieceSize * 4) - (newPixelSize * 3) + 'px');
+
+  this.container.x = 0;
+  this.moveToYPosition(gameOptions.gamepadPosition);
 }
 function FloorDisplay() {
   this.container = new PIXI.Container();
@@ -946,7 +998,7 @@ function FloorDisplay() {
   this.readyLegend.visible = false;
   this.timeUpBg.visible = false;
   this.timeUpLegend.visible = false;
-  gameContainer.addChild(this.container);
+  UIContainer.addChild(this.container);
 }
 function Arrow() {
   this.sprite = new PIXI.Sprite(PIXI.utils.TextureCache['arrow']);
@@ -955,7 +1007,7 @@ function Arrow() {
   this.sprite.x = this.sprite.width / 2;
   this.sprite.y = gameHeight / 2;
   this.bornAt = -99;
-  gameContainer.addChild(this.sprite);
+  UIContainer.addChild(this.sprite);
   this.sprite.visible = false;
   this.sprite.alpha = 0.5;
   this.flash = function() {
@@ -980,9 +1032,9 @@ function scoreBlip(amount, victim) {
   } else {
     this.legend.x = victim.sprite.x + newPixelSize * 2;
   }
-  this.legend.scale.x *= 0.9;
-  this.legend.width *= fighterScale;
-  this.legend.height *= fighterScale;
+  // this.legend.scale.x *= 0.9;
+  // this.legend.width *= fighterScale;
+  // this.legend.height *= fighterScale;
   this.legend.y = victim.sprite.y - victim.headHeight;
   this.bornAt = counter;
   if (amount) {
@@ -993,10 +1045,10 @@ function scoreBlip(amount, victim) {
   this.fade = function() {
     let sinceBorn = counter - this.bornAt;
     if (sinceBorn > 5) {
-      this.legend.y -= (sinceBorn / 10) * newPixelSize;
+      this.legend.y -= newPixelSize;
       this.legend.alpha -= 0.075;
     }
-    if (this.legend.alpha < 0) {
+    if (this.legend.alpha <= 0.5) {
       gameContainer.removeChild(this.legend);
     }
   };
@@ -1019,6 +1071,9 @@ function populateEntries(scrollToNewRecord) {
       let rank = s + 1;
       let name = scoreEntry.name;
       let score = scoreEntry.score;
+      if (scoreEntry.gameMode === 'horde') {
+        score = secondsToMinutes(score)
+      }
       let tintClass = s % 2 === 0 ? '' : 'gray-bg';
       let highlightClass = '';
       if (name == currentRecord.player && score.toString() == currentRecord.score.toString()) {        
@@ -1051,7 +1106,11 @@ function submitHighScore() {
 function toggleNameEntry(rankAchieved) {
   if (document.getElementById('name-entry-screen').classList.contains('hidden')) {
     document.body.classList.add('scored');
-    document.getElementById('player-high-score').innerText = player.score;
+    let displayScore = player.score;
+    if (gameMode === 'horde') {
+      displayScore = secondsToMinutes(player.score);
+    }
+    document.getElementById('player-high-score').innerText = displayScore;
     document.getElementById('player-rank').innerText = `${suffixedNumber(rankAchieved)} PLACE`;
   } else {
     document.body.classList.remove('scored');
@@ -1091,12 +1150,16 @@ function getScoresFromDatabase(gameName, populate, check, scrollToNew) {
         scoreDisplay.topText.text = 'TOP-' + ('0'.repeat(6 - topScores.story.toString().length) + topScores.story);
       }
       if (check) {
+        scoreArray = scoreArray.filter(scoreObj => scoreObj.gameMode === gameMode);
+        console.log('scoreArray', scoreArray);
+        console.log('scoreArray.length', scoreArray.length);
+        console.log('scoresToDisplay', scoresToDisplay)
         let lowestIndex = scoresToDisplay - 1;
+        let lowScore = 0;
         if (scoreArray.length < scoresToDisplay) {
-          lowestIndex = scoreArray.length - 1;
           lowScore = 0;
         } else {
-          lowScore = scoreArray[lowestIndex][1];
+          lowScore = scoreArray[lowestIndex].score;
         }
         console.warn('checking', player.score, 'against', lowScore);
         if (player.score > lowScore) {

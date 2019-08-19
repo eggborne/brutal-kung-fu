@@ -13,7 +13,7 @@
 	<link rel="stylesheet" type="text/css" href="css/style.css">
 	<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.6.1/pixi.min.js"></script> -->
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/5.1.1/pixi.min.js"></script>
-	<link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet">
+	<link preconnect href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet">
 	<script src="https://unpkg.com/axios/dist/axios.min.js" defer></script>
 	<link rel="icon" href="assets/favicon.png" type="image/x-icon">
 	<link rel="manifest" href="manifest.json" />
@@ -37,15 +37,7 @@
 	</script>
 </head>
 
-<body>
-
-	<div id='gamepad-container'>
-		<div id="nes-border"></div>
-		<div id="nes-panel-bg"></div>
-		<div class="button-back" id="b-back"></div>
-		<div class="button-back" id="a-back"></div>
-		<div id="d-pad"></div>
-	</div>
+<body>	
 	<div id='title-screen' class='game-cover'>
 		<div id='title-header'>
 			<div class='orange-divider'></div>
@@ -58,10 +50,11 @@
 			<button id='top-fighters-button' class='title-button clickable'>TOP FIGHTERS</button>
 			<button id='options-button' class='title-button clickable'>OPTIONS</button>
 		</div>
+		<address id='credit'>made just for fun by <a href='https://twitter.com/eggborne_dev'>@eggborne_dev</a></address>
 	</div>
-	<address id='credit'>made just for fun by <a href='https://twitter.com/eggborne_dev'>@eggborne_dev</a></address>
 
-	<div id="game-canvas"></div>
+	<div id='d-pad-touch-area'></div>
+	<div id="game-canvas" class='hidden'></div>
 
 	<div id='mode-select-screen' class='screen-cover hidden'>
 		<div class='dragon-column left'></div>
@@ -203,14 +196,14 @@
 						<div class='switch-knob'></div>
 					</div>
 				</div>
-				<!-- <div id='gamepad-y-control' class='option-row'>
+				<div id='gamepad-y-control' class='option-row'>
 					<div class='option-label'>GAMEPAD POSITION</div>
 					<div class='option-range'>				
-						<div id='gamepad-high-button' class='option-range-value ranged on'>HIGH</div>
+						<div id='gamepad-high-button' class='option-range-value ranged'>HIGH</div>
 						<div id='gamepad-mid-button' class='option-range-value ranged'>MID</div>
 						<div id='gamepad-low-button' class='option-range-value ranged'>LOW</div>
 					</div>
-				</div> -->
+				</div>
 			</div>
 		</div>
 		<div id='options-button-list'>
@@ -288,19 +281,19 @@
 			<img class='cinema-scene sylvia-thomas' defer/>
 			<img style="transform: scale(1.5)" class='cinema-scene sylvia-thomas' defer/>
 			<img style="transform: scale(2)" class='cinema-scene sylvia-thomas' defer/>
-			<div class='cinema-scene pregnant-sylvia frame-0'></div>
-			<div class='cinema-scene pregnant-sylvia frame-1'></div>
-			<div class='cinema-scene pregnant-sylvia frame-2'></div>
-			<div class='cinema-scene pregnant-sylvia frame-2'></div>
-			<div class='cinema-scene pregnant-sylvia frame-2'></div>
-			<img src='assets/ngbackground.png' class='cinema-scene' defer/>
-			<img src='assets/ngbackground.png' class='cinema-scene' defer/>
-			<img src='assets/ngbackground.png' class='cinema-scene' defer/>
-			<div class='cinema-scene thomas-grief frame-0'></div>
-			<div class='cinema-scene thomas-grief frame-1'></div>
-			<div class='cinema-scene thomas-grief frame-2'></div>
-			<div class='cinema-scene thomas-final-grief'></div>
-			<div class='cinema-scene thomas-final-grief-2'></div>
+			<div class='cinema-scene frame-0'></div>
+			<div class='cinema-scene frame-1'></div>
+			<div class='cinema-scene frame-2'></div>
+			<div class='cinema-scene frame-2'></div>
+			<img style='height: auto' src='assets/ngbackground.png' class='cinema-scene' defer/>
+			<img style='height: auto' src='assets/ngbackground.png' class='cinema-scene' defer/>
+			<div class='cinema-scene frame-3'></div>
+			<div class='cinema-scene frame-4'></div>
+			<div class='cinema-scene frame-5'></div>
+			<div class='cinema-scene frame-6'></div>
+			<div class='cinema-scene frame-7'></div>
+			<div class='cinema-scene frame-8'></div>
+			<div class='cinema-scene black-screen'></div>
 			<div class='cinema-scene black-screen'></div>
 			<img id='cinema-cover' src='assets/dingy.png' class='cover' />
 		</div>

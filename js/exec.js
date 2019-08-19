@@ -113,7 +113,8 @@ function update() {
       console.warn('------- EGG --------')
     }
   }
-  if (!landscape && !endSequenceStarted && !player.dead && touchingDPad) {
+  // if (!landscape && !endSequenceStarted && !player.dead && touchingDPad) {
+  if (!endSequenceStarted && !player.dead && touchingDPad) {
     nesPanel.monitorDPad();
   }
   if (gameInitiated) {
@@ -499,6 +500,7 @@ function update() {
           player.walk(player.walkSpeed);
         }
         if (pressingLeft) {
+          console.error('LEFT')
           player.walk(-player.walkSpeed);
         }
       }
@@ -507,7 +509,7 @@ function update() {
     player.sprite.texture = PIXI.utils.TextureCache[player.character + 'dead'];
     if (lives === 0 && counter - player.diedAt === 5) {
       floorDisplay.container.visible = true;
-      floorDisplay.container.x = player.sprite.x;
+      // floorDisplay.container.x = player.sprite.x;
       floorDisplay.bg.visible = true;
       floorDisplay.legend.visible = true;
       floorDisplay.bg.width = tileSize * 4.5;
@@ -526,32 +528,42 @@ function update() {
     }
   }
   if (gameInitiated) {
-    scoreDisplay.blinkCurrentFloor();
+    if (gameMode === 'story') {
+      scoreDisplay.blinkCurrentFloor();
+    } 
     if (!endSequenceStarted) {
       player.applyGravity();
       player.applyVelocity();
-      if (gameMode !== 'horde' && !floorDisplay.container.visible && counter % 60 === 0) {
-        if (levelTime - 1 > 0) {
-          levelTime--;
-          scoreDisplay.timeText.text = '0'.repeat(4 - levelTime.toString().length) + levelTime;
-        } else if (!player.dead) {
-          levelTime--;
-          scoreDisplay.timeText.text = '0'.repeat(4 - levelTime.toString().length) + levelTime;
-          player.kill();
-          floorDisplay.container.visible = true;
-          floorDisplay.timeUpBg.visible = true;
-          floorDisplay.timeUpLegend.visible = true;
-          floorDisplay.timeUpBg.x = floorDisplay.timeUpLegend.x = player.sprite.x - gameWidth / 2;
+      if (!floorDisplay.container.visible && counter % 60 === 0) {
+        if (gameMode !== 'horde') {
+          // count down and kill player at 0
+          if (levelTime - 1 > 0) {
+            levelTime--;
+            scoreDisplay.timeText.text = '0'.repeat(4 - levelTime.toString().length) + levelTime;
+          } else if (!player.dead) {
+            levelTime--;
+            scoreDisplay.timeText.text = '0'.repeat(4 - levelTime.toString().length) + levelTime;
+            player.kill();
+            floorDisplay.container.visible = true;
+            floorDisplay.timeUpBg.visible = true;
+            floorDisplay.timeUpLegend.visible = true;
+            floorDisplay.timeUpBg.x = floorDisplay.timeUpLegend.x = player.sprite.x - gameWidth / 2;
+          }
+        } else {
+          // count up and give points for time
+          levelTime++;
+          scoreDisplay.timeText.text = secondsToMinutes(levelTime);
+      
+          player.score = levelTime;
+          scoreDisplay.updateScore(player.score);
         }
       }
     } else {
-      playEndSequence();
       // end level sequence
+      playEndSequence();
     }
     counter++;
-    // player.sprite.y = player.level.groundY
   } else {
     precounter++;
-    // selector.highlightSelection();
   }
 }
