@@ -515,10 +515,10 @@ button {
 }
 #credit {
   position: absolute;
-  width: 100vw;
+  width: var(--game-width);
   font-size: calc((var(--pixel-size) * 6));
   transform: translateX(-50%);
-  left: 50vw; 
+  left: 50%; 
   /* top: calc(var(--screen-height) - calc((var(--screen-height) / 60))); */
   bottom: calc(var(--tile-size) / 2);
   color: var(--kf-green);
@@ -646,34 +646,6 @@ a {
     transform: scale(var(--zoomed-scale))
   }
 }
-/* #cinema-screen > .cinema-scene.pregnant-sylvia {
-  position: relative;
-  position: absolute;
-  background-image: url(../assets/pregnantsylvia.png);
-  background-size: calc(var(--pixel-size) * 50) 100%;
-  width: calc(var(--pixel-size) * 16);
-  height: calc(var(--pixel-size) * 40);
-  opacity: 0;
-}
-#cinema-screen > .cinema-scene.thomas-grief {
-  background-image: url(../assets/thomasgrief.png);
-  background-size: cover;
-  width: inherit;
-  height: inherit;
-}
-#cinema-screen > .cinema-scene.thomas-final-grief,
-#cinema-screen > .cinema-scene.thomas-final-grief-2,
-#cinema-screen > .cinema-scene.black-screen {
-  background-size: cover;
-  width: inherit;
-  height: inherit;
-}
-#cinema-screen > .cinema-scene.thomas-final-grief {
-  background-image: url(../assets/thomasfinalgrief.png);
-}
-#cinema-screen > .cinema-scene.thomas-final-grief-2 {
-  background-image: url(../assets/thomasfinalgrief2.png);
-} */
 #cinema-screen > .cinema-scene.black-screen {
   background-image: url(../assets/blackscreen.png);
 }
@@ -718,6 +690,7 @@ a {
   border-color: transparent;
   height: 100%;
   opacity: 0.4;
+  display: none !important;
 }
 #cinematic > .caption {
   width: calc(var(--game-width) - (var(--tile-size) * 5));
