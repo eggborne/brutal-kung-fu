@@ -16,7 +16,7 @@ window.addEventListener('load', function () {
       document.getElementById('options-screen').classList.add('hidden');
       document.getElementById('top-fighters-screen').classList.add('hidden');
       document.body.className = 'loaded';
-      document.getElementById('credit').style.opacity = 0.1;
+      document.getElementById('credit').style.opacity = 0.3;
     }); 
   document.documentElement.style.setProperty('--screen-height', window.innerHeight + 'px');
   document.getElementById('name-entry').onkeyup = function() {
@@ -41,7 +41,7 @@ window.addEventListener('load', function () {
   } else {    
     console.warn('options left at default')
   }
-
+  
 });
 // document.body.onload = () => {
 //   document.getElementById('kung-fu-logo').classList.add('landed');
@@ -97,6 +97,15 @@ const defaultOptions = {
     'PUNCH/WEAPON': 'j',
     'KICK': 'k',
     'THROW WEAPON': 'l'
+  },
+  actionButtons: {
+    'WALK LEFT': 'left',
+    'WALK RIGHT': 'right',
+    'JUMP': 'up',
+    'CROUCH': 'down',
+    'PUNCH/WEAPON': 'y',
+    'KICK': 'b',
+    'THROW WEAPON': 'x'
   },
   gamepadPosition: 'HIGH',
   showInstructions: landscape,
@@ -313,8 +322,8 @@ let currentScore = 0;
 lastEggX = undefined;
 
 // if (!landscape) {
-const tileSize = Math.round(gameWidth / tilesPerWidth);
-// const tileSize = Math.round(gameHeight/tilesPerHeight)
+let tileSize = Math.round(gameWidth / tilesPerWidth);
+// let tileSize = Math.round(gameHeight/tilesPerHeight)
 // tileSize = gameWidth / tilesPerWidth;
 document.documentElement.style.setProperty('--tile-size', tileSize + 'px')
 // } else {
@@ -619,12 +628,12 @@ function createGame() {
     }
   }
   if (!landscape) {
-    // gameContainer.mask = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
-    // gameContainer.mask.width = gameWidth;
-    // gameContainer.mask.height = gameHeight;
-    // gameContainer.mask.x = 0;
-    // gameContainer.mask.y = 0;
-    // stage.addChild(gameContainer.mask);
+    gameContainer.mask = new PIXI.Sprite(PIXI.utils.TextureCache['pixel']);
+    gameContainer.mask.width = gameWidth;
+    gameContainer.mask.height = gameHeight;
+    gameContainer.mask.x = 0;
+    gameContainer.mask.y = 0;
+    stage.addChild(gameContainer.mask);
   }
 }
 document.getElementById('controls-button').onclick = () => {

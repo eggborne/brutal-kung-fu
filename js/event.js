@@ -2,7 +2,6 @@ var pressingUp, pressingDown, pressingLeft, pressingRight, pressingPunch, pressi
 var touches = [];
 var touchingDPad = false;
 
-
 const moveSelector = (direction) => {
   let currentSelectedIndex = 0;
   let newIndex = 0;
@@ -90,13 +89,11 @@ touchEnd = function(event) {
   touchingDPad = false;
   touches.length = 0;
 };
-// var dPad = document.getElementById('d-pad');
+
 let dPadArea = document.getElementById('d-pad-touch-area');
 dPadArea.addEventListener('touchstart', touchStart, { passive: true });
 dPadArea.addEventListener('touchmove', touchMove, { passive: true });
 dPadArea.addEventListener('touchend', touchEnd, { passive: true });
-
-console.error('added d-pad listeners')
 
 document.onkeydown = function(event) {
   let letter = event.key;

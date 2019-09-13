@@ -1,55 +1,53 @@
 
 let godMode = false;
 
-function Fighter(character, scale) {
-  if (!scale) {
-    scale = fighterScale;
+class Fighter {
+  constructor(character, scale=1) {
+    this.character = 'thomas';
+    this.sprite = new PIXI.Sprite(PIXI.utils.TextureCache[this.character + 'walk1']);
+    this.sprite.width = this.sprite.height = tileSize * 3 * scale;
+    this.walkSpeed = fighterScale * playerSpeed * (godMode ? 3 : 1.1);
+    // this.leapForce = tileSize / 2.8;
+    this.leapForce = (tileSize / 3.3) * fighterScale;
+    this.gravityForce = (newPixelSize / 3) * fighterScale;
+    this.punchRange = tileSize * 1.1 * fighterScale;
+    this.kickRange = tileSize * 1.6 * fighterScale;
+    this.sprite.anchor.x = 0.5;
+    this.sprite.anchor.y = 1;
+    this.beganMove = this.beganJump = this.beganPunch = this.beganKick = this.beganDuck = this.endedDuck = this.droppedAt = -99;
+    this.walkFrames = ['walk1', 'walk2'];
+    this.jumpFrames = ['jump0', 'jump1', 'jump2'];
+    this.kickFrames = ['kick0', 'kick1'];
+    this.stance = false;
+    this.walkFrame = 0;
+    this.jumpFrame = 0;
+    this.kickFrame = 0;
+    this.velocity = { x: 0, y: 0 };
+    this.level = undefined;
+    this.punchSpeed = 3;
+    this.kickSpeed = 15;
+    this.punching = this.kicking = this.ducking = false;
+    this.currentMoveDuration = 0;
+    this.dealtBlow = false;
+    this.jumping = false;
+    this.landedAt = -99;
+    this.grippers = [];
+    this.hp = this.maxHP = godMode ? 300 : 100;
+    this.dead = false;
+    this.diedAt = -99;
+    this.score = 0;
+    this.weapon = '';
+    this.damagedAt = -99;
+    this.stunned = false;
+    this.previousTexture = this.sprite.texture;
+    this.nextTexture = this.sprite.texture;
+    this.killed = 0;
+    this.attackHitting = false;
+    this.headHeight = this.sprite.height;
+    this.fightingBoss = false;
+    gameContainer.addChild(this.sprite);
   }
-  this.character = 'thomas';
-  this.sprite = new PIXI.Sprite(PIXI.utils.TextureCache[this.character + 'walk1']);
-  this.sprite.width = this.sprite.height = tileSize * 3 * scale;
-  this.walkSpeed = fighterScale * playerSpeed * (godMode ? 3 : 1.1);
-  this.leapForce = (tileSize / 3.3) * fighterScale;
-  this.gravityForce = (newPixelSize / 3) * fighterScale;
-  this.punchRange = tileSize * 1.1 * fighterScale;
-  this.kickRange = tileSize * 1.6 * fighterScale;
-  this.sprite.anchor.x = 0.5;
-  this.sprite.anchor.y = 1;
-  gameContainer.addChild(this.sprite);
-  this.beganMove = this.beganJump = this.beganPunch = this.beganKick = this.beganDuck = this.endedDuck = this.droppedAt = -99;
-  this.walkFrames = ['walk1', 'walk2'];
-  this.jumpFrames = ['jump0', 'jump1', 'jump2'];
-  this.kickFrames = ['kick0', 'kick1'];
-  this.stance = false;
-  this.walkFrame = 0;
-  this.jumpFrame = 0;
-  this.kickFrame = 0;
-  this.velocity = { x: 0, y: 0 };
-  this.level = undefined;
-  this.punchSpeed = 3;
-  this.kickSpeed = 15;
-  this.punching = this.kicking = this.ducking = false;
-  this.currentMoveDuration = 0;
-  this.dealtBlow = false;
-  this.jumping = false;
-  this.landedAt = -99;
-  // this.leapForce = tileSize/2.8
-  this.grippers = [];
-  this.hp = this.maxHP = godMode ? 300 : 100;
-  this.dead = false;
-  this.diedAt = -99;
-  this.score = 0;
-  this.weapon = '';
-  this.damagedAt = -99;
-  this.stunned = false;
-  this.previousTexture = this.sprite.texture;
-  this.nextTexture = this.sprite.texture;
-  this.killed = 0;
-  this.attackHitting = false;
-
-  this.headHeight = this.sprite.height;
-  this.fightingBoss = false;
-  this.setAttributesToScale = function(newScale) {
+  setAttributesToScale (newScale) {
     this.sprite.width = this.sprite.height = tileSize * 3 * newScale;
     this.walkSpeed = newScale * playerSpeed * (godMode ? 3 : 1.1);
     this.leapForce = (tileSize / 3.3) * newScale;
@@ -57,17 +55,17 @@ function Fighter(character, scale) {
     this.punchRange = tileSize * 1.1 * newScale;
     this.kickRange = tileSize * 1.6 * newScale;
   }
-  this.footContact = function(victim) {
+  footContact(victim) {
     if (this.sprite.scale.x < 0) {
       return { x: this.sprite.x - tileSize * 2, y: this.sprite.y - tileSize * 2 };
     } else {
       return { x: this.sprite.x + tileSize * 2, y: this.sprite.y - tileSize * 2 };
     }
   };
-  this.changeTexture = function(newText) {
+  changeTexture(newText) {
     this.sprite.texture = PIXI.utils.TextureCache[this.character + newText + this.weapon];
   };
-  this.checkForProjectiles = function() {
+  checkForProjectiles() {
     for (var v = 0; v < knives.length; v++) {
       var knife = knives[v];
       if (Math.abs(knife.x - this.sprite.x) < tileSize / 2) {
@@ -89,7 +87,7 @@ function Fighter(character, scale) {
       }
     }
   };
-  this.throw = function(weapon) {
+  throw(weapon) {
     if (weapon === 'knife') {
       var knife = new PIXI.Sprite(PIXI.utils.TextureCache['knife']);
       if (this.ducking) {
@@ -118,7 +116,7 @@ function Fighter(character, scale) {
       knives.push(knife);
     }
   };
-  this.flinch = function(pos, knife, hitFrom) {
+  flinch(pos, knife, hitFrom) {
     this.stunned = true;
     this.previousTexture = this.sprite.texture;
     if (!this.ducking) {
@@ -146,7 +144,7 @@ function Fighter(character, scale) {
       player.sprite.texture = player.previousTexture;
     }, 250);
   };
-  this.dropWeapon = function() {
+  dropWeapon() {
     this.droppedAt = counter;
     var dropped = new Powerup(this.sprite.x, this.weapon, true);
     this.weapon = '';
@@ -166,7 +164,7 @@ function Fighter(character, scale) {
       }, 30);
     }, 30);
   };
-  this.damage = function(amount, keepWeapon) {
+  damage(amount, keepWeapon) {
     if (!keepWeapon && this.weapon) {
       this.dropWeapon();
     }
@@ -182,7 +180,7 @@ function Fighter(character, scale) {
       // this.sprite.tint = 0xffaaaa
     }
   };
-  this.kill = function() {
+  kill() {
     playSound(deathSound);
     this.punching = this.kicking = false;
     this.killed = 0;
@@ -205,7 +203,7 @@ function Fighter(character, scale) {
     releasePunch();
     releaseKick();
   };
-  this.leap = function() {
+  leap() {
     var sinceBegan = counter - this.beganJump;
     if (sinceBegan === 0) {
       this.velocity.y = this.leapForce;
@@ -228,7 +226,7 @@ function Fighter(character, scale) {
     }
   };
 
-  this.punch = function() {
+  punch() {
     var sinceBegan = counter - this.beganPunch;
     if (this.sprite.y < this.level.groundY) {
       var punchText = 'jumppunch';
@@ -275,7 +273,7 @@ function Fighter(character, scale) {
     //     this.currentMoveDuration++
     // }
   };
-  this.kick = function() {
+  kick() {
     var sinceBegan = counter - this.beganKick;
     if (sinceBegan === 0) {
       if (this.sprite.y < this.level.groundY) {
@@ -346,7 +344,7 @@ function Fighter(character, scale) {
     //     this.currentMoveDuration++
     // }
   };
-  this.applyVelocity = function() {
+  applyVelocity() {
     // this.sprite.x += this.velocity.x
     if (this.velocity.x) {
       this.walk(this.velocity.x);
@@ -366,12 +364,12 @@ function Fighter(character, scale) {
       this.velocity.x = 0;
     }
   };
-  this.applyGravity = function() {
+  applyGravity() {
     if (this.sprite.y < this.level.groundY) {
       this.velocity.y -= this.gravityForce;
     }
   };
-  this.walk = function(amount, noScroll) {
+  walk(amount, noScroll) {
     if (endSequenceStarted) {
       var limitX = gameWidth;
     } else {
@@ -450,7 +448,7 @@ function Fighter(character, scale) {
       // }
     }
   };
-  this.cycleLegs = function(rate) {
+  cycleLegs(rate) {
     var sinceBegan = counter - this.beganMove;
     if (!rate) {
       rate = 6;
@@ -464,6 +462,12 @@ function Fighter(character, scale) {
       this.sprite.texture = PIXI.utils.TextureCache[this.character + this.walkFrames[this.walkFrame] + this.weapon];
     }
   };
+}
+class StickMan2 extends Fighter {
+  constructor() {
+    super();
+
+  }
 }
 function StickMan(scale, level=1) {
   levelData[(level-1)].boss = this;

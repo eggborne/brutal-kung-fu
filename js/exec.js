@@ -114,6 +114,9 @@ function update() {
     }
   }
   // if (!landscape && !endSequenceStarted && !player.dead && touchingDPad) {
+    if (userGamepad) {
+      monitorUserGamepad()
+    }
   if (!endSequenceStarted && !player.dead && touchingDPad) {
     nesPanel.monitorDPad();
   }
@@ -500,7 +503,6 @@ function update() {
           player.walk(player.walkSpeed);
         }
         if (pressingLeft) {
-          console.error('LEFT')
           player.walk(-player.walkSpeed);
         }
       }
