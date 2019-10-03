@@ -184,7 +184,6 @@ function skipCinematic() {
 function typeCaption(slideObj) {
   document.getElementById('cinematic-caret').classList.remove('ready');
   let textString = slideObj.caption;
-  console.warn('TYPING CAPTION', textString);
   let maxCharsPerLine = 30;
   let promise = new Promise((resolve) => {
     let captionDiv = document.getElementById('cinematic-caption');
@@ -204,7 +203,6 @@ function typeCaption(slideObj) {
         }
       }
     });
-    console.log(letterArray)
     let onLetter = 0;
     let actualTextSpeed = textSpeed;
     if (slideObj.additive) {
@@ -243,7 +241,6 @@ function typeCaption(slideObj) {
         }
         let actualSlideSpeed = 50;        
         setTimeout(() => {
-          console.warn('skipping FALSE')
           skippingSlide = false;
           resolve();
         }, actualSlideSpeed);
@@ -294,9 +291,7 @@ function toggleControlScreen() {
   document.getElementById('controls-screen').classList.toggle('showing');  
 }
 function applyUserOptions(options) {
-  console.log('applying options', options)
   for (let option in defaultOptions) {
-    console.warn('doing option', option)
     if (options[option] !== defaultOptions[option]) {
       if (option === 'bloodOn') {
         toggleBlood();
@@ -747,7 +742,6 @@ function NESPanel() {
 
   if (!landscape) {
     // UIContainer.addChildAt(this.bg, 0);
-    console.warn('add nes cont')
     nesContainer.addChild(this.container);
   } else {
     nesContainer.addChild(this.container);

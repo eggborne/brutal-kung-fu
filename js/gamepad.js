@@ -1,14 +1,11 @@
 class UserGamepad {
 	constructor(gamepadObj, mappings) {
-		console.log('New UserGamepad received', gamepadObj);
 		this.buttons = gamepadObj.buttons;
 		this.index = gamepadObj.index;
 		this.buttonMappings = new Array(gamepadObj.buttons.length);
-		console.warn('but', this.buttons)
 		this.currentlyPressedButtons = [];
 
 		for (let index in mappings) {
-			console.log('doing', index)
 			this.buttonMappings[index] = mappings[index];
 		}
 	}

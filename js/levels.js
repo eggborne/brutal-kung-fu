@@ -81,7 +81,6 @@ function Level(floor, direction, startY, water, topEdge, groundY, segsWide=29, s
       sign.height = tileSize - newPixelSize * 2;
       sign.x = (tileSize * 4 * s) - sign.width * 0.15;
       sign.y = ceilingPiece.y + newPixelSize * 7;
-      console.log('adding sign')
       this.container.addChild(sign);
     }
   }  

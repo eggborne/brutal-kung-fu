@@ -20,9 +20,7 @@ class Enemy {
     this.sprite.anchor.x = 0.5;
     this.sprite.anchor.y = 1;
     this.sprite.y = player.level.groundY;
-
     console.error('new', side, 'Enemy. Total gameContainer children:', gameContainer.children.length)
-
   }
   playerFacing() {
     return (this.sprite.x > player.sprite.x 
@@ -98,12 +96,10 @@ class Enemy {
     }
   }
 	die() {
-		console.error('calling DIE for', this.type);
 		if (this.diedAt === counter - 1) {
 			this.sprite.texture = PIXI.utils.TextureCache[`${this.type}dead`];
 			// this.sprite.y -= newPixelSize * 8;
 			if (this.type === 'gripper' || this.type === 'knifethrower') {
-				console.error('is GRIPPER@ygfhgfh')
 				this.sprite.y -= newPixelSize * 8;
 				if (this.sprite.scale.x > 0) {
 					this.sprite.x += newPixelSize * 4;
@@ -111,7 +107,6 @@ class Enemy {
 					this.sprite.x -= newPixelSize * 4;
 				}
 			} else if (this.type === 'tomtom') {
-				console.error('is TOMTMO@ygfhgfh')
 				this.sprite.y -= newPixelSize * 2;
 				if (this.sprite.scale.x > 0) {
 					this.sprite.x += newPixelSize * 4;

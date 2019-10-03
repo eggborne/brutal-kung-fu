@@ -218,7 +218,6 @@ function pressButton(action, index) {
       case 'right': pressRight(); break;
       case 'select': pressSelect(); break;
       case 'start': pressStart(); break;
-      default: console.log('unused button pressed');
     }
   }
 }
@@ -232,7 +231,6 @@ function releaseButton(action) {
     case 'down': releaseDown(); break;
     case 'left': releaseLeft(); break;
     case 'right': releaseRight(); break;
-    default: console.log('unused button released');
   }
 }
 
@@ -330,7 +328,6 @@ function pressDown() {
     changeGameMode(gameMode === 'story' ? 'horde' : 'story');
   } else if (landscape && optionsScreenShowing()) {
     document.querySelectorAll('.selectable')[optionSelected].classList.remove('selected');
-    console.log('was', optionSelected)
     if (optionSelected !== 7) {
       if (optionSelected === 3) {
         optionSelected = 6;
@@ -342,7 +339,6 @@ function pressDown() {
         optionSelected += 2;
       }
       document.querySelectorAll('.selectable')[optionSelected].classList.add('selected');
-      console.log('noe', optionSelected)
     }
   } else {
     if (counter >= introTime + walkupTime && player.sprite.y === player.level.groundY) {
@@ -352,7 +348,6 @@ function pressDown() {
   }
   if (!document.getElementById('title-screen').classList.contains('hidden')) {
     // selector.move(1);
-
   }
   pressingDown = true;
 }

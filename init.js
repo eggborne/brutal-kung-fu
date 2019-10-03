@@ -790,11 +790,9 @@ Array.from(document.querySelectorAll('#top-fighters-screen .tab-area > .tab')).m
     document.getElementById('top-fighters-screen').classList.remove(highScoreTabSelected.toLowerCase() + '-mode');
     document.getElementById('top-fighters-screen').classList.add(selectingTab.toLowerCase() + '-mode');
     highScoreTabSelected = selectingTab.toLowerCase();
-    console.log(highScoreTabSelected);
   };
 });
 async function advanceSlide() {
-  console.log('onStorySlide', onStorySlide);
   let currentSlide = storySlides[onStorySlide];
   // start game if at end
   if (!currentSlide || (onStorySlide && !document.querySelector(`.cinema-scene:nth-child(${onStorySlide})`))) {
@@ -825,7 +823,6 @@ async function advanceSlide() {
       document.getElementById('cinematic-caret').classList.add('ready');
     } else {
       setTimeout(async function () {
-        console.error('auto-advancing.')
         await advanceSlide()
       }, 1500);
     }
@@ -875,7 +872,6 @@ Array.from(document.querySelectorAll('.option-range-value')).map((knob, i) => {
     });
     this.classList.add('on');
     newPosition = this.innerHTML;
-    console.log('new!', newPosition)
     gameOptions.gamepadPosition = newPosition;
     nesPanel.moveToYPosition(newPosition);
   }
