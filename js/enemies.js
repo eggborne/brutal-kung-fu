@@ -67,7 +67,7 @@ class Enemy {
     var knifeRange = (tileSize / 2) * fighterScale;
     for (var v = 0; v < knives.length; v++) {
       var knife = knives[v];
-      // if (!knife.enemy && knife.visible) {
+      // if (!knife.enemy && knife.visible) {spawnrandomasdasdasdasdasdasdasd
       if (knife.type !== 'air' && knife.visible) {
         if (knife.scale.x > 0) {
           if (this.sprite.x > knife.x && this.sprite.x - knife.x < knifeRange) {
@@ -1132,8 +1132,9 @@ function spawnRandomEnemy() {
   } else {
     var randSide = 'right';
   }
-  if (Math.abs(player.sprite.x - player.level.playerStartX) < gameWidth / 2) {
+  if (gameMode !== 'horde' && Math.abs(player.sprite.x - player.level.playerStartX) < gameWidth / 2) {
     randSide = player.level.direction;
+    console.error('sending from', randSide, 'because player not moved enough')
   }
   if (wonRound) {
     if (player.level.direction === 'left') {

@@ -1,34 +1,8 @@
-let startedZoom = -99;
 function update() {
-  if (gameInitiated && gameMode === 'horde' && counter > 0 && counter % 1200 === 0) {
-    if (counter % 2400 === 0 && gripperLimit < 15) {
-      gripperLimit++;
-      console.error('UP --------------> gripperLimit', gripperLimit)
-    }
-    if (counter % 3600 === 0 && tomtomLimit < 10) {
-      tomtomLimit++;
-      console.error('UP --------------> tomtomLimit', tomtomLimit)
-    }
-    if (enemyFrequency > 5) {
-      enemyFrequency--;
-      console.error('UP --------------> enemyFrequency', enemyFrequency)
-    }
-    if (eggFrequency > 10) {
-      eggFrequency--;
-      console.error('UP --------------> eggFrequency', eggFrequency)
-    }
-  }
-  if (counter === 60) {
-    console.log('gripperLimit', gripperLimit)
-    console.log('tomtomLimit', tomtomLimit)
-    console.log('enemyFrequency', enemyFrequency)
-    console.log('eggFrequency', eggFrequency)
-  }
   if (counter === 1) {
     playSound(gameStartMusic);
   }
-  if (gameInitiated && document.getElementById('name-entry-screen').classList.contains('hidden') && counter < introTime) {
-  } else if (gameInitiated && counter < introTime + walkupTime) {
+  if (gameInitiated && counter < introTime + walkupTime) {
     let since = counter - introTime;    
     if (player.level.direction === 'left') {
       var walkDir = -player.walkSpeed;
@@ -53,7 +27,9 @@ function update() {
         }
       }
     } else {
-      if (gameMode !== 'horde') { player.sprite.x = gameWidth / 2; }
+      if (gameMode !== 'horde') { 
+        player.sprite.x = gameWidth / 2; 
+      }
       setTimeout(function() {
         floorDisplay.container.visible = false;
         floorDisplay.readyBg.visible = false;
@@ -65,7 +41,7 @@ function update() {
     }
   }
   if (gameInitiated && counter === introTime + walkupTime) {
-    if (gameOptions.soundOn) {
+    if (bgMusic && bgMusic.playing) {
       bgMusic.stop();
     }
     playSound(bgMusic);
@@ -115,7 +91,7 @@ function update() {
   }
   // if (!landscape && !endSequenceStarted && !player.dead && touchingDPad) {
     if (userGamepad) {
-      monitorUserGamepad()
+      userGamepad.monitorForPresses()
     }
   if (!endSequenceStarted && !player.dead && touchingDPad) {
     nesPanel.monitorDPad();
@@ -519,7 +495,7 @@ function update() {
     }
     if (counter - player.diedAt === 110 && player.sprite.y > gameHeight + player.sprite.height) {
       if (lives === 0) {
-        getScoresFromDatabase(gameName, true, true, true);
+        getScoresFromDatabase(gameMode, true, true, true);
       } else {
         setTimeout(function() {
           resetGame();

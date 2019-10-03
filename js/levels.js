@@ -336,24 +336,6 @@ function playEndSequence() {
     }
   }
 }
-function fullScreenCall() {
-  var root = document.body;
-  return root.requestFullscreen || root.webkitRequestFullscreen || root.mozRequestFullScreen || root.msRequestFullscreen;
-}
-function exitFullScreenCall() {
-  return document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
-}
-function isFullScreen() {
-  return document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
-}
-function toggleFullScreen() {
-  document.body.style.opacity = 0.3;
-  if (!isFullScreen()) {
-    fullScreenCall().call(document.body);
-  } else {
-    exitFullScreenCall().call(document);
-  }
-}
 window.addEventListener('fullscreenchange', () => {
   setTimeout(() => {
     document.body.style.opacity = 1;

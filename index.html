@@ -37,7 +37,8 @@
 	</script>
 </head>
 
-<body>	
+<body>
+	<div id='dim-cover' class='screen-cover'></div>
 	<div id='title-screen' class='game-cover'>
 		<div id='title-header'>
 			<div class='orange-divider'></div>
@@ -105,7 +106,7 @@
 				<div style='opacity: 0' class='close-button go-back-button clickable'>&lt;</div>
 			</div>
 		</div>
-	</div>	
+	</div>
 	<div id='controls-hint'>
 		<div id='hint-title'>KEYBOARD CONTROLS</div>
 		<div id='hint-instructions'>CLICK TO CHANGE</div>
@@ -156,6 +157,11 @@
 			<div id='hint-close-button' class='close-button clickable'>OK</div>
 		</div>
 	</div>
+	<div id='gamepad-setup'>
+		<div id='press-instructions'>PRESS THE DESIRED BUTTON FOR</div>
+		<div id='button-assigning'></div>
+		<div id='cancel-gamepad-assigns-button' class='close-button clickable'>CANCEL</div>
+	</div>
 	<div id='options-screen' class='screen-cover'>
 		<div class='dragon-column left'></div>
 		<div class='dragon-column right'></div>
@@ -166,31 +172,31 @@
 		</header>
 		<div id='options-body'>
 			<div id='options-switch-list'>
-				<div class='option-row'>
+				<div class='option-row selectable selected'>
 					<div class='option-label'>SOUND FX</div>
 					<div id='sound-toggle' class='option-switch clickable'>
 						<div class='switch-knob'></div>
 					</div>
 				</div>
-				<div class='option-row'>
+				<div class='option-row selectable'>
 					<div class='option-label'>MUSIC</div>
 					<div id='music-toggle' class='option-switch clickable'>
 						<div class='switch-knob'></div>
 					</div>
 				</div>
-				<div class='option-row'>
+				<div class='option-row selectable'>
 					<div class='option-label'>BLOOD</div>
 					<div id='blood-toggle' class='option-switch clickable on'>
 						<div class='switch-knob'></div>
 					</div>
 				</div>
-				<div class='option-row'>
+				<div class='option-row selectable'>
 					<div class='option-label'>SCAN LINES</div>
 					<div id='scan-lines-toggle' class='option-switch clickable on'>
 						<div class='switch-knob'></div>
 					</div>
 				</div>
-				<div class='option-row'>
+				<div class='option-row selectable'>
 					<div class='option-label'>FULL SCREEN</div>
 					<div id='full-screen-toggle' class='option-switch clickable'>
 						<div class='switch-knob'></div>
@@ -207,11 +213,11 @@
 			</div>
 		</div>
 		<div id='options-button-list'>
-			<div id='controls-button' class='option-button clickable'>CUSTOMIZE CONTROLS</div>
-			<!-- <div id='home-screen-button' class='option-button clickable'>ADD TO HOME SCREEN</div> -->
+			<div id='controls-button' class='option-button selectable clickable'>CUSTOMIZE KEYS</div>
+			<div id='gamepad-button' class='option-button selectable clickable'>CUSTOMIZE GAMEPAD</div>
 		</div>
 		<div id='lower-area'>
-			<div id='close-options-button' class='close-button clickable'>BACK</div>
+			<div id='close-options-button' class='close-button selectable clickable'>BACK</div>
 			<div id='cookie-confirmation'>
 				<input name='cookie-checkbox' id='cookie-checkbox' type='checkbox'>				
 				<label for='cookie-checkbox'>REMEMBER PREFERENCES<br />(USES COOKIE)</label>
@@ -306,14 +312,15 @@
 	</div>
 	<div id='scan-lines' class='screen-cover showing'></div>
 	<noscript>You need to enable JavaScript to play Brutal Kung Fu :(</noscript>
+	<script src="js/db.js"></script>	
 	<script src="init.js"></script>	
-	<script src="js/gamepad.js"></script>	
-	<script async src="js/event.js"></script>
+	<script src="js/event.js"></script>
 	<script src="js/player.js"></script>
 	<script src="js/enemies.js"></script>
-	<script async src="js/levels.js"></script>
-	<script async src="js/gui.js"></script>
-	<script async src="js/exec.js"></script>
+	<script src="js/levels.js"></script>
+	<script src="js/gui.js"></script>
+	<script src="js/gamepad.js"></script>	
+	<script src="js/exec.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.1.2/howler.min.js" defer></script>
 </body>
 <!-- <script>

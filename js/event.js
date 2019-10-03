@@ -1,6 +1,24 @@
-var pressingUp, pressingDown, pressingLeft, pressingRight, pressingPunch, pressingJump, pressingKick;
+var pressingUp, pressingDown, pressingLeft, pressingRight, pressingPunch, pressingJump, pressingKick, pressingSelect, pressingStart;
+
 var touches = [];
 var touchingDPad = false;
+
+function titleScreenShowing() {
+  return !document.getElementById('title-screen').classList.contains('hidden')
+    && !modeScreenShowing()
+    && document.getElementById('options-screen').classList.contains('hidden')
+    && document.getElementById('top-fighters-screen').classList.contains('hidden')
+    && !document.getElementById('controls-hint').classList.contains('showing');
+}
+function optionsScreenShowing() {
+  return !document.getElementById('options-screen').classList.contains('hidden');
+}
+function modeScreenShowing() {
+  return !document.getElementById('mode-select-screen').classList.contains('hidden');
+}
+function cinematicShowing() {
+  return !gameInitiated && !document.getElementById('cinematic').classList.contains('hidden');
+}
 
 const moveSelector = (direction) => {
   let currentSelectedIndex = 0;
@@ -24,9 +42,9 @@ const moveSelector = (direction) => {
     }
   });
 }
-const chooseTitleSelection = () => {
+const chooseTitleSelection = (forceStart) => {
   let selected = document.querySelector('.title-button.selected').innerText.toLowerCase();
-  if (selected === 'start!') {
+  if (forceStart || selected === 'start!') {
     callModeSelectScreen();
     clearTitle();
   }
@@ -37,7 +55,7 @@ const chooseTitleSelection = () => {
     toggleOptionsScreen();
   }
 }
-touchStart = function(event) {
+touchStart = function (event) {
   // event.preventDefault();
   touchingDPad = true;
   var touch = {
@@ -49,13 +67,13 @@ touchStart = function(event) {
     touches.push(touch);
   }
 };
-touchMove = function(event) {
+touchMove = function (event) {
   // event.preventDefault();
   if (touches.length) {
     touches[0].pos = { x: event.changedTouches[0].clientX, y: event.changedTouches[0].clientY };
   }
 };
-touchEnd = function(event) {
+touchEnd = function (event) {
   // event.preventDefault();
   var touch = { x: event.changedTouches[0].clientX, y: event.changedTouches[0].clientY };
   if (nesPanel.upButton.containsPoint(touch)) {
@@ -95,7 +113,7 @@ dPadArea.addEventListener('touchstart', touchStart, { passive: true });
 dPadArea.addEventListener('touchmove', touchMove, { passive: true });
 dPadArea.addEventListener('touchend', touchEnd, { passive: true });
 
-document.onkeydown = function(event) {
+document.onkeydown = function (event) {
   let letter = event.key;
   if (!pressingUp && letter === gameOptions.actionKeys['JUMP']) {
     pressUp();
@@ -110,29 +128,7 @@ document.onkeydown = function(event) {
     pressRight();
   }
   if (letter === gameOptions.actionKeys['THROW WEAPON']) {
-    if (player.weapon === 'knife') {
-      player.throw('knife');
-      if (nesPanel) {
-        nesPanel.throwKnob.tint = 0x009900;
-      }
-      player.weapon = '';
-      if (player.ducking) {
-        player.sprite.texture = PIXI.utils.TextureCache[player.character + 'duckpunch'];
-      } else {
-        player.sprite.texture = PIXI.utils.TextureCache[player.character + 'punch'];
-      }
-      setTimeout(function() {
-        if (nesPanel) {
-          nesPanel.toggleThrow('off');
-        }
-
-        if (player.ducking) {
-          player.sprite.texture = PIXI.utils.TextureCache[player.character + 'duckpunchstance'];
-        } else {
-          player.sprite.texture = PIXI.utils.TextureCache[player.character + 'stance'];
-        }
-      }, 100);
-    }
+    pressThrow();
   }
   if (!pressingPunch && letter === gameOptions.actionKeys['PUNCH/WEAPON']) {
     pressPunch();
@@ -148,15 +144,10 @@ document.onkeydown = function(event) {
       refreshKeyDisplay();
       dismissKeyEditModal();
     }
-  } else {
-    // if (!gameInitiaed && !document.getElementById('cinematic').classList.contains('hidden')) {
-    //   document.getElementById('cinematic').classList.add('hidden');
-    //   gameInitiated = true;
-    // }
   }
 };
 
-document.onkeyup = function(event) {
+document.onkeyup = function (event) {
   let letter = event.key;
   if (letter === gameOptions.actionKeys['JUMP']) {
     releaseUp();
@@ -176,138 +167,283 @@ document.onkeyup = function(event) {
   if (letter === gameOptions.actionKeys['KICK']) {
     releaseKick();
   }
+  if (letter === gameOptions.actionKeys['PUNCH/WEAPON']) {
+    releaseThrow();
+  }
 };
 
+function pressButton(action, index) {
+  if (document.getElementById('gamepad-setup').classList.contains('showing')) {
+    let currentAssignAction = assignableActions[assigningButton];
+    if (currentAssignAction === 'PUNCH/WEAPON') {
+      currentAssignAction = 'punch';
+    } else if (currentAssignAction === 'KICK') {
+      currentAssignAction = 'kick';
+    } else if (currentAssignAction === 'THROW WEAPON') {
+      currentAssignAction = 'throw';
+    }
+    // unbind current button
+    Object.values(userGamepad.buttonMappings).map((val, i) => {
+      if (val.action === currentAssignAction) {
+        userGamepad.buttonMappings[i].action = '';
+      }
+    });
+    // bind new button
+    userGamepad.buttonMappings[index].action = currentAssignAction;
+    // show confirmation
+    document.getElementById('button-assigning').style.color = 'var(--kf-green)';
+    document.getElementById('button-assigning').innerText = 'OK!';
+    setTimeout(() => {
+      document.getElementById('button-assigning').style.color = 'var(--kf-light-orange)';
+      if (assigningButton < assignableActions.length - 1) {
+        assigningButton++
+        document.getElementById('button-assigning').innerText = assignableActions[assigningButton];
+      } else {
+        document.getElementById('gamepad-setup').classList.remove('showing')
+        document.getElementById('dim-cover').classList.remove('showing')
+        assigningButton = 0;
+        document.getElementById('button-assigning').innerText = assignableActions[assigningButton];
+      }
+    }, 320);
+    gameOptions.buttonMappings = userGamepad.buttonMappings;
+  } else {
+    switch (action) {
+      case 'kick': pressKick(); break;
+      case 'punch': pressPunch(); break;
+      case 'throw': pressThrow(); break;
+      case 'jump': pressJump(); break;
+      case 'up': pressUp(); break;
+      case 'down': pressDown(); break;
+      case 'left': pressLeft(); break;
+      case 'right': pressRight(); break;
+      case 'select': pressSelect(); break;
+      case 'start': pressStart(); break;
+      default: console.log('unused button pressed');
+    }
+  }
+}
+function releaseButton(action) {
+  switch (action) {
+    case 'kick': releaseKick(); break;
+    case 'punch': releasePunch(); break;
+    case 'throw': releaseThrow(); break;
+    case 'jump': releaseJump(); break;
+    case 'up': releaseUp(); break;
+    case 'down': releaseDown(); break;
+    case 'left': releaseLeft(); break;
+    case 'right': releaseRight(); break;
+    default: console.log('unused button released');
+  }
+}
+
 function pressRight() {
-  if (nesPanel) {
-    nesPanel.rightButton.tint = 0xaaffaa;
-  }
+  if (nesPanel) { nesPanel.rightButton.tint = 0xaaffaa; }
   pressingRight = true;
-  if (document.getElementById('title-screen').classList.contains('hidden') && !(player.level.direction === 'left' && player.fightingBoss && Math.abs(player.sprite.x - player.level.boss.sprite.x) < tileSize * 4) && counter > introTime + walkupTime && player.sprite.scale.x < 0) {
-    player.sprite.scale.x *= -1;
-  }
-  if (!player.ducking && !player.grippers.length) {
-    player.stance = false;
-    player.beganMove = counter;
+  if (modeScreenShowing()) {
+    changeGameMode(gameMode === 'story' ? 'horde' : 'story');
+  } else if (landscape && optionsScreenShowing()) {    
+    document.querySelectorAll('.selectable')[optionSelected].classList.remove('selected');
+    if ((optionSelected % 2 === 0 || optionSelected === 5) && optionSelected !== 4) {
+      optionSelected = optionSelected + 1 < 7 ? optionSelected + 1 : optionSelected;
+    }
+    document.querySelectorAll('.selectable')[optionSelected].classList.add('selected');
+  } else {
+    if (document.getElementById('title-screen').classList.contains('hidden')
+      && !(player.level.direction === 'left' && player.fightingBoss && Math.abs(player.sprite.x - player.level.boss.sprite.x) < tileSize * 4)
+      && counter > introTime + walkupTime && player.sprite.scale.x < 0) {
+      player.sprite.scale.x *= -1;
+    }
+    if (!player.ducking && !player.grippers.length) {
+      player.stance = false;
+      player.beganMove = counter;
+    }
   }
 }
 function releaseRight() {
-  if (nesPanel) {
-    nesPanel.rightButton.tint = nesPanel.rightButton.origTint;
-  }
+  if (nesPanel) { nesPanel.rightButton.tint = nesPanel.rightButton.origTint; }
   pressingRight = false;
 }
 function pressLeft() {
-  if (nesPanel) {
-    nesPanel.leftButton.tint = 0xaaffaa;
-  }
+  if (nesPanel) { nesPanel.leftButton.tint = 0xaaffaa; }
   pressingLeft = true;
-
-  if (document.getElementById('title-screen').classList.contains('hidden') && !(player.level.direction === 'right' && player.fightingBoss && Math.abs(player.sprite.x - player.level.boss.sprite.x) < tileSize * 4) && counter > introTime + walkupTime && player.sprite.scale.x > 0) {
-    player.sprite.scale.x *= -1;
-  }
-  if (!player.ducking) {
-    player.stance = false;
-    player.beganMove = counter;
+  if (modeScreenShowing()) {
+    changeGameMode(gameMode === 'story' ? 'horde' : 'story');
+  } else if (landscape && optionsScreenShowing()) {
+    document.querySelectorAll('.selectable')[optionSelected].classList.remove('selected');
+    if ((optionSelected % 2 !== 0 || optionSelected === 6) && optionSelected !== 4 && optionSelected !== 5 && optionSelected !== 7) {
+      optionSelected = optionSelected - 1 >= 0 ? optionSelected - 1 : optionSelected;
+    }
+    document.querySelectorAll('.selectable')[optionSelected].classList.add('selected');
+  } else {
+    if (document.getElementById('title-screen').classList.contains('hidden')
+      && !(player.level.direction === 'right' && player.fightingBoss && Math.abs(player.sprite.x - player.level.boss.sprite.x) < tileSize * 4)
+      && counter > introTime + walkupTime
+      && player.sprite.scale.x > 0) {
+      player.sprite.scale.x *= -1;
+    }
+    if (!player.ducking) {
+      player.stance = false;
+      player.beganMove = counter;
+    }
   }
 }
 function releaseLeft() {
-  if (nesPanel) {
-    nesPanel.leftButton.tint = nesPanel.leftButton.origTint;
-  }
+  if (nesPanel) { nesPanel.leftButton.tint = nesPanel.leftButton.origTint; }
   pressingLeft = false;
 }
 function pressUp() {
   if (nesPanel) {
     nesPanel.upButton.tint = 0xaaffaa;
-    // nesPanel.depressButton(nesPanel.upButton)
-  }
-  if (document.getElementById('title-screen').classList.contains('hidden') && !player.grippers.length && !player.punching && !player.kicking && player.sprite.y === player.level.groundY) {
-    player.beganJump = counter;
   }
   pressingUp = true;
-  if (!document.getElementById('title-screen').classList.contains('hidden')) {
-    // selector.move(-1);
+  if (titleScreenShowing()) {
     moveSelector(-1);
+  } else if (landscape && optionsScreenShowing()) {
+    document.querySelectorAll('.selectable')[optionSelected].classList.remove('selected');
+    if (optionSelected - 2 >= 0) {
+      if (optionSelected === 5) {
+        optionSelected = 4;
+      } else if (optionSelected === 6) {
+        optionSelected = 3;
+      } else {
+        optionSelected -= 2;
+      }
+    }
+    document.querySelectorAll('.selectable')[optionSelected].classList.add('selected');
+  } else if (modeScreenShowing()) {
+    changeGameMode(gameMode === 'story' ? 'horde' : 'story');
+  } else {
+    if (!player.grippers.length && !player.punching && !player.kicking && player.sprite.y === player.level.groundY) {
+      player.beganJump = counter;
+    }
   }
 }
 function releaseUp() {
-  if (nesPanel) {
-    nesPanel.upButton.tint = nesPanel.upButton.origTint;
-  }
+  if (nesPanel) { nesPanel.upButton.tint = nesPanel.upButton.origTint; }
   pressingUp = false;
 }
 function pressDown() {
-  if (nesPanel) {
-    nesPanel.downButton.tint = 0xaaffaa;
-  }
-  if (document.getElementById('title-screen').classList.contains('hidden') && player.sprite.y === player.level.groundY) {
-    player.beganDuck = counter;
-    player.ducking = true;
+  if (nesPanel) { nesPanel.downButton.tint = 0xaaffaa; }
+  if (titleScreenShowing()) {
+    moveSelector(1);
+  } else if (modeScreenShowing()) {
+    changeGameMode(gameMode === 'story' ? 'horde' : 'story');
+  } else if (landscape && optionsScreenShowing()) {
+    document.querySelectorAll('.selectable')[optionSelected].classList.remove('selected');
+    console.log('was', optionSelected)
+    if (optionSelected !== 7) {
+      if (optionSelected === 3) {
+        optionSelected = 6;
+      } else if (optionSelected === 4) {
+        optionSelected = 5;
+      } else if (optionSelected === 6) {
+        optionSelected = 7;
+      } else {
+        optionSelected += 2;
+      }
+      document.querySelectorAll('.selectable')[optionSelected].classList.add('selected');
+      console.log('noe', optionSelected)
+    }
+  } else {
+    if (counter >= introTime + walkupTime && player.sprite.y === player.level.groundY) {
+      player.beganDuck = counter;
+      player.ducking = true;
+    }
   }
   if (!document.getElementById('title-screen').classList.contains('hidden')) {
     // selector.move(1);
-    moveSelector(1);
+
   }
   pressingDown = true;
 }
 function releaseDown() {
-  if (nesPanel) {
-    nesPanel.downButton.tint = nesPanel.downButton.origTint;
-  }
+  if (nesPanel) { nesPanel.downButton.tint = nesPanel.downButton.origTint; }
   player.endedDuck = counter;
   player.ducking = false;
   pressingDown = false;
 }
 function pressJump() {
-  if (nesPanel) {
-    nesPanel.upButton.tint = 0xaaffaa;
-  }
+  if (nesPanel) { nesPanel.upButton.tint = 0xaaffaa; }
   if (!player.grippers.length && player.sprite.y === player.level.groundY) {
     player.beganJump = counter;
   }
   pressingJump = true;
 }
 function releaseJump() {
-  if (nesPanel) {
-    nesPanel.upButton.tint = nesPanel.upButton.origTint;
-  }
+  if (nesPanel) { nesPanel.upButton.tint = nesPanel.upButton.origTint; }
   pressingJump = false;
 }
 function pressPunch() {
-  if (nesPanel) {
-    // nesPanel.punchButton.tint = 0xaaffaa
-    nesPanel.punchButton.texture = PIXI.utils.TextureCache['nesbuttonpressed'];
-    nesPanel.punchLabel.scale.x = nesPanel.punchLabel.origScale.x * 0.9;
-    nesPanel.punchLabel.scale.y = nesPanel.punchLabel.origScale.y * 0.9;
-  }
+  if (nesPanel) { nesPanel.punchButton.tint = 0xeeffee; nesPanel.punchButton.texture = PIXI.utils.TextureCache['nesbuttonpressed']; nesPanel.punchLabel.scale.x = nesPanel.punchLabel.origScale.x * 0.9; nesPanel.punchLabel.scale.y = nesPanel.punchLabel.origScale.y * 0.9; }
   player.beganPunch = counter;
   player.punching = true;
   pressingPunch = true;
-  let titleShowing = !document.getElementById('title-screen').classList.contains('hidden')
-  && !document.getElementById('mode-select-screen').style.display
-  && document.getElementById('options-screen').classList.contains('hidden')
-  && !document.getElementById('controls-hint').classList.contains('showing');
-  if (titleShowing) {
-    // selector.chooseSelection();
+  if (titleScreenShowing()) {
     chooseTitleSelection();
-  }
-  if (!gameInitiated && !document.getElementById('cinematic').classList.contains('hidden')) {
+  } else if (optionsScreenShowing()) {
+    optionSelections[optionSelected]();
+  } else if (modeScreenShowing()) {
+    confirmGameMode();
+  } else if (cinematicShowing()) {
     skipTextOrNextSlide();
   }
 }
 function releasePunch() {
-  if (nesPanel) {
-    // nesPanel.punchButton.tint = 0xffffff
-    nesPanel.punchButton.texture = PIXI.utils.TextureCache['nesbutton'];
-    nesPanel.punchLabel.scale.x = nesPanel.punchLabel.origScale.x;
-    nesPanel.punchLabel.scale.y = nesPanel.punchLabel.origScale.y;
-  }
+  if (nesPanel) { nesPanel.punchButton.tint = 0xffffff; nesPanel.punchButton.texture = PIXI.utils.TextureCache['nesbutton']; nesPanel.punchLabel.scale.x = nesPanel.punchLabel.origScale.x; nesPanel.punchLabel.scale.y = nesPanel.punchLabel.origScale.y; }
   pressingPunch = false;
+}
+function pressSelect() {
+  if (titleScreenShowing()) {
+    pressDown();
+    releaseDown();
+  } else if (optionsScreenShowing()) {
+    document.querySelectorAll('.selectable')[optionSelected].classList.remove('selected');
+    optionSelected = optionSelected + 1 <= 7 ? optionSelected + 1 : 0;
+    document.querySelectorAll('.selectable')[optionSelected].classList.add('selected');
+  } else if (modeScreenShowing()) {
+    changeGameMode(gameMode === 'story' ? 'horde' : 'story');
+  }
+}
+function pressStart() {
+  if (titleScreenShowing()) {
+    chooseTitleSelection();
+  } else if (modeScreenShowing()) {
+    confirmGameMode();
+  } else if (cinematicShowing()) {
+    skipCinematic();
+  }
+}
+function pressThrow() {
+  if (player.weapon === 'knife') {
+    player.throw('knife');
+    if (nesPanel) {
+      nesPanel.throwKnob.tint = 0x009900;
+    }
+    player.weapon = '';
+    if (player.ducking) {
+      player.sprite.texture = PIXI.utils.TextureCache[player.character + 'duckpunch'];
+    } else {
+      player.sprite.texture = PIXI.utils.TextureCache[player.character + 'punch'];
+    }
+    setTimeout(function () {
+      if (nesPanel) {
+        nesPanel.toggleThrow('off');
+      }
+
+      if (player.ducking) {
+        player.sprite.texture = PIXI.utils.TextureCache[player.character + 'duckpunchstance'];
+      } else {
+        player.sprite.texture = PIXI.utils.TextureCache[player.character + 'stance'];
+      }
+    }, 100);
+  }
+}
+function releaseThrow() {
+  releasePunch();
 }
 function pressKick() {
   if (nesPanel) {
-    // nesPanel.kickButton.tint = 0xaaffaa
+    nesPanel.kickButton.tint = 0xeeffee;
     nesPanel.kickButton.texture = PIXI.utils.TextureCache['nesbuttonpressed'];
     nesPanel.kickLabel.scale.x = nesPanel.kickLabel.origScale.x * 0.9;
     nesPanel.kickLabel.scale.y = nesPanel.kickLabel.origScale.y * 0.9;
@@ -315,21 +451,19 @@ function pressKick() {
   player.beganKick = counter;
   player.kicking = true;
   pressingKick = true;
-  let titleShowing = !document.getElementById('title-screen').classList.contains('hidden')
-  && !document.getElementById('mode-select-screen').style.display
-  && document.getElementById('options-screen').classList.contains('hidden')
-  && !document.getElementById('controls-hint').classList.contains('showing');
-  if (titleShowing) {
-    // selector.chooseSelection();
+  if (titleScreenShowing()) {
     chooseTitleSelection();
-  }
-  if (!gameInitiated && !document.getElementById('cinematic').classList.contains('hidden')) {
+  } else if (optionsScreenShowing()) {
+    optionSelections[optionSelected]();
+  } else if (modeScreenShowing()) {
+    confirmGameMode();
+  } else if (cinematicShowing()) {
     skipTextOrNextSlide()
   }
 }
 function releaseKick() {
   if (nesPanel) {
-    // nesPanel.kickButton.tint = 0xffffff
+    nesPanel.kickButton.tint = 0xffffff;
     nesPanel.kickButton.texture = PIXI.utils.TextureCache['nesbutton'];
     nesPanel.kickLabel.scale.x = nesPanel.kickLabel.origScale.x;
     nesPanel.kickLabel.scale.y = nesPanel.kickLabel.origScale.y;

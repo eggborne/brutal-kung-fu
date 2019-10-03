@@ -3,23 +3,23 @@ let viewHeight = window.innerHeight;
 const isTouchDevice = 'ontouchstart' in document.documentElement;
 const isWebApp = (window.navigator.standalone === true) || (window.matchMedia('(display-mode: standalone)').matches);
 let landscape = viewWidth > viewHeight;
-const gameName = 'kungfu';
+const gameName = 'brutalkungfu';
 let kungFuSounds;
 let onStorySlide = 0;
 let soundsLoaded = 0;
 window.addEventListener('load', function () {
   app.loader.add('assets/nessprites.json')
     .add('assets/bkfsprites.json')
-    .load(function() {
-      init();      
+    .load(function () {
+      init();
       document.getElementById('game-canvas').classList.remove('hidden');
       document.getElementById('options-screen').classList.add('hidden');
       document.getElementById('top-fighters-screen').classList.add('hidden');
       document.body.className = 'loaded';
       document.getElementById('credit').style.opacity = 0.3;
-    }); 
+    });
   document.documentElement.style.setProperty('--screen-height', window.innerHeight + 'px');
-  document.getElementById('name-entry').onkeyup = function() {
+  document.getElementById('name-entry').onkeyup = function () {
     if (this.value !== '' && this.value.trim().length) {
       document.getElementById('name-submit').disabled = false;
     } else {
@@ -36,12 +36,12 @@ window.addEventListener('load', function () {
   if (userCookie) {
     console.warn('gameOpt now', gameOptions);
     applyUserOptions(userCookie);
-    gameOptions = {...userCookie};
+    gameOptions = { ...userCookie };
     console.warn('options set to user')
-  } else {    
+  } else {
     console.warn('options left at default')
   }
-  
+  userGamepad = null;
 });
 // document.body.onload = () => {
 //   document.getElementById('kung-fu-logo').classList.add('landed');
@@ -60,9 +60,10 @@ window.addEventListener('load', function () {
 function findRank(score) {
   score = parseInt(score);
   let rank;
-  let properArray = scoreArray.filter(entry => entry.gameMode === gameMode)
+  // let properArray = scoreArray.filter(entry => entry.gameMode === gameMode)
+  let properArray = highScores[gameMode];
   properArray.map((entry, i) => {
-    let entryName  = entry.name;
+    let entryName = entry.name;
     let entryScore = parseInt(entry.score);
     console.log('comparing', score, 'to', entryScore);
 
@@ -98,6 +99,24 @@ const defaultOptions = {
     'KICK': 'k',
     'THROW WEAPON': 'l'
   },
+  buttonMappings: {
+    0: { action: 'kick' },
+    1: { action: 'punch' },
+    2: { action: '' },
+    3: { action: 'throw' },
+    4: { action: '' },
+    5: { action: '' },
+    6: { action: '' },
+    7: { action: '' },
+    8: { action: 'select' },
+    9: { action: 'start' },
+    10: { action: '' },
+    11: { action: '' },
+    12: { action: 'up' },
+    13: { action: 'down' },
+    14: { action: 'left' },
+    15: { action: 'right' }
+  },
   actionButtons: {
     'WALK LEFT': 'left',
     'WALK RIGHT': 'right',
@@ -112,7 +131,7 @@ const defaultOptions = {
   addedToHomeScreen: isWebApp,
   playerName: ''
 }
-let gameOptions = {...defaultOptions};
+let gameOptions = { ...defaultOptions };
 
 let assigningAction = undefined;
 let lastEnteredName = '';
@@ -136,7 +155,7 @@ let midLaugh = undefined;
 let lowLaugh = undefined;
 let deathSound = undefined;
 let gameStart = undefined;
-let loadSounds = function() {
+let loadSounds = function () {
   Howler.autoSuspend = true;
   // gameOverMusic = new Howl({
   //     src: ['assets/sounds/gameover.mp3'],
@@ -159,7 +178,7 @@ let loadSounds = function() {
   stepSound = new Howl({
     src: ['assets/sounds/step.mp3', 'assets/sounds/step.ogg'],
     html: true,
-    onload: function() {
+    onload: function () {
       soundsLoaded++;
       // loadMessage.text = 'SOUNDS LOADED: ' + soundsLoaded + '/13';
     }
@@ -168,35 +187,35 @@ let loadSounds = function() {
   punchSound = new Howl({
     src: ['assets/sounds/thomaspunch.mp3'],
     html: true,
-    onload: function() {
+    onload: function () {
       soundsLoaded++;
     }
   });
   kickSound = new Howl({
     src: ['assets/sounds/thomaskick.mp3', 'assets/sounds/thomaskick.ogg'],
     html: true,
-    onload: function() {
+    onload: function () {
       soundsLoaded++;
     }
   });
   jumpkickSound = new Howl({
     src: ['assets/sounds/thomasjumpkick.mp3', 'assets/sounds/thomasjumpkick.ogg'],
     html: true,
-    onload: function() {
+    onload: function () {
       soundsLoaded++;
     }
   });
   knifeSound = new Howl({
     src: ['assets/sounds/thomasknife.mp3', 'assets/sounds/thomasknife.ogg'],
     html: true,
-    onload: function() {
+    onload: function () {
       soundsLoaded++;
     }
   });
   shortHitSound = new Howl({
     src: ['assets/sounds/shorthit.mp3', 'assets/sounds/shorthit.ogg'],
     html: true,
-    onload: function() {
+    onload: function () {
       soundsLoaded++;
     }
   });
@@ -204,7 +223,7 @@ let loadSounds = function() {
     src: ['assets/sounds/longhit.mp3', 'assets/sounds/longhit.ogg'],
     volume: 0.8,
     html: true,
-    onload: function() {
+    onload: function () {
       soundsLoaded++;
     }
   });
@@ -212,28 +231,28 @@ let loadSounds = function() {
     src: ['assets/sounds/highlaugh.mp3', 'assets/sounds/highlaugh.ogg'],
     volume: 1,
     html: true,
-    onload: function() {
+    onload: function () {
       soundsLoaded++;
     }
   });
   midLaugh = new Howl({
     src: ['assets/sounds/midlaugh.mp3', 'assets/sounds/midlaugh.ogg'],
     html: true,
-    onload: function() {
+    onload: function () {
       soundsLoaded++;
     }
   });
   lowLaugh = new Howl({
     src: ['assets/sounds/lowlaugh.mp3', 'assets/sounds/lowlaugh.ogg'],
     html: true,
-    onload: function() {
+    onload: function () {
       soundsLoaded++;
     }
   });
   deathSound = new Howl({
     src: ['assets/sounds/thomasdeath.mp3', 'assets/sounds/thomasdeath.ogg'],
     html: true,
-    onload: function() {
+    onload: function () {
       soundsLoaded++;
     }
   });
@@ -241,7 +260,7 @@ let loadSounds = function() {
     src: ['assets/sounds/gamestart.mp3', 'assets/sounds/gamestart.ogg'],
     volume: 0.5,
     html: true,
-    onload: function() {
+    onload: function () {
       soundsLoaded++;
     }
   });
@@ -250,18 +269,18 @@ let loadSounds = function() {
     volume: 0.6,
     html: true,
     loop: true,
-    onload: function() {
+    onload: function () {
       soundsLoaded++;
     }
   });
 };
 function playSound(sound) {
   if (sound === gameStartMusic || sound === bgMusic) {
-    if (gameOptions.musicOn) {
+    if (gameOptions.musicOn && sound) {
       sound.play();
     }
   } else {
-    if (gameOptions.soundOn) {
+    if (gameOptions.soundOn && sound) {
       sound.play();
     }
   }
@@ -275,7 +294,6 @@ if (landscape) {
   gameWidth = gameHeight * (16 / 15);
   gameX = (viewWidth - gameWidth) / 2;
 }
-
 PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
 // PIXI.settings.PRECISION_FRAGMENT = PIXI.PRECISION.LOW;
 // PIXI.settings.PRECISION_VERTEX = PIXI.PRECISION.LOW;
@@ -291,7 +309,6 @@ const app = new PIXI.Application({
   // backgroundColor: 0x9290ff,
   transparent: true
 });
-
 
 // app.plugins.interaction.interactionFrequency = 1;
 // app.x = 0
@@ -341,16 +358,20 @@ let topScores = {
 let lowScore = 0;
 let currentRecord = { player: undefined, score: undefined };
 let scoreArray = [];
+let highScores = {
+  story: [],
+  horde: []
+}
 let fighterScale = 1;
 let levelReached = 1;
 let dragonLevel = 0;
 let livesAwarded = 0;
 let newLifeScore = 50000;
 
-let gameInitiated = false; 
+let gameInitiated = false;
 
 function setVariables() {
-  gameInitiated = false; 
+  gameInitiated = false;
   counter = 0;
   precounter = 0;
   grippers = [];
@@ -443,13 +464,13 @@ function clearTitle() {
     if (!floorDisplay.container.visible) {
       floorDisplay.container.visible = true;
     }
-    console.warn('clearTitle');    
+    console.warn('clearTitle ---------------------------------------------------------------------------------');
   }
 }
 
 function toggleSound() {
   !soundsLoaded ? loadSounds() : null;
-  document.getElementById('sound-toggle').classList.toggle('on'); 
+  document.getElementById('sound-toggle').classList.toggle('on');
   gameOptions.soundOn = !gameOptions.soundOn;
 }
 function toggleMusic() {
@@ -459,7 +480,7 @@ function toggleMusic() {
   introTime = gameOptions.musicOn ? 300 : 30;
 }
 function toggleBlood() {
-  
+
   document.getElementById('blood-toggle').classList.toggle('on');
   gameOptions.bloodOn = !gameOptions.bloodOn;
 }
@@ -576,7 +597,7 @@ function createGame() {
   eggFrequency = player.levelData.eggFrequency;
   gripperLimit = player.levelData.limits.grippers;
   tomtomLimit = player.levelData.limits.tomtoms;
-  
+
   player.sprite.x = player.level.playerStartX;
   lastEggX = player.level.playerStartX;
   player.sprite.y = player.level.groundY;
@@ -636,32 +657,27 @@ function createGame() {
     stage.addChild(gameContainer.mask);
   }
 }
-document.getElementById('controls-button').onclick = () => {
-  // toggleControlScreen();
+function callKeyControlsScreen() {
   document.getElementById('controls-hint').classList.add('showing');
 }
-if (landscape && !isTouchDevice) {
-  
-  // document.getElementById('close-controls-button').onclick = () => {
-  //   toggleControlScreen();
-  // }
-//   document.getElementById('keyboard-controls-tab').onclick = function() {
-//     controlTabSelected = 'keyboard';
-//     this.classList.add('selected');
-//     document.getElementById('gamepad-controls-tab').classList.remove('selected');
-//     document.getElementById('gamepad-controls-grid').classList.add('hidden');
-//     document.getElementById('keyboard-controls-grid').classList.remove('hidden');
-//   }
-//   document.getElementById('gamepad-controls-tab').onclick = function() {
-//     controlTabSelected = 'gamepad';
-//     this.classList.add('selected');
-//     document.getElementById('keyboard-controls-tab').classList.remove('selected');
-//     document.getElementById('keyboard-controls-grid').classList.add('hidden');
-//     document.getElementById('gamepad-controls-grid').classList.remove('hidden');
-//   }
+function callGamepadSetupScreen() {
+  if (!userGamepad) {
+    document.getElementById('press-instructions').innerText = 'PRESS ANY BUTTON TO DETECT GAMEPAD';
+    document.getElementById('button-assigning').innerText = '';
+  }
+  document.getElementById('dim-cover').classList.add('showing');
+  document.getElementById('gamepad-setup').classList.add('showing');
+}
+document.getElementById('controls-button').onclick = () => {
+  callKeyControlsScreen()
+}
+document.getElementById('gamepad-button').onclick = callGamepadSetupScreen;
+document.getElementById('cancel-gamepad-assigns-button').onclick = () => {
+  document.getElementById('dim-cover').classList.remove('showing');
+  document.getElementById('gamepad-setup').classList.remove('showing');
 }
 [...document.querySelectorAll('.key-row')].map((but, i) => {
-  but.onclick = function(e) {
+  but.onclick = function (e) {
     let action = Object.keys(gameOptions.actionKeys)[i];
     this.classList.add('depressed');
     callKeyEditModal(action);
@@ -673,136 +689,57 @@ document.getElementById('sound-toggle').onpointerdown = () => {
 document.getElementById('music-toggle').onpointerdown = () => {
   toggleMusic();
 };
-document.getElementById('blood-toggle').onclick = () => {    
+document.getElementById('blood-toggle').onpointerdown = () => {
   console.log('clicked while gameOptions.bloodOn', gameOptions.bloodOn)
   toggleBlood();
   console.log('after toggleScanLines gameOptions.bloodOn is', gameOptions.bloodOn)
 };
-document.getElementById('scan-lines-toggle').onclick = () => {
+document.getElementById('scan-lines-toggle').onpointerdown = () => {
   console.log('clicked while gameOptions.scanLines', gameOptions.scanLines)
   toggleScanLines();
   console.log('after toggleScanLines gameOptions.scanLines is', gameOptions.scanLines)
 };
-document.getElementById('full-screen-toggle').onclick = () => {
-  if (isFullScreen()) {
-    document.getElementById('full-screen-toggle').classList.remove('on');
-  } else {
-    document.getElementById('full-screen-toggle').classList.add('on');
-  }
+document.getElementById('full-screen-toggle').onpointerdown = () => {  
   toggleFullScreen();
 };
-document.getElementById('close-options-button').onclick = function() {
+document.getElementById('close-options-button').onclick = function () {
   toggleOptionsScreen();
 };
-document.getElementById('close-high-scores-button').onclick = function() {
+document.getElementById('close-high-scores-button').onclick = function () {
   toggleHighScores();
 };
-document.getElementById('story-mode-panel').onpointerdown = function() {
-  this.classList.add('selected');
-  document.getElementById('horde-mode-panel').classList.remove('selected');
-  gameMode = 'story';
+document.getElementById('story-mode-panel').onpointerdown = function () {
+  changeGameMode('story')
 };
-document.getElementById('horde-mode-panel').onpointerdown = function() {
-  this.classList.add('selected');
-  document.getElementById('story-mode-panel').classList.remove('selected');
-  gameMode = 'horde';  
+document.getElementById('horde-mode-panel').onpointerdown = function () {
+  changeGameMode('horde')
 }
-document.getElementById('hint-close-button').onclick = function() {
+document.getElementById('hint-close-button').onclick = function () {
   this.parentElement.parentElement.classList.remove('showing');
   if (document.getElementById('options-screen').classList.contains('hidden')) {
     gameInitiated = true;
   }
 }
-document.getElementById('cinematic').onclick = function() {
+document.getElementById('cinematic').onclick = function () {
   skipTextOrNextSlide();
 }
-document.getElementById('skip-cinematic-button').onclick = function() {
+document.getElementById('skip-cinematic-button').onclick = function () {
   skipCinematic();
 }
-Array.from(document.querySelectorAll('#top-fighters-screen .tab-area > .tab')).map((tab, i, arr) => {
-  tab.onpointerdown = function() {
-  let selectingTab = this.innerText.split(' ')[0];
-  document.getElementById('top-fighters-screen').classList.remove(highScoreTabSelected.toLowerCase() + '-mode');
-  document.getElementById('top-fighters-screen').classList.add(selectingTab.toLowerCase() + '-mode');
-  highScoreTabSelected = selectingTab.toLowerCase();
-  console.log(highScoreTabSelected);
-  };
-});
-async function advanceSlide() {
-  console.log('onStorySlide', onStorySlide);
-  let currentSlide = storySlides[onStorySlide];
-  // start game if at end
-  if (!currentSlide || (onStorySlide && !document.querySelector(`.cinema-scene:nth-child(${onStorySlide})`))) {
-    console.error('END of slides. Hiding cinematic and starting game');
-    gameInitiated = true;
-    return document.getElementById('cinematic').classList.add('hidden');
-  }
-  document.getElementById('cinematic-caret').classList.remove('ready');
-  if (onStorySlide && !currentSlide.keepImage) {
-    document.querySelector(`.cinema-scene:nth-child(${onStorySlide - 1})`).classList.remove('full-opacity');
-    document.querySelector(`.cinema-scene:nth-child(${onStorySlide})`).classList.add('full-opacity');
-  }
-  await typeCaption(currentSlide);
-  if (gameInitiated) { return document.getElementById('cinematic').classList.add('hidden') };
-  if (onStorySlide === 0) {
-    document.querySelector('#cinematic > .caption').classList.add('moved-down');    
-    // wait for 'years ago' to shrink
-    setTimeout(async function() {
-      document.getElementById('cinema-screen').classList.add('full-opacity');
-      document.querySelector('.cinema-scene:first-child').classList.add('full-opacity');
-      await typeCaption(storySlides[1]);
-      if (gameInitiated) { return document.getElementById('cinematic').classList.add('hidden') };
-      document.getElementById('cinematic-caret').classList.add('ready');
-    }, 1750);
-    onStorySlide++;
-  } else {
-    if (currentSlide.caption) {
-      document.getElementById('cinematic-caret').classList.add('ready');
-    } else {
-      setTimeout(async function() {
-        console.error('auto-advancing.')
-        await advanceSlide()
-      }, 1500);
-    }
 
+function changeGameMode(newMode) {
+  if (newMode === 'story') {
+    document.getElementById('story-mode-panel').classList.add('selected');
+    document.getElementById('horde-mode-panel').classList.remove('selected');
   }
-  onStorySlide++;
+  if (newMode === 'horde') {
+    document.getElementById('horde-mode-panel').classList.add('selected');
+    document.getElementById('story-mode-panel').classList.remove('selected');
+  }
+  gameMode = newMode;
 }
-async function playStory() {
-  // console.log('called playStory')
 
-  // await advanceSlide();
-  // await typeCaption(storySlides[0]);
-  // document.getElementById('cinematic-caret').classList.add('ready');
-  // document.querySelector('#cinema-screen').classList.add('full-opacity');
-  // document.querySelector('.cinema-scene:first-child').classList.add('full-opacity');
-  // if (gameInitiated) { return document.getElementById('cinematic').classList.add('hidden') };
-  // if (skippingSlide) { 
-  //   await typeCaption(storySlides[1]);
-  //   skippingSlide = false 
-  // } else {
-  //   await typeCaption(storySlides[1]);
-  // }
-
-  // document.querySelector('.cinema-scene:first-child').classList.remove('full-opacity');
-  // document.querySelector('.cinema-scene:nth-child(1)').classList.add('full-opacity');
-  // if (gameInitiated) { return document.getElementById('cinematic').classList.add('hidden') };
-  // if (skippingSlide) { skippingSlide = false };
-
-  // for (let i=2; i < storySlides.length; i++) {
-  //   if (i > 1) {
-  //     if (!storySlides[i].keepLastImage) {
-  //       document.querySelector(`.cinema-scene:nth-child(${i - 1})`).classList.remove('full-opacity');
-  //       document.querySelector(`.cinema-scene:nth-child(${i})`).classList.add('full-opacity');
-  //     }
-  //     await typeCaption(storySlides[i]);
-  //     if (gameInitiated) { return document.getElementById('cinematic').classList.add('hidden') };
-  //     if (skippingSlide) { skippingSlide = false };
-  //   }
-  // };
-}
-document.getElementById('confirm-mode-button').onclick = function() {
-  console.log('gamemode', gameMode)
+function confirmGameMode() {
   if (gameMode === 'horde') {
     floorDisplay.legend.text = 'HORDE MODE';
     floorDisplay.bg.width = tileSize * 5;
@@ -814,7 +751,11 @@ document.getElementById('confirm-mode-button').onclick = function() {
     levelTime = 0;
     scoreDisplay.timeText.text = '0000';
     player.level = hordeLevel;
-    // fighterScale = 1.4;
+    if (fighterScale !== 1) {
+      fighterScale = 1;
+      player.setAttributesToScale(fighterScale);
+    }
+    // fighterScale = 0.8;
     // player.setAttributesToScale(fighterScale);
     document.getElementById('game-canvas').classList.add('horde-mode');
     gameInitiated = true;
@@ -836,40 +777,90 @@ document.getElementById('confirm-mode-button').onclick = function() {
     document.getElementById('game-canvas').classList.remove('horde-mode');
     document.getElementById('cinematic').classList.remove('hidden');
     requestAnimationFrame(() => {
-      console.log('advanceSlide?', advanceSlide)
       advanceSlide();
     });
-
   }
   document.getElementById('mode-select-screen').classList.add('hidden');
 }
+
+
+Array.from(document.querySelectorAll('#top-fighters-screen .tab-area > .tab')).map((tab, i, arr) => {
+  tab.onpointerdown = function () {
+    let selectingTab = this.innerText.split(' ')[0];
+    document.getElementById('top-fighters-screen').classList.remove(highScoreTabSelected.toLowerCase() + '-mode');
+    document.getElementById('top-fighters-screen').classList.add(selectingTab.toLowerCase() + '-mode');
+    highScoreTabSelected = selectingTab.toLowerCase();
+    console.log(highScoreTabSelected);
+  };
+});
+async function advanceSlide() {
+  console.log('onStorySlide', onStorySlide);
+  let currentSlide = storySlides[onStorySlide];
+  // start game if at end
+  if (!currentSlide || (onStorySlide && !document.querySelector(`.cinema-scene:nth-child(${onStorySlide})`))) {
+    console.error('END of slides. Hiding cinematic and starting game');
+    gameInitiated = true;
+    return document.getElementById('cinematic').classList.add('hidden');
+  }
+  document.getElementById('cinematic-caret').classList.remove('ready');
+  if (onStorySlide && !currentSlide.keepImage) {
+    document.querySelector(`.cinema-scene:nth-child(${onStorySlide - 1})`).classList.remove('full-opacity');
+    document.querySelector(`.cinema-scene:nth-child(${onStorySlide})`).classList.add('full-opacity');
+  }
+  await typeCaption(currentSlide);
+  if (gameInitiated) { return document.getElementById('cinematic').classList.add('hidden') };
+  if (onStorySlide === 0) {
+    document.querySelector('#cinematic > .caption').classList.add('moved-down');
+    // wait for 'years ago' to shrink
+    setTimeout(async function () {
+      document.getElementById('cinema-screen').classList.add('full-opacity');
+      document.querySelector('.cinema-scene:first-child').classList.add('full-opacity');
+      await typeCaption(storySlides[1]);
+      if (gameInitiated) { return document.getElementById('cinematic').classList.add('hidden') };
+      document.getElementById('cinematic-caret').classList.add('ready');
+    }, 1750);
+    onStorySlide++;
+  } else {
+    if (currentSlide.caption) {
+      document.getElementById('cinematic-caret').classList.add('ready');
+    } else {
+      setTimeout(async function () {
+        console.error('auto-advancing.')
+        await advanceSlide()
+      }, 1500);
+    }
+
+  }
+  onStorySlide++;
+}
+document.getElementById('confirm-mode-button').onclick = confirmGameMode;
 Array.from(document.querySelectorAll('.title-button')).map((but, i, arr) => {
-  but.onpointerdown = function() {
+  but.onpointerdown = function () {
     this.classList.add('selected')
     arr
-    .filter(but => but !== this)
-    .map(but => but.classList.remove('selected'));
+      .filter(but => but !== this)
+      .map(but => but.classList.remove('selected'));
   }
 });
-document.getElementById('start-button').onpointerup = function() {
+document.getElementById('start-button').onpointerup = function () {
   callModeSelectScreen()
   clearTitle();
 };
-document.getElementById('top-fighters-button').onpointerup = function() {
+document.getElementById('top-fighters-button').onpointerup = function () {
   toggleHighScores();
 };
-document.getElementById('options-button').onpointerup = function() {
+document.getElementById('options-button').onpointerup = function () {
   toggleOptionsScreen();
 };
-document.getElementById('skip-name-entry-button').onclick = function() {
+document.getElementById('skip-name-entry-button').onclick = function () {
   toggleNameEntry();
   startDisabled = true;
-  setTimeout(function() {
+  setTimeout(function () {
     startDisabled = false;
   }, 500);
 }
 Array.from(document.querySelectorAll('.stage-knob')).map((knob, i) => {
-  knob.onpointerdown = function() {
+  knob.onpointerdown = function () {
     Array.from(this.parentElement.children).map(sibling => {
       sibling.classList.remove('selected');
     });
@@ -878,7 +869,7 @@ Array.from(document.querySelectorAll('.stage-knob')).map((knob, i) => {
   }
 });
 Array.from(document.querySelectorAll('.option-range-value')).map((knob, i) => {
-  knob.onpointerdown = function() {
+  knob.onpointerdown = function () {
     Array.from(this.parentElement.children).map(sibling => {
       sibling.classList.remove('on');
     });
@@ -889,7 +880,7 @@ Array.from(document.querySelectorAll('.option-range-value')).map((knob, i) => {
     nesPanel.moveToYPosition(newPosition);
   }
 });
-document.getElementById('mode-back-button').onclick = function() {
+document.getElementById('mode-back-button').onclick = function () {
   document.getElementById('title-screen').classList.remove('hidden');
   document.getElementById('mode-select-screen').classList.add('hidden');
   lives = startingLives;
@@ -932,14 +923,17 @@ const destroyCookie = () => {
   var expires = 'expires=' + d.toUTCString();
   document.cookie = 'brutalkungfu' + '=' + null + ';' + expires + ';path=/';
 }
+
+
+
 function init() {
   setVariables();
-  
   nesPanel = new NESPanel();
   player = new Fighter('thomas');
   createGame();
   setTimeout(() => {
-    getScoresFromDatabase(gameName, true);
+    getScoresFromDatabase('horde', true);
+    getScoresFromDatabase('story', true);
   }, 750);
   if (!landscape) {
     // gameContainer.mask.width = gameContainer.width;
@@ -947,8 +941,8 @@ function init() {
     // gameContainer.mask.x = gameContainer.x;
     // gameContainer.mask.y = gameContainer.y;
   }
-  
-  PIXI.Ticker.shared.add(function(time) {
+
+  PIXI.Ticker.shared.add(function (time) {
     app.render(gameContainer);
     update();
   });

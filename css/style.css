@@ -21,7 +21,8 @@
   box-sizing: border-box;
   color: white;
   font-family: 'Press Start 2P';
-  /* image-rendering: pixelated; */
+  -webkit-tap-highlight-color: transparent;
+  image-rendering: pixelated;
 }
 img {
   image-rendering: pixelated;
@@ -41,8 +42,8 @@ body {
   -o-user-select: none;
   -moz-user-select: -moz-none;
   -webkit-user-select: none;
-  transform: scale(0.75);
-  transform-origin: center calc(var(--game-height) / 2);
+  /* transform: scale(0.75); */
+  /* transform-origin: center calc(var(--game-height) / 2); */
   transition: transform 600ms ease, opacity 900ms ease;
   overflow: hidden;
   /* -webkit-font-smoothing: subpixel-antialiased; */
@@ -64,6 +65,17 @@ address {
   border-right: calc(var(--tile-size) / 1.5) solid transparent;
   border-top: calc(var(--tile-size) / 1.5) solid white;
 }
+#dim-cover {
+  background: #000000cc;
+  z-index: 4;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 210ms ease;
+}
+#dim-cover.showing {
+  opacity: 1;
+  pointer-events: all;
+}
 .screen-cover {
   position: absolute;
   width: 100vw;
@@ -76,8 +88,8 @@ address {
   position: absolute;
   width: var(--game-width);
   height: var(--game-height);
-  top: 0;
-  left: 0;
+  /* top: 0;
+  left: 0; */
 }
 .orange-divider {
   background-image: url(../assets/orangeswirldivider.png);
@@ -134,7 +146,7 @@ address {
   top: 0;
   left: var(--game-x);
   width: var(--game-width);
-  height: var(--game-height);
+  height: calc(var(--game-height) + 1px);
   z-index: 1;
   display: grid;
   grid-template-rows: calc(var(--header-height) + var(--tile-size)) 1fr;
@@ -374,6 +386,7 @@ button {
 #close-high-scores-button {
   left: unset;
   font-size: calc(var(--pixel-size) * 10);
+  padding: calc(var(--pixel-size) * 10);
 }
 #close-high-scores-button.showing {
   display: flex;
@@ -381,10 +394,10 @@ button {
 #mode-select-screen.showing {
   display: grid;
 }
-#controls-hint {
+#controls-hint, #gamepad-setup {
   position: fixed;
   width: calc(var(--game-width) - (var(--tile-size) * 2));
-  height: calc(var(--game-height) - (var(--tile-size) * 2));
+  /* height: calc(var(--game-height) - (var(--tile-size) * 2)); */
   top: calc(var(--tile-size));
   left: 50vw;
   transform: translateX(-50%);
@@ -398,10 +411,39 @@ button {
   padding: calc(var(--tile-size) / 3);
   border: calc(var(--pixel-size) * 2) solid #222;
   display: none;
-  z-index: 50;
+  z-index: 5;
 }
-#controls-hint.showing {
+#controls-hint.showing, #gamepad-setup.showing {
   display: flex;
+  animation: flash-border;
+  animation-duration: 80ms;
+  animation-play-state: running;
+  animation-iteration-count: infinite;
+}
+#gamepad-setup {
+  width: calc(100% - (var(--tile-size) * 6));
+  /* height: calc(var(--tile-size) * 6); */
+  /* min-height: calc(var(--tile-size) * 6); */
+  border-color: var(--kf-dark-orange);
+  transform: translateX(-50%) translateY(-50%);
+  top: calc(var(--screen-height) / 2);
+  opacity: 1 !important;
+  justify-content: space-between;
+  padding: calc(var(--tile-size) / 2) 0;
+}
+#press-instructions {
+  margin: calc(var(--tile-size) / 2) 0;
+}
+#button-assigning {
+  margin: calc(var(--tile-size) / 2) 0;
+  font-size: calc(var(--tile-size) / 1.5);
+  color: var(--kf-light-orange);
+}
+#gamepad-setup > .close-button {
+  font-size: calc(var(--tile-size) / 4);
+  margin: calc(var(--tile-size) / 2) 0;
+  padding: calc(var(--tile-size) / 8) calc(var(--tile-size) / 4);
+  color: #aaa;
 }
 .orange-text {
   color: var(--kf-orange);
@@ -707,8 +749,8 @@ a {
   display: flex;
   /* align-items: center; */
   /* justify-content: center; */
-  transform: scale(1.5) translateY(calc(var(--tile-size) * -3));
-  transform-origin: top;
+  /* transform: scale(1.5) translateY(calc(var(--tile-size) * -3)); */
+  /* transform-origin: top; */
   transition: transform 1500ms ease;
   transition-delay: 500ms;
   text-align: left;
@@ -891,7 +933,7 @@ body.loaded #brutal-logo {
   }
 }
 #options-screen {
-  grid-template-rows: var(--header-height) 1fr 0.25fr 0.5fr;
+  grid-template-rows: var(--header-height) 1fr calc(var(--tile-size)) 1fr;
 	/* padding-bottom: calc(var(--tile-size) + 2vh); */
 }
 #options-screen .screen-header {  
@@ -911,43 +953,42 @@ body.loaded #brutal-logo {
   width: 100%;
   grid-column-start: 2;
   grid-row-start: 2;
-  padding: 3vh 0;
+  /* padding: 3vh 0; */
 }
 #options-screen #options-switch-list {
   display: flex;
   flex-direction: column;
   flex-wrap: wrap;
   align-items: stretch;
-  justify-content: space-between;
+  margin-top: 0.5vh;
   z-index: 0;
-	height: 100%;
-	max-width: calc(var(--game-width) / 1.25);
-	/* padding-top: calc(var(--tile-size)); */
-	margin: 0 !important;
+}
+body.gamepad-connected #options-screen .selectable.selected {
+  border-color: var(--kf-green);
+  animation: flash-border;
+  animation-duration: 80ms;
+  animation-play-state: running;
+  animation-iteration-count: infinite;
 }
 #options-switch-list .option-row {
-  
-}
-#options-switch-list .option-row {
-  height: calc((var(--tile-size) * 1.4) + 1vh);
-  /* width: 97.5%; */
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  align-items: center;  
+  height: calc(var(--screen-height) / 10);
+  display: grid;
+  grid-template-columns: 1fr min-content;
+  justify-items: end;
+  grid-column-gap: calc(var(--pixel-size) * 9);
+  border: calc(var(--pixel-size) * 4) double transparent;  
 }
 #options-switch-list .option-row > div {
-  width: 100%;
+  /* width: 100%; */
   display: flex;
   align-items: center;
-  justify-content: center;
-  border: calc(var(--pixel-size) / 2) solid #333;
+  justify-content: center;  
 }
 #options-switch-list .option-label {
   background-color: transparent;
   border: 0 !important;
   justify-content: flex-end !important;  
-  padding-right: calc(var(--pixel-size) * 12);
+  padding-left: 1vh;
   line-height: 150%;
   text-align: right;  
 }
@@ -955,6 +996,7 @@ body.loaded #brutal-logo {
   width: 100%;
   display: flex;
   flex-direction: column;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-evenly;
   grid-column-start: 2;
@@ -978,7 +1020,6 @@ body.loaded #brutal-logo {
   height: var(--tile-size);
   width: var(--tile-size);
   margin-right: calc(var(--tile-size) / 4);
-  /* cursor: pointer; */
 }
 #options-screen #options-button-list {
   grid-column-start: 2;
@@ -987,25 +1028,22 @@ body.loaded #brutal-logo {
   align-items: center;
   justify-content: space-evenly;
   width: 100%;
-  /* flex-grow: 1; */
 }
 #options-screen .option-button { 
-  /* justify-self: center; */
   font-size: calc(var(--pixel-size) * 6);
-  padding: calc(var(--pixel-size) * 8);
+  padding: calc(var(--pixel-size) * 6);
   align-self: center;
   background: rgb(42, 60, 73);
-  border: var(--pixel-size) outset #333;
+  border: calc(var(--pixel-size) * 4) double transparent;
 }
 #options-switch-list .option-range {  
   /* height: 100%; */
   align-self: stretch;
 }
 #options-switch-list .option-range-value {
-  font-size: 75%;
+  font-size: 65%;
   background: #222;
   border: var(--pixel-size) solid #333;
-  align-self: stretch;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -1013,20 +1051,16 @@ body.loaded #brutal-logo {
   height: calc((var(--tile-size) * 1.6) + 1vh) !important;
 }
 #options-switch-list .option-range-value.on {
-  font-size: 75%;
   background: rgb(77, 122, 73);
-  border: calc(var(--pixel-size) * 1) solid white;
+  border-color: white;
 }
 #options-switch-list .option-switch {
-  display: flex;
-  align-items: stretch;
-  justify-content: space-between;
-  height: 100%;  
-  /* width: calc(var(--tile-size) * 7) !important; */
-  width: calc((var(--tile-size) * 6.4) + 1vh) !important;  
+  border: calc(var(--pixel-size) / 2) solid #333;
+  height: 80%;  
+  width: calc((var(--tile-size) * 4) + 1vh) !important;  
   border-radius: calc(var(--pixel-size));
-  /* font-size: 90%; */
-  /* margin-bottom: calc((var(--tile-size) / 4) + 1vh); */
+  align-self: center;
+  margin-right: 1vh;
 }
 #options-switch-list .option-switch:hover > .switch-knob {
   opacity: 0.8;
@@ -1073,18 +1107,19 @@ body.loaded #brutal-logo {
   justify-content: center;
   font-size: 4vh;
   left: 50vw;
+  border: calc(var(--pixel-size) * 4) double transparent;
 }
 #confirm-mode-button {
   border: calc(var(--pixel-size) * 2) double var(--kf-green);
   max-width: 50vw;
   font-size: calc(var(--tile-size));
 }
-#close-options-button.close-button {
+#close-options-button {
   font-size: calc(var(--pixel-size) * 10);
   top: calc(var(--screen-height) - (var(--pixel-size) * 16));
-  /* width: calc(var(--game-width) / 3); */
   left: 50vw;
-  /* margin-top: calc(var(--tile-size) / 4) */
+  border: calc(var(--pixel-size) * 4) double transparent;
+  padding: calc(var(--pixel-size) * 10);
 }
 #options-screen.showing {
   display: flex;
@@ -1470,10 +1505,16 @@ body.scored #kung-fu-logo, body.scored #brutal-logo {
     /* height: var(--screen-height); */
     /* background-color:black; */
   }
-  #controls-button {
+  body:not(.gamepad-connected) #controls-button {
     display: none;
   }
   #turn-phone-shade, #turn-phone-instructions, #turn-phone-instructions > img {
+    display: none;
+  }
+  #gamepad-button {
+    display: none;
+  }
+  #options-screen #options-button-list {
     display: none;
   }
 }
@@ -1514,13 +1555,17 @@ body.scored #kung-fu-logo, body.scored #brutal-logo {
   }
   #title-screen {
     grid-template-rows: calc(var(--header-height) + (var(--tile-size) * 2)) 1fr;
-    z-index: 3;
+    /* z-index: 3; */
     /* background: transparent; */
   }
   #top-fighters-screen {
-    grid-template-rows: var(--header-height) calc(var(--tile-size) * 1.5) 1fr 1fr;    
+    grid-template-rows: 
+      var(--header-height) 
+      calc(var(--tile-size) * 1.5) 
+      1fr 
+      var(--header-height);    
     grid-template-columns: 8vw 1fr 8vw !important;
-    /* width: unset; */
+    width: unset;
     justify-items: center;
     max-width: 100vw !important;
   }
@@ -1545,54 +1590,48 @@ body.scored #kung-fu-logo, body.scored #brutal-logo {
     width: 100%;
   }
   #options-body {
-    width: unset;
-    width: 100% !important;
-    /* padding-top: calc(var(--tile-size) / 3); */
     display: flex;
-    align-items: stretch;
     justify-content: center;
   }
   #options-screen #options-switch-list {
+    width: calc(100% - var(--tile-size) * 2);
+    display: grid;
+    grid-template-columns: 0.5fr 0.5fr;
+    grid-template-rows: 1fr 1fr 1fr;
+    grid-column-gap: calc(var(--tile-size) / 2);
     align-items: center;
-    min-width: calc(var(--game-width)) !important;
-    /* padding-top: calc(var(--tile-size) / 2); */
+    justify-content: center;
   }
   #options-switch-list .option-row {
-    /* height: 9vh !important; */
-    width: 45%;
-    line-height: 3vh;
-    background: #111;
-    padding-right: 1vh;
-  }
-  #options-switch-list .option-row > .option-label {
-    /* padding: 0; */
-    /* justify-content: flex-start !important;     */
-    width: 100%;
-    height: 100%;
-    /* padding-left: 1.5vw; */
+    height: 13vh;
+    background: #191919;
+    align-items: center;
     
   }
   #options-switch-list .option-row > .option-switch {
-    width: 50% !important;
-    height: 75%;
-    margin: 0;
+    width: calc((var(--tile-size) * 2.4) + 1vh) !important;
+    height: 80%;
   }
   #top-fighters-screen .tab-area {
-    width: 100%;
+    /* width: calc(var(--game-width)); */
+    
     grid-column-gap: 0 !important;
     justify-items: center;
   }
   #top-fighters-screen .tab-area > .tab {
+    position: relative;
     transform: none !important;
-    /* width: 85%; */
+    width: 90%;
+    height: 90%;
     opacity: 1 !important;
     margin: 0 !important;
-    padding: 0 calc(var(--tile-size) / 2);
-    padding-top: calc(var(--tile-size) / 4);;
+    padding: 0;
+    /* padding: 0 calc(var(--tile-size) / 2); */
+    /* padding-top: calc(var(--tile-size) / 4);; */
   }
   .screen-header {
     background-size: auto 300%;
-    max-height: calc(var(--pixel-size) * 24);
+    max-height: calc(var(--pixel-size) * 20);
   }
   header {
     justify-content: space-between !important;
@@ -1601,16 +1640,16 @@ body.scored #kung-fu-logo, body.scored #brutal-logo {
     background-image: url(../assets/orangeswirldivider.png);
     background-size: contain;
     background-repeat: repeat-x;
-    min-height: calc(var(--pixel-size) * 5);
+    min-height: calc(var(--pixel-size) *6);
     min-width: var(--game-width);
   }
   #top-fighters-screen #scores-grid-area {
-    width: 100%;
+    width: max-content;
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, calc(84vw / 2));
     grid-template-rows: 1fr;
     justify-items: center;
-    justify-content: space-between;      
+    justify-content: space-around;    
   }
   #cookie-confirmation {
     font-size: calc(var(--pixel-size) * 4);
@@ -1624,20 +1663,17 @@ body.scored #kung-fu-logo, body.scored #brutal-logo {
   }
   .scores-grid {
     min-height: 100%;
-    width: 85%;
-    width: calc(var(--game-width) / 2);
-    min-width: calc(var(--game-width) / 3);
-    /* min-height: calc(var(--screen-height) - (var(--tile-size) * 6.5)) !important; */
-    max-height: calc(var(--screen-height) - (var(--tile-size) * 6.5)) !important;
-    /* max-width: 30vw; */
+    /* width: calc(var(--game-width) / 2); */
+    width: 90%;
+    max-width: 100%;
     color: white;
     font-size: 2.5vh;
     display: grid;
     grid-template-columns: 5vh 1fr min-content;
     grid-auto-rows: 5vh;
     border-radius: calc(var(--pixel-size) * 2);
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
     overflow-y: auto;
   }
   .scores-grid:first-child {
@@ -1728,7 +1764,10 @@ body.scored #kung-fu-logo, body.scored #brutal-logo {
     /* opacity: 0; */
   }
   #close-high-scores-button.close-button {
-    margin: 0;
+    padding: calc(var(--pixel-size) * 6)
+  }
+  #close-options-button {
+    padding: calc(var(--pixel-size) * 6);
   }
   #landscape-nes-controls {
     position: fixed;
@@ -1793,9 +1832,6 @@ body.scored #kung-fu-logo, body.scored #brutal-logo {
   #gamepad-y-control {
     display: none !important;
   }
-  #controls-button {
-    display: none;
-  }
 }
 
 /* physical keyboard ? */
@@ -1808,6 +1844,9 @@ body.scored #kung-fu-logo, body.scored #brutal-logo {
     z-index: 50;
   }
   #controls-button {
+    display: block;
+  }
+  #gamepad-controls-button {
     display: block;
   }
 }

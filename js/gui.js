@@ -4,9 +4,22 @@ let editingKeyForAction = false;
 let scoresToDisplay = 30;
 let textSpeed = 60;
 let slideSpeed = 1500;
-let highScoreTabSelected = 'story';
+highScoreTabSelected = 'story';
+optionSelected = 0;
+assigningButton = 0;
+assignableActions = ['PUNCH/WEAPON', 'KICK', 'THROW WEAPON'];
 let yearsAgo = new Date().getFullYear() - 1984;
 let skippingSlide = false;
+optionSelections = [
+  toggleSound,
+  toggleMusic,
+  toggleBlood,
+  toggleScanLines,
+  toggleFullScreen,
+  callKeyControlsScreen,
+  callGamepadSetupScreen,
+  toggleOptionsScreen
+];
 const storySlides = [
   {
     imagePath: '',
@@ -93,6 +106,29 @@ const storySlides = [
     caption: ``
   },
 ]
+function fullScreenCall() {
+  var root = document.body;
+  return root.requestFullscreen || root.webkitRequestFullscreen || root.mozRequestFullScreen || root.msRequestFullscreen;
+}
+function exitFullScreenCall() {
+  return document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+}
+function isFullScreen() {
+  return document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+}
+function toggleFullScreen() {
+  document.body.style.opacity = 0.3;
+  if (isFullScreen()) {
+    document.getElementById('full-screen-toggle').classList.remove('on');
+  } else {
+    document.getElementById('full-screen-toggle').classList.add('on');
+  }
+  if (!isFullScreen()) {
+    fullScreenCall().call(document.body);
+  } else {
+    exitFullScreenCall().call(document);
+  }
+}
 function secondsToMinutes(seconds) {
   let wholeMinutes = Math.floor(seconds/60);
   let result = '';
@@ -229,12 +265,38 @@ function checkIfPressing(spr) {
   }
   return pressing;
 }
+
+
+
+function toggleNameEntry(rankAchieved) {
+  if (document.getElementById('name-entry-screen').classList.contains('hidden')) {
+    document.body.classList.add('scored');
+    let displayScore = player.score;
+    if (gameMode === 'horde') {
+      displayScore = secondsToMinutes(player.score);
+    }
+    document.getElementById('player-high-score').innerText = displayScore;
+    document.getElementById('player-rank').innerText = `${suffixedNumber(rankAchieved)} PLACE`;
+  } else {
+    document.body.classList.remove('scored');
+  }
+  document.getElementById('name-entry-screen').classList.toggle('hidden'); 
+}
+function toggleHighScores() {
+  if (document.getElementById('top-fighters-screen').classList.contains('hidden')) {
+    getScoresFromDatabase('story', true);
+    getScoresFromDatabase('horde', true);
+  }
+  document.getElementById('top-fighters-screen').classList.toggle('hidden');
+}
 function toggleControlScreen() {
   controlScreenOn = !controlScreenOn;
   document.getElementById('controls-screen').classList.toggle('showing');  
 }
 function applyUserOptions(options) {
+  console.log('applying options', options)
   for (let option in defaultOptions) {
+    console.warn('doing option', option)
     if (options[option] !== defaultOptions[option]) {
       if (option === 'bloodOn') {
         toggleBlood();
@@ -245,6 +307,7 @@ function applyUserOptions(options) {
     }
   }
   gameOptions.actionKeys = {...options.actionKeys};
+  gameOptions.buttonMappings = {...options.buttonMappings};
   refreshAllKeyDisplay(gameOptions.actionKeys);
 }
 function nonDefaultOptions() {
@@ -1055,155 +1118,4 @@ function scoreBlip(amount, victim) {
 }
 function callModeSelectScreen() {
   document.getElementById('mode-select-screen').classList.remove('hidden');
-}
-function populateEntries(scrollToNewRecord) {
-  let storyGrid = document.getElementById('story-scores');
-  let hordeGrid = document.getElementById('horde-scores');
-  storyGrid.innerHTML = '';
-  hordeGrid.innerHTML = '';
-
-  let storyScores = scoreArray.filter(entry => entry.gameMode === 'story');
-  let hordeScores = scoreArray.filter(entry => entry.gameMode === 'horde');
-  if (storyScores.length > scoresToDisplay) { storyScores.length = scoresToDisplay }
-  if (hordeScores.length > scoresToDisplay) { hordeScores.length = scoresToDisplay }
-  [storyScores, hordeScores].map((scoreList, i) => {
-    scoreList.map((scoreEntry, s) => {
-      let rank = s + 1;
-      let name = scoreEntry.name;
-      let score = scoreEntry.score;
-      if (scoreEntry.gameMode === 'horde') {
-        score = secondsToMinutes(score)
-      }
-      let tintClass = s % 2 === 0 ? '' : 'gray-bg';
-      let highlightClass = '';
-      if (name == currentRecord.player && score.toString() == currentRecord.score.toString()) {        
-        highlightClass = 'highlighted';
-      }
-      [storyGrid, hordeGrid][i].innerHTML += `
-        <div class='score-rank ${tintClass}'>${rank}</div>
-        <div class='score-name ${tintClass} ${highlightClass}'>${name}</div>
-        <div class='score-amount ${tintClass} ${highlightClass}'>${score}</div>
-      `;
-    });
-  })
-  if (scrollToNewRecord) {
-    // scroll to player's new high score
-    let playerEntry = document.querySelector('.score-amount.highlighted');
-    if (playerEntry) {
-      // vertically center the entry on screen
-      // compensate for any amount already scrolled
-      let halfGrid = (properGrid.offsetHeight / 2) - (playerEntry.offsetHeight / 2);
-      let alreadyScrolled = playerEntry.parentElement.scrollTop;
-      playerEntry.parentElement.scrollBy(0, playerEntry.offsetTop - halfGrid - alreadyScrolled);
-    }
-  }
-};
-function submitHighScore() {
-  lastEnteredName = document.getElementById('name-entry').value.toUpperCase();
-  console.info('player submitting score', player)
-  saveScoreToDatabase(gameName, lastEnteredName, currentRecord.score);
-}
-function toggleNameEntry(rankAchieved) {
-  if (document.getElementById('name-entry-screen').classList.contains('hidden')) {
-    document.body.classList.add('scored');
-    let displayScore = player.score;
-    if (gameMode === 'horde') {
-      displayScore = secondsToMinutes(player.score);
-    }
-    document.getElementById('player-high-score').innerText = displayScore;
-    document.getElementById('player-rank').innerText = `${suffixedNumber(rankAchieved)} PLACE`;
-  } else {
-    document.body.classList.remove('scored');
-  }
-  document.getElementById('name-entry-screen').classList.toggle('hidden'); 
-}
-function toggleHighScores() {
-  if (document.getElementById('top-fighters-screen').classList.contains('hidden')) {
-    getScoresFromDatabase(gameName, true);
-  }
-  document.getElementById('top-fighters-screen').classList.toggle('hidden');
-}
-function getScoresFromDatabase(gameName, populate, check, scrollToNew) {
-  console.warn('calling for scores ----------------');
-  console.warn('gameName, populate, check, scrollToNew', gameName, populate, check, scrollToNew)
-  axios({
-    method: 'get',
-    url: 'https://www.eggborne.com/scripts/getbkfscores.php',
-    headers: {
-      'Content-type': 'application/x-www-form-urlencoded'
-    },
-    params: {
-      game: gameName
-    }
-  }).then((response) => {
-    if (response.data) {
-      scoreArray.length = 0;
-      response.data.split(' || ').filter(entry => entry).map(dbArr => {
-        let scoreEntry = JSON.parse(dbArr);
-        scoreArray.push({name: scoreEntry.name, score:scoreEntry.score, gameMode:scoreEntry.gameMode});
-      });
-      if (populate) {
-        populateEntries(scrollToNew);
-      }
-      topScores.story = scoreArray[0].score;
-      if (scoreDisplay) {
-        scoreDisplay.topText.text = 'TOP-' + ('0'.repeat(6 - topScores.story.toString().length) + topScores.story);
-      }
-      if (check) {
-        scoreArray = scoreArray.filter(scoreObj => scoreObj.gameMode === gameMode);
-        console.log('scoreArray', scoreArray);
-        console.log('scoreArray.length', scoreArray.length);
-        console.log('scoresToDisplay', scoresToDisplay)
-        let lowestIndex = scoresToDisplay - 1;
-        let lowScore = 0;
-        if (scoreArray.length < scoresToDisplay) {
-          lowScore = 0;
-        } else {
-          lowScore = scoreArray[lowestIndex].score;
-        }
-        console.warn('checking', player.score, 'against', lowScore);
-        if (player.score > lowScore) {
-          currentRecord.score = player.score;
-          let playerRank = findRank(player.score);
-          console.error('playerRank ------------------', playerRank)
-          console.error('full rank?', `${suffixedNumber(playerRank)} PLACE`);
-          toggleNameEntry(playerRank);
-        }        
-        resetGame();
-      }      
-
-    } else {
-      console.error('getScoresFromDatabase could not connect :(');
-      scoreArray = [['void', 1212]];
-    }
-  });
-}
-function saveScoreToDatabase(gameName, playerName, playerScore) {
-  currentRecord.player = playerName;
-  gameOptions.playerName = playerName;
-  let cookieExists = getCookie('brutalkungfu') !== undefined;
-  if (cookieExists) {
-    setCookie(JSON.stringify(gameOptions));
-  }
-  axios({
-    method: 'post',
-    url: 'https://www.eggborne.com/scripts/savebkfscores.php',
-    headers: {
-      'Content-type': 'application/x-www-form-urlencoded'
-    },
-    data: {
-      game: gameName,
-      name: playerName,
-      score: playerScore,
-      gameMode: gameMode
-    }
-  }).then(response => {
-    if (response.data) {
-      toggleNameEntry(); // off
-      toggleHighScores(); // on
-      getScoresFromDatabase(gameName, true, false, true);      
-    } else {
-      console.error('Could not connect to post score!');
-    }
-  });
 }

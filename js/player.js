@@ -47,6 +47,11 @@ class Fighter {
     this.fightingBoss = false;
     gameContainer.addChild(this.sprite);
   }
+
+  throwWeapon() {
+    console.log('pressed to thow')
+  }
+
   setAttributesToScale (newScale) {
     this.sprite.width = this.sprite.height = tileSize * 3 * newScale;
     this.walkSpeed = newScale * playerSpeed * (godMode ? 3 : 1.1);
